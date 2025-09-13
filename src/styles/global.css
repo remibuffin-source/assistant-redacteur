@@ -309,8 +309,8 @@ body {
 /* Sélection IA sans cadres avec activation réelle */
 .ai-selection-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   margin-top: -10px;
 }
 
@@ -328,10 +328,10 @@ body {
 }
 
 .ai-icon {
-  width: 90px;
-  height: 90px;
-  border-radius: 12px;
-  margin-bottom: 8px;
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  margin-bottom: 6px;
   transition: all 0.3s ease;
   background-size: contain;
   background-repeat: no-repeat;
@@ -344,16 +344,16 @@ body {
 }
 
 .ai-icon-img {
-  width: 60px;
-  height: 60px;
+  width: 45px;
+  height: 45px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .ai-icon-fallback {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 45px;
+  height: 45px;
+  border-radius: 6px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -413,9 +413,45 @@ body {
   line-height: 1.2;
 }
 
+.ai-icon-fallback.deepseek {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.ai-icon-fallback.grok {
+  background: linear-gradient(135deg, #000000, #333333);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.ai-icon-fallback.kimi2 {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
 .ai-check {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid #ffffff;
   background: #ffffff;
@@ -435,7 +471,7 @@ body {
   content: '✓';
   color: #ffffff;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .ai-btn-compact:hover .ai-icon {
@@ -449,10 +485,10 @@ body {
 }
 
 .ai-label {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 /* Type de média */

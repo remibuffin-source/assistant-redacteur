@@ -19,6 +19,24 @@ const AISelection = ({ selectedAI, onAISelect }) => {
       description: 'IA générative Google'
     },
     {
+      id: 'deepseek',
+      name: 'Deepseek',
+      icon: 'deepseek',
+      description: 'IA conversationnelle avancée'
+    },
+    {
+      id: 'grok',
+      name: 'Grok',
+      icon: 'grok',
+      description: 'IA de X (Twitter)'
+    },
+    {
+      id: 'kimi2',
+      name: 'Kimi2',
+      icon: 'kimi2',
+      description: 'Assistant IA nouvelle génération'
+    },
+    {
       id: 'elevenlabs',
       name: 'ElevenLabs',
       icon: 'elevenlabs',

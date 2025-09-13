@@ -25,6 +25,18 @@ curl -s -L "https://www.gstatic.com/gemini/favicon.ico" -o "$ICONS_DIR/gemini.ic
 echo "Téléchargement de ElevenLabs..."
 curl -s -L "https://elevenlabs.io/favicon.ico" -o "$ICONS_DIR/elevenlabs.ico" 2>/dev/null || echo "ElevenLabs icon non disponible"
 
+# Deepseek
+echo "Téléchargement de Deepseek..."
+curl -s -L "https://www.deepseek.com/favicon.ico" -o "$ICONS_DIR/deepseek.ico" 2>/dev/null || echo "Deepseek icon non disponible"
+
+# Grok (X AI)
+echo "Téléchargement de Grok..."
+curl -s -L "https://x.ai/favicon.ico" -o "$ICONS_DIR/grok.ico" 2>/dev/null || echo "Grok icon non disponible"
+
+# Kimi2 (Moonshot AI)
+echo "Téléchargement de Kimi2..."
+curl -s -L "https://kimi.moonshot.cn/favicon.ico" -o "$ICONS_DIR/kimi2.ico" 2>/dev/null || echo "Kimi2 icon non disponible"
+
 # Twitter/X
 echo "Téléchargement de Twitter/X..."
 curl -s -L "https://abs.twimg.com/favicons/twitter.ico" -o "$ICONS_DIR/twitter.ico" 2>/dev/null || echo "Twitter icon non disponible"

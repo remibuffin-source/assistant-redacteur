@@ -165,7 +165,7 @@ const MenuBar = ({ onHelp }) => {
       >
         <div className="menu-header">
           <div className="menu-left">
-            <img src="assets/logo-scb.png" alt="Studio du Cap Brun" />
+            <img src="/Studio du Cap Brun.png" alt="Studio du Cap Brun" />
             <h1 className="main-title">Assistant Rédactionnel</h1>
           </div>
           <div className="menu-buttons">
