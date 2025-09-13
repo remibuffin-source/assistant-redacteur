@@ -11,7 +11,6 @@ import ProcessingTasks from './components/ProcessingTasks'
 import OutputFormats from './components/OutputFormats'
 import AdvancedOptions from './components/AdvancedOptions'
 import ResultsManager from './components/ResultsManager'
-import AdminPanel from './components/AdminPanel'
 import HelpModal from './components/HelpModal'
 import RecordingStatus from './components/RecordingStatus'
 import DictationStatus from './components/DictationStatus'
@@ -223,7 +222,6 @@ function App() {
         </button>
       </div>
 
-      <AdminPanel />
       
       {showHelpModal && (
         <HelpModal onClose={() => setShowHelpModal(false)} />

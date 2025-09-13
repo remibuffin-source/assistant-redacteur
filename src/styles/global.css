@@ -336,26 +336,81 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-}
-
-.ai-icon.claude {
-  background-image: url('../assets/claude-logo.png');
-}
-
-.ai-icon.gpt4 {
-  background-image: url('../assets/gpt4-logo.png');
-}
-
-.ai-icon.gemini {
-  background-image: url('../assets/gemini-logo.png');
-}
-
-.ai-icon.elevenlabs {
-  background-image: url('../assets/logo-elevenlabs.png');
-}
-
-.ai-icon.custom {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.ai-icon-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.ai-icon-fallback {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.ai-icon-fallback.claude {
+  background: linear-gradient(135deg, #ff6b35, #e55a2b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.ai-icon-fallback.gpt4 {
+  background: linear-gradient(135deg, #10a37f, #0d8b6a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.ai-icon-fallback.gemini {
+  background: linear-gradient(135deg, #4285f4, #3367d6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.ai-icon-fallback.elevenlabs {
+  background: linear-gradient(135deg, #000000, #333333);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.ai-icon-fallback.custom {
+  background: linear-gradient(135deg, #64748b, #475569);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .ai-check {

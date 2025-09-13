@@ -51,7 +51,18 @@ const AISelection = ({ selectedAI, onAISelect }) => {
             onClick={() => handleAISelect(ai.id)}
             data-ai={ai.id}
           >
-            <div className={`ai-icon ${ai.icon}`}></div>
+            <div className="ai-icon">
+              <img
+                src={`/icons/${ai.icon}.ico`}
+                alt={ai.name}
+                className="ai-icon-img"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <div className={`ai-icon-fallback ${ai.icon}`} style={{display: 'none'}}></div>
+            </div>
             <div className="ai-check"></div>
             <div className="ai-label">{ai.name}</div>
           </div>
