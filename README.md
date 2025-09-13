@@ -1,180 +1,144 @@
-# Assistant Rédacteur React - Studio du Cap Brun
+# Assistant Rédactionnel - Studio du Cap Brun
 
-Une application web moderne pour la génération de contenu assistée par IA, migrée vers React avec Vite.
+Application React complète pour la génération de contenu assistée par IA avec interface professionnelle.
 
 ## 🚀 Fonctionnalités
 
-- **Sélection d'IA multiple** : Claude, GPT-4, Gemini
-- **Interface React moderne** : Composants réutilisables et hooks personnalisés
-- **Gestion d'état avancée** : useState, useEffect, useContext
-- **Sauvegarde automatique** : LocalStorage avec hooks personnalisés
-- **Thème sombre/clair** : Support natif avec persistance
-- **Design responsive** : Adapté mobile et desktop
-- **Génération de contenu** : Simulation et préparation pour APIs réelles
+- **Interface complète** conforme au modèle original Studio du Cap Brun
+- **Sélection de 5 IA** : Claude, GPT-4, Gemini, ElevenLabs, Personnalisé
+- **5 types de média** : Texte, Image, Vidéo, Audio, Code
+- **8 tâches de traitement** : Résumer, Développer, Extraire, Corriger, Idées, Réécriture, Analyse, Traduction
+- **3 zones de formats** : Réseaux sociaux, Communiquer, Écrire
+- **Options avancées** : Style, Longueur, Créativité, Adaptation
+- **Thème jour/nuit** avec persistance localStorage
+- **Sauvegarde automatique** des projets
+- **Interface responsive** complète
 
-## 🛠️ Installation et Démarrage
+## 🛠️ Technologies
 
-### Prérequis
-- Node.js 18+ (recommandé: 20+)
-- npm ou yarn
+- **React 19** avec Hooks
+- **Vite** pour le build et le développement
+- **CSS3** avec variables et animations
+- **LocalStorage** pour la persistance
+- **Font Awesome** pour les icônes
 
-### Installation
+## 📦 Installation et Développement
+
 ```bash
-cd react-app
+# Installer les dépendances
 npm install
-```
 
-### Développement
-```bash
+# Lancer le serveur de développement
 npm run dev
-```
-Ouvrez http://localhost:5173
 
-### Build de production
-```bash
+# Build de production
 npm run build
-```
 
-### Preview production
-```bash
+# Prévisualiser le build
 npm run preview
 ```
 
-## 📁 Structure du Projet React
+## 🌐 Déploiement Netlify
+
+### Configuration Requise
+
+**Build Settings dans Netlify :**
+- **Base directory:** `react-app` (si dépôt racine) ou laisser vide si dans le dossier react-app
+- **Build command:** `npm run build`
+- **Publish directory:** `dist`
+
+### Configuration Netlify (déjà incluse)
+
+Le fichier [`netlify.toml`](netlify.toml:1) contient toute la configuration nécessaire :
+
+```toml
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+### Étapes de Déploiement
+
+1. **Connecter GitHub à Netlify**
+   - Aller sur [Netlify](https://netlify.com)
+   - Cliquer sur "Import from Git"
+   - Sélectionner GitHub et autoriser l'accès
+   - Choisir le dépôt `assistant-redacteur`
+
+2. **Configurer l'équipe**
+   - Sélectionner l'équipe "Studio du Cap Brun"
+   - Déployer en tant que "remibuffin"
+
+3. **Paramètres de build**
+   - **Branch to deploy:** `main`
+   - **Base directory:** (laisser vide si dans react-app)
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+
+4. **Variables d'environnement** (optionnel)
+   - Ajouter les clés API dans Netlify > Site settings > Environment variables
+
+## 📁 Structure du Projet
 
 ```
 react-app/
+├── public/                 # Fichiers statiques
 ├── src/
-│   ├── components/          # Composants React
-│   │   ├── ThemeToggle.jsx
-│   │   ├── ProjectInfo.jsx
-│   │   ├── AISelection.jsx
-│   │   ├── ContentInput.jsx
-│   │   └── ResultsDisplay.jsx
-│   ├── hooks/              # Hooks personnalisés
-│   │   ├── useTheme.js
-│   │   ├── useLocalStorage.js
-│   │   └── useAIGeneration.js
-│   ├── services/           # Services métier
-│   │   └── aiService.js
-│   ├── styles/            # Styles CSS
-│   │   └── global.css
-│   ├── App.jsx            # Composant principal
-│   └── main.jsx           # Point d'entrée
-├── public/                # Fichiers statiques
-├── dist/                 # Build de production
-└── package.json
+│   ├── components/        # Composants React
+│   │   ├── MenuBar.jsx   # Menu amovible
+│   │   ├── ProjectInfo.jsx # Informations projet
+│   │   ├── AISelection.jsx # Sélection IA
+│   │   ├── MediaType.jsx  # Types de média
+│   │   ├── UploadArea.jsx # Zone de collecte
+│   │   ├── ProcessingTasks.jsx # Tâches de traitement
+│   │   ├── OutputFormats.jsx # Formats de sortie
+│   │   ├── AdvancedOptions.jsx # Options avancées
+│   │   ├── ResultsManager.jsx # Gestion résultats
+│   │   ├── AdminPanel.jsx # Panel administrateur
+│   │   └── HelpModal.jsx  # Modal d'aide
+│   ├── hooks/            # Hooks personnalisés
+│   ├── services/         # Services API
+│   ├── styles/           # Styles CSS
+│   └── App.jsx          # Composant principal
+├── netlify.toml         # Configuration Netlify
+├── package.json         # Dépendances
+└── vite.config.js      # Configuration Vite
 ```
 
-## 🔧 Configuration
+## 🔧 Configuration API
 
-### Variables d'environnement
-Copiez le fichier `.env.example` en `.env.local` et configurez vos clés API :
+Pour utiliser les vraies API IA, configurez les clés dans Netlify :
 
-```env
-VITE_OPENAI_API_KEY=votre_cle_openai
-VITE_ANTHROPIC_API_KEY=votre_cle_anthropic  
-VITE_GEMINI_API_KEY=votre_cle_gemini
-```
+1. Aller dans Netlify > Site settings > Environment variables
+2. Ajouter les variables :
+   - `VITE_OPENAI_API_KEY` pour GPT-4
+   - `VITE_ANTHROPIC_API_KEY` pour Claude
+   - `VITE_GEMINI_API_KEY` pour Gemini
+   - `VITE_ELEVENLABS_API_KEY` pour ElevenLabs
 
-### APIs IA Actuelles
-L'application utilise actuellement une simulation. Pour utiliser les vraies APIs :
+## 📊 Scripts Disponibles
 
-1. Décommentez les méthodes dans `src/services/aiService.js`
-2. Ajoutez vos clés API dans `.env.local`
-3. Adaptez les appels dans `useAIGeneration` hook
+- `npm run dev` - Lance le serveur de développement
+- `npm run build` - Build de production
+- `npm run preview` - Prévisualise le build
+- `npm run lint` - Vérification ESLint
 
 ## 🎨 Personnalisation
 
-### Styles
-Modifiez `src/styles/global.css` pour personnaliser :
-- Variables CSS dans `:root`
-- Thèmes light/dark
-- Responsive design
-
-### Composants
-Chaque composant est modulaire et réutilisable :
-- `ProjectInfo` : Informations du projet
-- `AISelection` : Choix du modèle IA  
-- `ContentInput` : Zone de texte principale
-- `ResultsDisplay` : Affichage des résultats
-
-## 📦 Déploiement
-
-### Vercel (Recommandé)
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-### Netlify
-```bash
-npm run build
-# Drag & drop le dossier dist/ sur Netlify
-```
-
-### AWS S3 + CloudFront
-```bash
-npm run build
-aws s3 sync dist/ s3://votre-bucket --delete
-```
-
-### Docker
-```dockerfile
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-```
-
-## 🔄 Migration depuis la version vanilla
-
-La migration comprend :
-- ✅ Conversion des classes JavaScript en hooks React
-- ✅ Structuration modulaire en composants
-- ✅ Gestion d'état avec useState/useEffect
-- ✅ Persistance des données avec LocalStorage
-- ✅ Styles CSS migrés et organisés
-- ✅ Services métier découplés
-
-## 🐛 Dépannage
-
-### Problèmes courants
-- **Erreur Node.js version** : Utilisez Node.js 18+
-- **Styles non chargés** : Vérifiez les imports CSS
-- **API non disponibles** : Configurez les variables d'environnement
-
-### Debugging
-```bash
-# Mode développement avec logs
-npm run dev
-
-# Build avec sourcemaps
-npm run build -- --sourcemap
-```
-
-## 📄 Licence
-
-MIT License - Voir le fichier LICENSE pour plus de détails.
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Pour contribuer :
-1. Fork le projet
-2. Créez une branche feature
-3. Committez vos changements
-4. Push vers la branche
-5. Ouvrez une Pull Request
+Les styles sont entièrement personnalisables dans [`src/styles/global.css`](src/styles/global.css:1) avec variables CSS pour le thème jour/nuit.
 
 ## 📞 Support
 
-Pour toute question ou problème, contactez le support technique.
+Pour toute question concernant le déploiement ou la configuration, consulter la [documentation Netlify](https://docs.netlify.com/).
 
 ---
 
-Développé avec ❤️ par Studio du Cap Brun - Migré vers React en 2024
+**Studio du Cap Brun** - Développé avec ❤️ pour la création de contenu assistée par IA
