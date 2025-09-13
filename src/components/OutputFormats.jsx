@@ -61,7 +61,14 @@ const OutputFormats = ({ selectedFormats, onFormatToggle }) => {
                 data-format={format.id}
               >
                 {format.type === 'image' ? (
-                  <img src={`assets/${format.icon}.png`} alt={format.name} />
+                  <img src={`/icons/${format.icon}.ico`} alt={format.name}
+                       onError={(e) => {
+                         e.target.style.display = 'none';
+                         const fallback = document.createElement('i');
+                         fallback.className = `fab fa-${format.icon}`;
+                         e.target.parentNode.insertBefore(fallback, e.target.nextSibling);
+                       }}
+                  />
                 ) : (
                   <i className={format.icon}></i>
                 )}
