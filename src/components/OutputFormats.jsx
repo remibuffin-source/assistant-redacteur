@@ -6,10 +6,12 @@ const OutputFormats = ({ selectedFormats, onFormatToggle }) => {
       formats: [
         { id: 'post-facebook', name: 'Facebook', icon: 'facebook', type: 'image' },
         { id: 'post-instagram', name: 'Instagram', icon: 'instagram', type: 'image' },
-        { id: 'post-twitter', name: 'Twitter', icon: 'twitter', type: 'image' },
+        { id: 'post-x', name: 'X', icon: 'twitter', type: 'image' },
         { id: 'post-linkedin', name: 'LinkedIn', icon: 'linkedin', type: 'image' },
         { id: 'video-youtube', name: 'YouTube', icon: 'youtube', type: 'image' },
-        { id: 'video-tiktok', name: 'TikTok', icon: 'tiktok', type: 'image' }
+        { id: 'video-tiktok', name: 'TikTok', icon: 'tiktok', type: 'image' },
+        { id: 'my-blog', name: 'Mon Blog', icon: 'fas fa-blog', type: 'icon' },
+        { id: 'my-website', name: 'Mon Site', icon: 'fas fa-globe', type: 'icon' }
       ]
     },
     {

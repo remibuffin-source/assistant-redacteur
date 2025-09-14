@@ -5,7 +5,6 @@ import { useTheme } from './hooks/useTheme'
 import MenuBar from './components/MenuBar'
 import ProjectInfo from './components/ProjectInfo'
 import AISelection from './components/AISelection'
-import MediaType from './components/MediaType'
 import UploadArea from './components/UploadArea'
 import ProcessingTasks from './components/ProcessingTasks'
 import OutputFormats from './components/OutputFormats'
@@ -29,7 +28,6 @@ function App() {
   } = useAIGeneration()
 
   const [selectedAI, setSelectedAI] = useState(autoSaveData.selectedAI || null)
-  const [selectedMedia, setSelectedMedia] = useState(autoSaveData.selectedMedia || null)
   const [selectedTasks, setSelectedTasks] = useState(autoSaveData.selectedTasks || [])
   const [selectedFormats, setSelectedFormats] = useState(autoSaveData.selectedFormats || [])
   const [showHelpModal, setShowHelpModal] = useState(false)
@@ -39,7 +37,6 @@ function App() {
   const [projectData, setProjectData] = useState({
     projectTitle: autoSaveData.projectTitle || '',
     targetAudience: autoSaveData.targetAudience || '',
-    keywords: autoSaveData.keywords || '',
     tone: autoSaveData.tone || '',
     projectDescription: autoSaveData.projectDescription || ''
   })
@@ -57,12 +54,10 @@ function App() {
     updateAutoSave({
       projectTitle: projectData.projectTitle,
       targetAudience: projectData.targetAudience,
-      keywords: projectData.keywords,
       tone: projectData.tone,
       projectDescription: projectData.projectDescription,
       contentInput: content,
       selectedAI: selectedAI,
-      selectedMedia: selectedMedia,
       selectedTasks: selectedTasks,
       selectedFormats: selectedFormats,
       style: advancedOptions.style,
@@ -70,7 +65,7 @@ function App() {
       creativity: advancedOptions.creativity,
       adaptation: advancedOptions.adaptation
     })
-  }, [projectData, content, selectedAI, selectedMedia, selectedTasks, selectedFormats, advancedOptions, updateAutoSave])
+  }, [projectData, content, selectedAI, selectedTasks, selectedFormats, advancedOptions, updateAutoSave])
 
   const handleProjectDataChange = (newData) => {
     setProjectData(newData)
@@ -82,10 +77,6 @@ function App() {
 
   const handleAISelect = (aiId) => {
     setSelectedAI(aiId)
-  }
-
-  const handleMediaSelect = (mediaType) => {
-    setSelectedMedia(mediaType)
   }
 
   const handleTaskToggle = (taskId) => {
@@ -112,11 +103,9 @@ function App() {
     await generateContent(selectedAI, {
       title: projectData.projectTitle,
       audience: projectData.targetAudience,
-      keywords: projectData.keywords,
       tone: projectData.tone,
       description: projectData.projectDescription,
       content: content,
-      media: selectedMedia,
       tasks: selectedTasks,
       format: selectedFormats[0],
       style: advancedOptions.style,
@@ -155,7 +144,7 @@ function App() {
       <MenuBar onHelp={() => setShowHelpModal(true)} />
       
       <div className="main-container">
-        {/* Sections horizontales (3 premiers onglets) */}
+        {/* Sections horizontales (2 premiers onglets) */}
         <div className="top-sections-horizontal">
           <ProjectInfo 
             data={projectData}
@@ -166,11 +155,6 @@ function App() {
             <AISelection 
               selectedAI={selectedAI}
               onAISelect={handleAISelect}
-            />
-
-            <MediaType 
-              selectedMedia={selectedMedia}
-              onMediaSelect={handleMediaSelect}
             />
           </div>
         </div>
@@ -197,29 +181,31 @@ function App() {
           onOptionsChange={handleAdvancedOptionsChange}
         />
 
-        <ResultsManager 
-          result={result}
-          onCopy={handleCopy}
-          onDownload={handleDownload}
-        />
-
-        <button 
-          className={`generate-btn ${isLoading ? 'loading' : ''}`}
-          onClick={handleGenerate}
-          disabled={isLoading || !selectedAI || !content}
-        >
-          {isLoading ? (
-            <>
-              <div className="loader"></div>
-              Génération en cours...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-magic"></i>
-              Générer le contenu
-            </>
-          )}
-        </button>
+        <div className="generate-section">
+          <ResultsManager
+            result={result}
+            onCopy={handleCopy}
+            onDownload={handleDownload}
+          />
+          
+          <button
+            className={`generate-btn ${isLoading ? 'loading' : ''}`}
+            onClick={handleGenerate}
+            disabled={isLoading || !selectedAI || !content}
+          >
+            {isLoading ? (
+              <>
+                <div className="loader"></div>
+                Génération en cours...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-rocket"></i>
+                Lancer la génération
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       

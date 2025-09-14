@@ -4,7 +4,6 @@ const ProjectInfo = ({ data, onDataChange }) => {
   const [formData, setFormData] = useState({
     projectTitle: '',
     targetAudience: '',
-    keywords: '',
     tone: '',
     projectDescription: ''
   });
@@ -28,56 +27,43 @@ const ProjectInfo = ({ data, onDataChange }) => {
         Informations du Projet
       </h3>
       
-      {/* Première ligne : Titre du projet & Public cible */}
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="projectTitle">Titre du projet</label>
-          <input
-            type="text"
-            id="projectTitle"
-            placeholder="Nom de votre projet"
-            value={formData.projectTitle}
-            onChange={(e) => handleInputChange('projectTitle', e.target.value)}
-            data-tooltip="Donnez un nom descriptif à votre projet pour le retrouver facilement dans l'historique et organiser vos créations"
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="targetAudience">Public cible</label>
-          <input
-            type="text"
-            id="targetAudience"
-            placeholder="Votre audience"
-            value={formData.targetAudience}
-            onChange={(e) => handleInputChange('targetAudience', e.target.value)}
-            data-tooltip="Décrivez précisément qui sont vos lecteurs cibles : âge, profession, centres d'intérêt, niveau d'expertise, besoins spécifiques"
-          />
-        </div>
+      {/* Titre du projet */}
+      <div className="form-group">
+        <label htmlFor="projectTitle">Titre du projet</label>
+        <input
+          type="text"
+          id="projectTitle"
+          placeholder="Nom de votre projet"
+          value={formData.projectTitle}
+          onChange={(e) => handleInputChange('projectTitle', e.target.value)}
+          data-tooltip="Donnez un nom descriptif à votre projet pour le retrouver facilement dans l'historique et organiser vos créations"
+        />
       </div>
 
-      {/* Deuxième ligne : Mots-clés & Ton souhaité */}
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="keywords">Mots-clés</label>
-          <input
-            type="text"
-            id="keywords"
-            placeholder="Mots-clés principaux"
-            value={formData.keywords}
-            onChange={(e) => handleInputChange('keywords', e.target.value)}
-            data-tooltip="Listez les mots-clés principaux que vous souhaitez voir apparaître dans le contenu pour optimiser le référencement et la pertinence du message"
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="tone">Ton souhaité</label>
-          <input
-            type="text"
-            id="tone"
-            placeholder="Style de rédaction"
-            value={formData.tone}
-            onChange={(e) => handleInputChange('tone', e.target.value)}
-            data-tooltip="Définissez le style de communication souhaité : professionnel, décontracté, expert, pédagogique, commercial, inspirant, technique, etc."
-          />
-        </div>
+      {/* Public cible avec infobulle améliorée */}
+      <div className="form-group">
+        <label htmlFor="targetAudience">Public cible</label>
+        <input
+          type="text"
+          id="targetAudience"
+          placeholder="Ex: Professionnels 30-45 ans, secteur tech"
+          value={formData.targetAudience}
+          onChange={(e) => handleInputChange('targetAudience', e.target.value)}
+          data-tooltip="Décrivez précisément votre audience : âge, profession, centres d'intérêt, niveau d'expertise, besoins spécifiques. Ex: 'Jeunes entrepreneurs 25-35 ans recherchant des conseils pratiques en marketing digital'"
+        />
+      </div>
+
+      {/* Ton souhaité avec infobulle améliorée */}
+      <div className="form-group">
+        <label htmlFor="tone">Ton souhaité</label>
+        <input
+          type="text"
+          id="tone"
+          placeholder="Ex: Professionnel et engageant"
+          value={formData.tone}
+          onChange={(e) => handleInputChange('tone', e.target.value)}
+          data-tooltip="Définissez le style de communication : professionnel, décontracté, expert, pédagogique, commercial, inspirant, technique, humoristique. Ex: 'Ton professionnel mais accessible avec une touche d'enthousiasme'"
+        />
       </div>
 
       {/* Description du projet */}
@@ -85,10 +71,10 @@ const ProjectInfo = ({ data, onDataChange }) => {
         <label htmlFor="projectDescription">Description du projet</label>
         <textarea
           id="projectDescription"
-          placeholder="Décrivez votre projet en détail..."
+          placeholder="Décrivez votre projet, ses objectifs et le contexte..."
           value={formData.projectDescription}
           onChange={(e) => handleInputChange('projectDescription', e.target.value)}
-          data-tooltip="Décrivez en détail votre projet, ses objectifs, le contexte, les contraintes particulières et toute information utile pour l'IA"
+          data-tooltip="Décrivez en détail votre projet : objectifs principaux, contexte spécifique, contraintes particulières, informations clés à inclure, et toute directive utile pour guider l'IA dans la création du contenu"
         />
       </div>
     </div>

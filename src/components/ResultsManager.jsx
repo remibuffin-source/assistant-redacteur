@@ -24,16 +24,44 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
               <i className="fas fa-check-circle"></i>
               Contenu généré avec succès!
             </div>
-            <div className="result-content">
-              <pre>{result.content}</pre>
-            </div>
-            <div className="result-actions">
-              <button className="btn btn-secondary" onClick={onCopy}>
-                <i className="fas fa-copy"></i> Copier
-              </button>
-              <button className="btn btn-secondary" onClick={onDownload}>
-                <i className="fas fa-download"></i> Télécharger
-              </button>
+            <div className="results-grid">
+              <div className="result-card">
+                <div className="result-card-header">
+                  <i className="fas fa-file-alt"></i>
+                  <h4>Contenu généré</h4>
+                </div>
+                <div className="result-card-content">
+                  <div className="result-preview">
+                    {result.content.length > 200
+                      ? `${result.content.substring(0, 200)}...`
+                      : result.content
+                    }
+                  </div>
+                  <div className="result-stats">
+                    <span className="stat">
+                      <i className="fas fa-font"></i>
+                      {result.content.split(' ').length} mots
+                    </span>
+                    <span className="stat">
+                      <i className="fas fa-clock"></i>
+                      {Math.ceil(result.content.length / 1000)} min lecture
+                    </span>
+                  </div>
+                </div>
+                <div className="result-card-actions">
+                  <button className="btn-view-full" onClick={() => setActiveTab('full')}>
+                    <i className="fas fa-expand"></i> Voir en entier
+                  </button>
+                  <div className="action-buttons">
+                    <button className="btn-action" onClick={onCopy} title="Copier">
+                      <i className="fas fa-copy"></i>
+                    </button>
+                    <button className="btn-action" onClick={onDownload} title="Télécharger">
+                      <i className="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -52,18 +80,70 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
     const historyData = JSON.parse(localStorage.getItem('projectHistory') || '[]');
     
     return (
-      <div className="history-list">
+      <div className="history-grid">
         {historyData.length === 0 ? (
-          <p>Aucun historique disponible</p>
+          <div className="empty-state">
+            <i className="fas fa-history"></i>
+            <p>Aucun historique disponible</p>
+          </div>
         ) : (
-          <ul>
+          <div className="history-cards">
             {historyData.map((project, index) => (
-              <li key={index}>
-                <strong>{project.title || 'Projet sans nom'}</strong> - {new Date(project.timestamp).toLocaleDateString()}
-              </li>
+              <div key={index} className="history-card">
+                <div className="history-card-header">
+                  <h4>{project.title || 'Projet sans nom'}</h4>
+                  <span className="history-date">
+                    {new Date(project.timestamp).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="history-card-preview">
+                  {project.content && project.content.length > 100
+                    ? `${project.content.substring(0, 100)}...`
+                    : project.content || 'Aucun contenu'
+                  }
+                </div>
+                <div className="history-card-stats">
+                  <span className="stat">
+                    <i className="fas fa-font"></i>
+                    {project.content ? project.content.split(' ').length : 0} mots
+                  </span>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
+      </div>
+    );
+  };
+
+  const renderFullContentTab = () => {
+    if (!result) {
+      return (
+        <div className="result-area">
+          <p>Aucun résultat disponible.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="full-content-view">
+        <div className="full-content-header">
+          <button className="btn-back" onClick={() => setActiveTab('current')}>
+            <i className="fas fa-arrow-left"></i> Retour aux vignettes
+          </button>
+          <h4>Contenu complet</h4>
+        </div>
+        <div className="full-content">
+          <pre>{result.content}</pre>
+        </div>
+        <div className="full-content-actions">
+          <button className="btn-action-large" onClick={onCopy}>
+            <i className="fas fa-copy"></i> Copier le contenu
+          </button>
+          <button className="btn-action-large" onClick={onDownload}>
+            <i className="fas fa-download"></i> Télécharger
+          </button>
+        </div>
       </div>
     );
   };
@@ -71,7 +151,11 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
   const renderCompareTab = () => {
     return (
       <div className="comparison-view">
-        <p>Sélectionnez des résultats à comparer</p>
+        <div className="comparison-placeholder">
+          <i className="fas fa-columns"></i>
+          <h4>Comparaison de résultats</h4>
+          <p>Sélectionnez des projets dans l'historique pour les comparer</p>
+        </div>
       </div>
     );
   };
@@ -98,13 +182,22 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
         >
           Historique
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'compare' ? 'active' : ''}`}
           onClick={() => handleTabChange('compare')}
           data-tab="compare"
         >
           Comparaison
         </button>
+        {result && (
+          <button
+            className={`tab-btn ${activeTab === 'full' ? 'active' : ''}`}
+            onClick={() => handleTabChange('full')}
+            data-tab="full"
+          >
+            Vue complète
+          </button>
+        )}
       </div>
       
       <div className="results-content">
@@ -118,6 +211,10 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
         
         <div className={`tab-content ${activeTab === 'compare' ? 'active' : ''}`} id="compare">
           {renderCompareTab()}
+        </div>
+        
+        <div className={`tab-content ${activeTab === 'full' ? 'active' : ''}`} id="full">
+          {renderFullContentTab()}
         </div>
       </div>
     </div>

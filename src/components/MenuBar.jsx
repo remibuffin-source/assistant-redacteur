@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../hooks/useTheme';
 
 const MenuBar = ({ onHelp }) => {
+  const { toggleTheme, currentTheme } = useTheme();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [menuTimeout, setMenuTimeout] = useState(null);
 
@@ -200,6 +202,9 @@ const MenuBar = ({ onHelp }) => {
             <button className="menu-btn" onClick={() => handleMenuClick('subscription')}>
               <i className="fas fa-crown"></i>
               <span>Abonnements</span>
+            </button>
+            <button className="theme-toggle-btn" onClick={toggleTheme} title={`Passer en mode ${currentTheme === 'dark' ? 'jour' : 'nuit'}`}>
+              <i className={`fas fa-${currentTheme === 'dark' ? 'sun' : 'moon'}`}></i>
             </button>
             <button className="help-btn" onClick={onHelp}>?</button>
           </div>

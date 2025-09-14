@@ -23,10 +23,48 @@ export const useAIGeneration = () => {
 
     try {
       const generationResult = await AIService.generateContent(aiType, data);
-      setResult(generationResult);
+      
+      if (generationResult.success) {
+        setResult(generationResult);
+      } else {
+        // Gestion spécifique des erreurs OpenAI
+        let errorMessage = generationResult.error || 'Erreur lors de la génération du contenu';
+        
+        // Messages d'erreur plus informatifs
+        if (errorMessage.includes('OpenAI')) {
+          if (errorMessage.includes('401')) {
+            errorMessage = 'Clé API OpenAI invalide. Vérifiez votre configuration dans .env.local';
+          } else if (errorMessage.includes('429')) {
+            errorMessage = 'Quota OpenAI dépassé. Veuillez réessayer plus tard ou vérifier votre abonnement.';
+          } else if (errorMessage.includes('Failed to deserialize')) {
+            errorMessage = 'Erreur de formatage des données OpenAI. Le contenu peut être trop long ou mal formaté.';
+          }
+        }
+        
+        setError(errorMessage);
+        setResult({
+          success: false,
+          error: errorMessage,
+          // Fournir un contenu simulé en cas d'erreur
+          content: generationResult.content || 'Impossible de générer du contenu en raison d\'une erreur technique.'
+        });
+      }
     } catch (err) {
-      setError(err.message || 'Erreur lors de la génération du contenu');
-      setResult({ success: false });
+      console.error('Erreur dans useAIGeneration:', err);
+      
+      let errorMessage = err.message || 'Erreur lors de la génération du contenu';
+      
+      // Détection spécifique des erreurs de réseau
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+        errorMessage = 'Erreur de connexion. Vérifiez votre connexion internet.';
+      }
+      
+      setError(errorMessage);
+      setResult({
+        success: false,
+        error: errorMessage,
+        content: 'Erreur technique lors de la génération. Veuillez réessayer.'
+      });
     } finally {
       setIsLoading(false);
     }

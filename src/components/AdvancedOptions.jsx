@@ -22,11 +22,11 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
 
   const updateLengthTooltip = (value) => {
     const lengths = {
-      1: "~100 mots",
-      2: "~300 mots", 
-      3: "~500 mots",
-      4: "~800 mots",
-      5: "~1200 mots"
+      1: "20% - Très court",
+      2: "40% - Court",
+      3: "60% - Moyen",
+      4: "80% - Long",
+      5: "100% - Très long"
     };
     return lengths[value];
   };
