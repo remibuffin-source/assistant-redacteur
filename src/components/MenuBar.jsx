@@ -63,7 +63,7 @@ const MenuBar = ({ onHelp }) => {
             // Charger les données du projet
             console.log('Projet chargé:', data);
             alert('Projet chargé avec succès !');
-          } catch (error) {
+          } catch {
             alert('Erreur lors du chargement du fichier');
           }
         };
@@ -102,7 +102,7 @@ const MenuBar = ({ onHelp }) => {
       historyHtml += '<p>Aucun projet dans l\'historique</p>';
     } else {
       historyHtml += '<ul>';
-      historyData.forEach((project, index) => {
+      historyData.forEach((project, _index) => {
         historyHtml += `<li><strong>${project.title || 'Projet sans nom'}</strong> - ${new Date(project.timestamp).toLocaleDateString()}</li>`;
       });
       historyHtml += '</ul>';

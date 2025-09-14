@@ -88,7 +88,14 @@ ${templates[aiType] || `Contenu généré par ${aiType}:\n\n${data.content}`}
 
   // Méthodes pour les appels API réels
   static async callOpenAIAPI(prompt, options = {}) {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    let apiKey;
+    try {
+      // Pour Vite en développement
+      apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    } catch {
+      // Pour Jest en test
+      apiKey = process.env.VITE_OPENAI_API_KEY || 'test-api-key';
+    }
     
     if (!apiKey || apiKey === 'votre_cle_api_openai_ici') {
       throw new Error('Clé API OpenAI non configurée. Veuillez configurer VITE_OPENAI_API_KEY dans votre fichier .env.local');
@@ -157,18 +164,18 @@ ${templates[aiType] || `Contenu généré par ${aiType}:\n\n${data.content}`}
     }
   }
 
-  static async callClaudeAPI(prompt, options = {}) {
+  static async callClaudeAPI(prompt, _options = {}) {
     // Implémentation réelle pour Claude
     throw new Error('Claude API not implemented');
   }
 
-  static async callGeminiAPI(prompt, options = {}) {
+  static async callGeminiAPI(prompt, _options = {}) {
     // Implémentation réelle pour Gemini
     throw new Error('Gemini API not implemented');
   }
 
   // Méthode principale avec gestion d'erreurs améliorée
-  static async generateContent(aiType, data) {
+  static async generateAIContent(aiType, data) {
     try {
       // Pour l'instant, on garde la simulation par défaut
       // mais on pourrait basculer vers des appels réels

@@ -21,15 +21,21 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
   };
 
   const updateLengthTooltip = (value) => {
-    const lengths = {
-      1: "20% - Très court",
-      2: "40% - Court",
-      3: "60% - Moyen",
-      4: "80% - Long",
-      5: "100% - Très long"
+    const percentages = {
+      1: "20% - Très court (20% de la longueur normale)",
+      2: "40% - Court (40% de la longueur normale)",
+      3: "60% - Moyen (60% de la longueur normale)",
+      4: "80% - Long (80% de la longueur normale)",
+      5: "100% - Normal (100% de la longueur normale)",
+      6: "120% - Long (120% de la longueur normale)",
+      7: "140% - Très long (140% de la longueur normale)",
+      8: "160% - Extra long (160% de la longueur normale)",
+      9: "180% - Maximum (180% de la longueur normale)",
+      10: "200% - Très maximum (200% de la longueur normale)"
     };
-    return lengths[value];
+    return percentages[value];
   };
+
 
   return (
     <div className="section">
@@ -110,16 +116,16 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
         <div className="option-group-original">
           <h4>Longueur du contenu</h4>
           <div className="slider-container-original length-slider-container">
-            <label>Court</label>
-            <input 
-              type="range" 
-              id="lengthSlider" 
-              min="1" 
-              max="5" 
+            <label>20%</label>
+            <input
+              type="range"
+              id="lengthSlider"
+              min="1"
+              max="10"
               value={localOptions.length}
               onChange={(e) => handleOptionChange('length', parseInt(e.target.value))}
             />
-            <label>Long</label>
+            <label>200%</label>
             <div className="length-tooltip">
               {updateLengthTooltip(localOptions.length)}
             </div>
@@ -128,11 +134,11 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
           <h4 style={{ marginTop: '22px' }}>Niveau de créativité</h4>
           <div className="slider-container-original">
             <label>Conservateur</label>
-            <input 
-              type="range" 
-              id="creativitySlider" 
-              min="1" 
-              max="5" 
+            <input
+              type="range"
+              id="creativitySlider"
+              min="1"
+              max="5"
               value={localOptions.creativity}
               onChange={(e) => handleOptionChange('creativity', parseInt(e.target.value))}
             />

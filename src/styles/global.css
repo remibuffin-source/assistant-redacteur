@@ -1,26 +1,26 @@
 
 /* Variables CSS pour le thème jour/nuit */
 :root {
-  --bg-primary: #2c3e50;
-  --bg-secondary: rgba(255, 255, 255, 0.05);
+  --bg-primary: #253445; /* Assombri de 10% */
+  --bg-secondary: rgba(255, 255, 255, 0.04); /* Assombri de 10% */
   --text-primary: #ffffff;
   --text-secondary: #ecf0f1;
   --accent-color: #ff6b35;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --border-color: rgba(255, 255, 255, 0.08); /* Assombri de 10% */
+  --shadow-color: rgba(0, 0, 0, 0.35);
   --input-bg: rgba(255, 255, 255, 0.95);
   --button-border-on: #ffffff;
   --label-color: #ff6b35;
 }
 
 [data-theme="light"] {
-  --bg-primary: #f5f5f5;
-  --bg-secondary: rgba(242, 242, 242, 0.9);
+  --bg-primary: #e8e8e8; /* Assombri de 10% */
+  --bg-secondary: rgba(230, 230, 230, 0.9); /* Assombri de 10% */
   --text-primary: #1a1a1a;
   --text-secondary: #2c2c2c;
-  --border-color: rgba(0, 0, 0, 0.1);
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --input-bg: rgba(242, 242, 242, 0.95);
+  --border-color: rgba(0, 0, 0, 0.15);
+  --shadow-color: rgba(0, 0, 0, 0.15);
+  --input-bg: rgba(230, 230, 230, 0.95); /* Assombri de 10% */
   --button-border-on: #666666;
   --label-color: #ff6b35;
 }
@@ -175,36 +175,38 @@ body {
 
 /* Container principal élargi et centré */
 .main-container {
-  max-width: 1400px;
+  max-width: 1600px; /* Élargi pour occuper plus de largeur */
   margin: 100px auto 0;
-  padding: 0 20px;
+  padding: 0 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch; /* Changé de center à stretch pour occuper toute la largeur */
 }
 
-/* Disposition horizontale des 3 premiers onglets */
+/* Disposition horizontale des 2 premiers onglets - pleine largeur */
 .top-sections-horizontal {
   display: grid;
-  grid-template-columns: 34% 66%;
-  gap: 25px;
-  margin-bottom: 25px;
+  grid-template-columns: 1fr 1fr; /* 50/50 pour occuper toute la largeur */
+  gap: 30px;
+  margin-bottom: 30px;
   margin-top: -20px;
+  width: 100%;
 }
 
 .right-sections {
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 15px;
-  max-width: calc(100% - 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
 }
 
 .section-compact {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 15px;
+  padding: 20px;
   backdrop-filter: blur(10px);
+  width: 100%; /* Occupe toute la largeur disponible */
 }
 
 /* Sélection IA - hauteur réduite de 10px */
@@ -297,9 +299,10 @@ body {
   box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
 }
 
-/* Infobulles RESTAURÉES - apparaissent au survol des zones de saisie et EN DESSOUS */
+/* Infobulles RESTAURÉES - apparaissent au survol des zones de saisie et EN DESSOUS avec fond adaptatif */
 .form-group {
   position: relative;
+  margin-bottom: 30px; /* Plus d'espace pour les infobulles */
 }
 
 .form-group input[type="text"]:hover::after,
@@ -308,27 +311,52 @@ body {
 .form-group textarea:focus::after {
   content: attr(data-tooltip);
   position: absolute;
-  top: 100%;
+  top: calc(100% + 5px);
   left: 0;
   right: 0;
-  background: rgba(44, 62, 80, 0.95);
-  color: #ffffff;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 11px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 15px 18px;
+  border-radius: 10px;
+  font-size: 13px;
   z-index: 1000;
   opacity: 1;
   visibility: visible;
   transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
   max-width: 100%;
   white-space: normal;
   text-align: left;
-  line-height: 1.4;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  margin-top: 5px;
+  line-height: 1.6;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  margin-top: 10px;
   transform: translateY(0);
+  pointer-events: none;
+}
+
+/* Infobulles spécifiques pour Public cible et Ton souhaité avec fond amélioré */
+.form-group:nth-child(2) input[type="text"]:hover::after,
+.form-group:nth-child(3) input[type="text"]:hover::after,
+.form-group:nth-child(2) input[type="text"]:focus::after,
+.form-group:nth-child(3) input[type="text"]:focus::after {
+  background: var(--bg-primary);
+  border: 2px solid var(--accent-color);
+  padding: 16px 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
+}
+
+/* Style spécifique pour les infobulles des zones de texte */
+.form-group textarea:hover::after,
+.form-group textarea:focus::after {
+  background: var(--bg-primary);
+  border: 2px solid var(--accent-color);
+  padding: 16px 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
 }
 
 /* Sélection IA sans cadres avec activation réelle */
@@ -554,15 +582,15 @@ body {
   font-weight: 500;
 }
 
-/* Zone de collecte CORRIGÉE avec dictée vocale et enregistrement audio séparés */
+/* Zone de collecte CORRIGÉE avec dictée vocale et enregistrement audio séparés - pleine largeur */
 .upload-area-large {
   background: #fefdf8;
   border: 2px dashed var(--border-color);
   border-radius: 12px;
-  padding: 20px;
+  padding: 25px;
   text-align: left;
-  margin-bottom: 20px;
-  margin-top: 10px; /* Séparation de 10px avec le titre */
+  margin-bottom: 25px;
+  margin-top: 15px;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -571,7 +599,7 @@ body {
   transition: all 0.3s ease;
   width: 100%;
   box-sizing: border-box;
-  min-height: 210px; /* Hauteur réduite de 30% (300px * 0.7 = 210px) */
+  min-height: 210px;
 }
 
 .upload-area-large:focus-within {
@@ -662,13 +690,14 @@ body {
   visibility: visible;
 }
 
-/* Tâches de traitement */
+/* Tâches de traitement - pleine largeur */
 .task-grid-original {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 30px;
-  margin-top: 10px;
+  margin-top: 15px;
+  width: 100%;
 }
 
 .task-btn-original {
@@ -712,9 +741,10 @@ body {
   font-weight: 500;
 }
 
-/* Formats de sortie avec 3 zones */
+/* Formats de sortie avec 3 zones - pleine largeur */
 .format-section-group {
-  margin-bottom: 25px;
+  margin-bottom: 30px;
+  width: 100%;
 }
 
 .format-section-title {
@@ -730,8 +760,9 @@ body {
 .format-grid-zone {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 25px;
+  width: 100%;
 }
 
 .format-btn-original {
@@ -782,20 +813,22 @@ body {
   font-weight: 500;
 }
 
-/* Personnalisation avancée */
+/* Personnalisation avancée - pleine largeur */
 .advanced-options-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 22px;
-  margin-bottom: 33px;
-  margin-top: 10px;
+  gap: 25px;
+  margin-bottom: 35px;
+  margin-top: 15px;
+  width: 100%;
 }
 
 .option-group-original {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 22px;
+  border-radius: 10px;
+  padding: 25px;
+  width: 100%;
 }
 
 .option-group-original h4 {
@@ -844,14 +877,15 @@ body {
   font-weight: 500;
 }
 
-/* Gestion des résultats */
+/* Gestion des résultats - pleine largeur */
 .results-content {
   background: var(--input-bg);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 25px;
   color: #1a1a1a;
-  min-height: 200px;
-  margin-top: 10px;
+  min-height: 250px;
+  margin-top: 15px;
+  width: 100%;
 }
 
 .result-area {
@@ -860,14 +894,15 @@ body {
   line-height: 1.6;
 }
 
-/* Sections principales */
+/* Sections principales - pleine largeur */
 .section {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 25px;
+  padding: 25px;
+  margin-bottom: 30px;
   backdrop-filter: blur(10px);
+  width: 100%;
 }
 
 .section-title {
@@ -1590,11 +1625,16 @@ body {
   }
 }
 
-/* Section de génération */
+/* Section de génération - bouton avant résultats */
 .generate-section {
   margin-top: 30px;
   padding-top: 20px;
   border-top: 2px solid var(--border-color);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 .generate-btn {

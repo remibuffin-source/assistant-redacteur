@@ -176,18 +176,13 @@ function App() {
           onFormatToggle={handleFormatToggle}
         />
 
-        <AdvancedOptions 
+        <AdvancedOptions
           options={advancedOptions}
           onOptionsChange={handleAdvancedOptionsChange}
         />
 
+        {/* Bouton de génération AVANT la gestion des résultats */}
         <div className="generate-section">
-          <ResultsManager
-            result={result}
-            onCopy={handleCopy}
-            onDownload={handleDownload}
-          />
-          
           <button
             className={`generate-btn ${isLoading ? 'loading' : ''}`}
             onClick={handleGenerate}
@@ -206,6 +201,12 @@ function App() {
             )}
           </button>
         </div>
+
+        <ResultsManager
+          result={result}
+          onCopy={handleCopy}
+          onDownload={handleDownload}
+        />
       </div>
 
       
