@@ -143,3 +143,4 @@ Pour toute question concernant le déploiement ou la configuration, consulter la
 
 **Studio du Cap Brun** - Développé avec ❤️ pour la création de contenu assistée par IA
 # Trigger CI/CD workflow
+# Trigger CI/CD with correct secrets
