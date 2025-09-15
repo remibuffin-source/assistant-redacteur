@@ -1,8 +1,13 @@
 .config-api-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 1400px;
+  margin: 100px auto 50px;
+  padding: 0 30px;
   min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .config-header {
@@ -10,6 +15,8 @@
   align-items: flex-start;
   gap: 2rem;
   margin-bottom: 3rem;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .back-btn {
@@ -19,19 +26,20 @@
   padding: 0.75rem 1.5rem;
   border: 2px solid var(--border-color);
   border-radius: 8px;
-  background: var(--card-bg);
+  background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  backdrop-filter: blur(10px);
 }
 
 .back-btn:hover {
-  border-color: var(--primary-color);
-  background: var(--primary-light);
-  color: var(--primary-color);
+  border-color: var(--accent-color);
+  background: rgba(255, 107, 53, 0.2);
+  color: var(--accent-color);
   transform: translateX(-2px);
 }
 
@@ -45,12 +53,14 @@
   color: var(--text-primary);
   margin-bottom: 0.5rem;
   font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .config-header p {
   font-size: 1.1rem;
   color: var(--text-secondary);
   opacity: 0.8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .api-tabs {
@@ -59,6 +69,8 @@
   margin-bottom: 2rem;
   border-bottom: 2px solid var(--border-color);
   padding-bottom: 1rem;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .tab-btn {
@@ -74,21 +86,24 @@
   cursor: pointer;
   border-radius: 8px 8px 0 0;
   transition: all 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .tab-btn:hover {
-  color: var(--primary-color);
-  background: var(--hover-bg);
+  color: var(--accent-color);
+  background: rgba(255, 107, 53, 0.1);
 }
 
 .tab-btn.active {
-  color: var(--primary-color);
-  background: var(--active-bg);
-  border-bottom: 3px solid var(--primary-color);
+  color: var(--accent-color);
+  background: rgba(255, 107, 53, 0.2);
+  border-bottom: 3px solid var(--accent-color);
 }
 
 .api-content {
   margin-bottom: 2rem;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .ai-services-grid,
@@ -100,18 +115,19 @@
 }
 
 .api-service-card {
-  background: var(--card-bg);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.3s ease;
   position: relative;
+  backdrop-filter: blur(10px);
 }
 
 .api-service-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: var(--primary-color);
+  border-color: var(--accent-color);
 }
 
 .service-header {
@@ -123,13 +139,13 @@
 
 .service-header i {
   font-size: 2rem;
-  color: var(--primary-color);
+  color: var(--accent-color);
   width: 50px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary-light);
+  background: rgba(255, 107, 53, 0.1);
   border-radius: 10px;
 }
 
@@ -166,22 +182,23 @@
   border-radius: 8px;
   font-size: 0.9rem;
   background: var(--input-bg);
-  color: var(--text-primary);
+  color: #1a1a1a;
   transition: border-color 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .api-key-input input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .api-key-input input.valid {
-  border-color: var(--success-color);
+  border-color: #10b981;
 }
 
 .api-key-input input.invalid {
-  border-color: var(--error-color);
+  border-color: #ef4444;
 }
 
 .api-actions {
@@ -202,12 +219,13 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: var(--primary-color);
+  background: var(--accent-color);
   color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .test-btn:hover:not(:disabled) {
-  background: var(--primary-dark);
+  background: #e55a2b;
   transform: translateY(-1px);
 }
 
@@ -217,7 +235,7 @@
 }
 
 .test-btn.testing {
-  background: var(--warning-color);
+  background: #f59e0b;
 }
 
 .test-result {
@@ -228,16 +246,17 @@
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .test-result.success {
-  background: var(--success-bg);
-  color: var(--success-color);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 .test-result.error {
-  background: var(--error-bg);
-  color: var(--error-color);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .key-status {
@@ -245,7 +264,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border-color);
   margin-top: 1rem;
 }
 
@@ -254,16 +273,17 @@
   font-weight: 500;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .status-indicator.active {
-  background: var(--success-bg);
-  color: var(--success-color);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 .status-indicator.inactive {
-  background: var(--warning-bg);
-  color: var(--warning-color);
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
 }
 
 .key-length {
@@ -279,6 +299,8 @@
   padding: 2rem 0;
   border-top: 1px solid var(--border-color);
   margin-top: 2rem;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .security-notice {
@@ -290,7 +312,7 @@
 
 .security-notice i {
   font-size: 2rem;
-  color: var(--success-color);
+  color: #10b981;
 }
 
 .security-notice strong {
@@ -298,6 +320,7 @@
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .security-notice p {
@@ -305,6 +328,7 @@
   color: var(--text-secondary);
   margin: 0;
   opacity: 0.8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .usage-stats {
@@ -320,13 +344,15 @@
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--accent-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .stat-label {
   font-size: 0.8rem;
   color: var(--text-secondary);
   opacity: 0.8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Loaders */

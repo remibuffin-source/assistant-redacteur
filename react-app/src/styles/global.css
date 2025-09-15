@@ -1,12 +1,12 @@
 
-/* Variables CSS pour le thème jour/nuit - éclaircies de 10% */
+/* Variables CSS pour le thème jour/nuit - éclaircies de 20% (10% supplémentaires) */
 :root {
-  --bg-primary: #2d3748; /* Éclairci de 10% */
-  --bg-secondary: rgba(255, 255, 255, 0.08); /* Éclairci de 10% */
+  --bg-primary: #374151; /* Éclairci de 20% */
+  --bg-secondary: rgba(255, 255, 255, 0.12); /* Éclairci de 20% */
   --text-primary: #ffffff;
   --text-secondary: #ecf0f1;
   --accent-color: #ff6b35;
-  --border-color: rgba(255, 255, 255, 0.12); /* Éclairci de 10% */
+  --border-color: rgba(255, 255, 255, 0.18); /* Éclairci de 20% */
   --shadow-color: rgba(0, 0, 0, 0.3);
   --input-bg: rgba(255, 255, 255, 0.95);
   --button-border-on: #ffffff;
@@ -14,13 +14,13 @@
 }
 
 [data-theme="light"] {
-  --bg-primary: #e5e7eb; /* Éclairci de 10% */
-  --bg-secondary: rgba(255, 255, 255, 0.95); /* Éclairci de 10% */
+  --bg-primary: #f1f5f9; /* Éclairci de 20% */
+  --bg-secondary: rgba(255, 255, 255, 0.98); /* Éclairci de 20% */
   --text-primary: #1a1a1a;
   --text-secondary: #2c2c2c;
-  --border-color: rgba(0, 0, 0, 0.15);
+  --border-color: rgba(0, 0, 0, 0.18);
   --shadow-color: rgba(0, 0, 0, 0.1);
-  --input-bg: rgba(255, 255, 255, 0.98); /* Éclairci de 10% */
+  --input-bg: rgba(255, 255, 255, 0.99); /* Éclairci de 20% */
   --button-border-on: #666666;
   --label-color: #ff6b35;
 }
@@ -173,26 +173,29 @@ body {
   justify-content: center;
 }
 
-/* Container principal élargi et centré */
+/* Container principal élargi et parfaitement centré */
 .main-container {
-  max-width: 1600px; /* Élargi pour occuper plus de largeur */
+  max-width: 1600px;
   margin: 100px auto;
   padding: 0 30px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centré horizontalement */
-  justify-content: center; /* Centré verticalement */
-  min-height: calc(100vh - 200px); /* Prend toute la hauteur moins la marge */
+  align-items: center;
+  justify-content: flex-start; /* Changé de center à flex-start pour meilleur centrage */
+  min-height: calc(100vh - 200px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Disposition horizontale des 2 premiers onglets - pleine largeur */
+/* Disposition horizontale des 2 premiers onglets - parfaitement centrée */
 .top-sections-horizontal {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 50/50 pour occuper toute la largeur */
+  grid-template-columns: 1fr 1fr;
   gap: 30px;
   margin-bottom: 30px;
-  margin-top: -20px;
+  margin-top: 0;
   width: 100%;
+  max-width: 1600px;
 }
 
 .right-sections {
@@ -206,9 +209,10 @@ body {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 20px;
+  padding: 18px; /* Réduit de 2px pour la hauteur totale */
   backdrop-filter: blur(10px);
-  width: 100%; /* Occupe toute la largeur disponible */
+  width: 100%;
+  margin-bottom: 15px; /* Réduction de la marge */
 }
 
 /* Sélection IA - hauteur réduite de 10px */
@@ -304,7 +308,7 @@ body {
 /* Infobulles VISIBLES - apparaissent au survol des zones de saisie et EN DESSOUS avec fond adaptatif */
 .form-group {
   position: relative;
-  margin-bottom: 30px; /* Plus d'espace pour les infobulles */
+  margin-bottom: 40px; /* Plus d'espace pour les infobulles */
 }
 
 .form-group input[type="text"]:hover::after,
@@ -313,52 +317,47 @@ body {
 .form-group textarea:focus::after {
   content: attr(data-tooltip);
   position: absolute;
-  top: calc(100% + 5px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   background: var(--bg-primary);
   color: var(--text-primary);
-  padding: 15px 18px;
-  border-radius: 10px;
+  padding: 16px 20px;
+  border-radius: 12px;
   font-size: 13px;
   z-index: 1000;
   opacity: 1;
   visibility: visible;
   transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--accent-color);
   max-width: 100%;
   white-space: normal;
   text-align: left;
   line-height: 1.6;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  margin-top: 10px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  margin-top: 5px;
   transform: translateY(0);
   pointer-events: none;
 }
 
-/* Infobulles spécifiques pour Public cible et Ton souhaité avec fond amélioré */
-.form-group:nth-child(2) input[type="text"]:hover::after,
-.form-group:nth-child(3) input[type="text"]:hover::after,
-.form-group:nth-child(2) input[type="text"]:focus::after,
-.form-group:nth-child(3) input[type="text"]:focus::after {
-  background: var(--bg-primary);
+/* Fond adaptatif pour infobulles - clair sur texte foncé, foncé sur texte clair */
+[data-theme="dark"] .form-group input[type="text"]:hover::after,
+[data-theme="dark"] .form-group textarea:hover::after,
+[data-theme="dark"] .form-group input[type="text"]:focus::after,
+[data-theme="dark"] .form-group textarea:focus::after {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a1a;
   border: 2px solid var(--accent-color);
-  padding: 16px 20px;
-  font-size: 13px;
-  line-height: 1.7;
-  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
 }
 
-/* Style spécifique pour les infobulles des zones de texte */
-.form-group textarea:hover::after,
-.form-group textarea:focus::after {
-  background: var(--bg-primary);
+[data-theme="light"] .form-group input[type="text"]:hover::after,
+[data-theme="light"] .form-group textarea:hover::after,
+[data-theme="light"] .form-group input[type="text"]:focus::after,
+[data-theme="light"] .form-group textarea:focus::after {
+  background: rgba(44, 62, 80, 0.95);
+  color: #ffffff;
   border: 2px solid var(--accent-color);
-  padding: 16px 20px;
-  font-size: 13px;
-  line-height: 1.7;
-  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
 }
 
 /* Correction pour s'assurer que les infobulles s'affichent */

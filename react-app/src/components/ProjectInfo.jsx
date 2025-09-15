@@ -46,10 +46,10 @@ const ProjectInfo = ({ data, onDataChange }) => {
           <input
             type="text"
             id="targetAudience"
-            placeholder="Ex: Professionnels 30-45 ans, secteur tech"
+            placeholder="Votre audience"
             value={formData.targetAudience}
             onChange={(e) => handleInputChange('targetAudience', e.target.value)}
-            data-tooltip="Décrivez précisément votre audience : âge, profession, centres d'intérêt, niveau d'expertise, besoins spécifiques. Ex: 'Jeunes entrepreneurs 25-35 ans recherchant des conseils pratiques en marketing digital'"
+            data-tooltip="Décrivez précisément qui sont vos lecteurs cibles : âge, profession, centres d'intérêt, niveau d'expertise, besoins spécifiques"
           />
         </div>
 
@@ -58,10 +58,10 @@ const ProjectInfo = ({ data, onDataChange }) => {
           <input
             type="text"
             id="tone"
-            placeholder="Ex: Professionnel et engageant"
+            placeholder="Style de rédaction"
             value={formData.tone}
             onChange={(e) => handleInputChange('tone', e.target.value)}
-            data-tooltip="Définissez le style de communication : professionnel, décontracté, expert, pédagogique, commercial, inspirant, technique, humoristique. Ex: 'Ton professionnel mais accessible avec une touche d'enthousiasme'"
+            data-tooltip="Définissez le style de communication souhaité : professionnel, décontracté, expert, pédagogique, commercial, inspirant, technique, etc."
           />
         </div>
       </div>
@@ -71,11 +71,11 @@ const ProjectInfo = ({ data, onDataChange }) => {
         <label htmlFor="projectDescription">Description du projet</label>
         <textarea
           id="projectDescription"
-          placeholder="Décrivez votre projet, ses objectifs et le contexte..."
+          placeholder="Décrivez votre projet en détail..."
           value={formData.projectDescription}
           onChange={(e) => handleInputChange('projectDescription', e.target.value)}
-          data-tooltip="Décrivez en détail votre projet : objectifs principaux, contexte spécifique, contraintes particulières, informations clés à inclure, et toute directive utile pour guider l'IA dans la création du contenu"
-          style={{ minHeight: '108px' }} /* 155px * 0.7 = 108.5px */
+          data-tooltip="Décrivez en détail votre projet, ses objectifs, le contexte, les contraintes particulières et toute information utile pour l'IA"
+          style={{ minHeight: '93px' }} /* 108px - 15px = 93px */
         />
       </div>
     </div>

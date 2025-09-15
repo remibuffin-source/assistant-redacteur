@@ -43,6 +43,9 @@ const MenuBar = ({ onHelp }) => {
       case 'calendar':
         openCalendar();
         break;
+      case 'results':
+        openResults();
+        break;
       case 'subscription':
         openSubscription();
         break;
@@ -139,7 +142,11 @@ const MenuBar = ({ onHelp }) => {
   };
 
   const openCalendar = () => {
-    alert('Calendrier de publication - En développement');
+    navigate('/calendar');
+  };
+
+  const openResults = () => {
+    navigate('/results');
   };
 
   const openSubscription = () => {
@@ -200,6 +207,10 @@ const MenuBar = ({ onHelp }) => {
             <button className="menu-btn" onClick={() => handleMenuClick('calendar')}>
               <i className="fas fa-calendar-alt"></i>
               <span>Calendrier</span>
+            </button>
+            <button className="menu-btn" onClick={() => handleMenuClick('results')}>
+              <i className="fas fa-file-alt"></i>
+              <span>Résultats</span>
             </button>
             <button className="menu-btn" onClick={() => handleMenuClick('subscription')}>
               <i className="fas fa-crown"></i>
