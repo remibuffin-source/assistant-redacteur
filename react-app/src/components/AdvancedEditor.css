@@ -1,0 +1,452 @@
+.advanced-editor-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.editor-container {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+}
+
+/* Header */
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.editor-header h2 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.editor-stats {
+  display: flex;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-color);
+}
+
+/* Barre d'outils */
+.editor-toolbar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.toolbar-section {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.editor-toolbar button {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-toolbar button:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.editor-toolbar select {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  color: var(--text-color);
+  min-width: 100px;
+}
+
+/* Zone d'édition */
+.editor-content {
+  flex: 1;
+  padding: 1.5rem;
+  border: none;
+  outline: none;
+  min-height: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 1rem;
+  line-height: 1.6;
+  border-radius: var(--border-radius);
+  margin: 1rem;
+}
+
+.editor-content:focus {
+  outline: 2px solid var(--primary-color);
+}
+
+.editor-content[contenteditable="true"]:empty:before {
+  content: attr(placeholder);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Picker d'emojis */
+.emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.emoji-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: background 0.2s ease;
+}
+
+.emoji-btn:hover {
+  background: var(--hover-bg);
+}
+
+.emoji-more {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.emoji-more:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Modal média */
+.media-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.media-modal-content {
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  max-width: 400px;
+  width: 100%;
+}
+
+.media-modal-content h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.media-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.media-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.media-options input[type="radio"] {
+  accent-color: var(--primary-color);
+}
+
+.media-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.media-actions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.media-actions button:first-child {
+  background: var(--primary-color);
+  color: white;
+}
+
+.media-actions button:first-child:hover {
+  background: var(--primary-hover);
+}
+
+.media-actions button:last-child {
+  background: var(--secondary-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.media-actions button:last-child:hover {
+  background: var(--hover-bg);
+}
+
+/* Section webcam */
+.webcam-section {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--header-bg);
+}
+
+.webcam-section h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+
+.webcam-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-record {
+  background: var(--error-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.btn-record:hover {
+  background: var(--error-hover);
+}
+
+.btn-stop {
+  background: var(--success-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.btn-stop:hover {
+  background: var(--success-hover);
+}
+
+.webcam-preview {
+  width: 200px;
+  height: 150px;
+  border-radius: var(--border-radius);
+  border: 2px solid var(--primary-color);
+}
+
+/* Actions finales */
+.editor-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--header-bg);
+}
+
+.editor-actions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-delete {
+  background: var(--error-color);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: var(--error-hover);
+}
+
+.btn-template {
+  background: var(--warning-color);
+  color: white;
+}
+
+.btn-template:hover {
+  background: var(--warning-hover);
+}
+
+.btn-save {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-save:hover {
+  background: var(--primary-hover);
+}
+
+.btn-publish {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-publish:hover {
+  background: var(--success-hover);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .advanced-editor-modal {
+    padding: 0.5rem;
+  }
+  
+  .editor-container {
+    max-height: 95vh;
+  }
+  
+  .editor-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .editor-toolbar {
+    justify-content: center;
+  }
+  
+  .toolbar-section {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .editor-content {
+    margin: 0.5rem;
+    min-height: 200px;
+  }
+  
+  .webcam-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .editor-actions {
+    flex-direction: column;
+  }
+  
+  .editor-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-toolbar {
+    padding: 0.5rem;
+  }
+  
+  .editor-toolbar button {
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0.25rem;
+  }
+  
+  .editor-toolbar select {
+    min-width: 80px;
+    font-size: 0.8rem;
+  }
+  
+  .emoji-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

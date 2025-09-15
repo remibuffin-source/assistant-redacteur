@@ -134,7 +134,7 @@ const MenuBar = ({ onHelp }) => {
   };
 
   const showAccountModal = () => {
-    alert('Fonctionnalité Mon Compte - En développement');
+    navigate('/account');
   };
 
   const openConfig = () => {
@@ -209,8 +209,8 @@ const MenuBar = ({ onHelp }) => {
               <span>Calendrier</span>
             </button>
             <button className="menu-btn" onClick={() => handleMenuClick('results')}>
-              <i className="fas fa-file-alt"></i>
-              <span>Résultats</span>
+              <i className="fas fa-edit"></i>
+              <span>Éditeur</span>
             </button>
             <button className="menu-btn" onClick={() => handleMenuClick('subscription')}>
               <i className="fas fa-crown"></i>
