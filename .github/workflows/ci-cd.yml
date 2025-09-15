@@ -102,17 +102,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        name: react-build
-        path: react-app/dist
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: react-app/package-lock.json
 
-    - name: Setup Netlify CLI
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./react-app
+
+    - name: Build application
+      run: npm run build
+      working-directory: ./react-app
+
+    - name: Install Netlify CLI
       run: npm install -g netlify-cli
+      working-directory: ./react-app
 
     - name: Deploy to Netlify
-      run: netlify deploy --dir=react-app/dist --prod
+      run: netlify deploy --dir=dist --prod
+      working-directory: ./react-app
       env:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
