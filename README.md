@@ -144,3 +144,4 @@ Pour toute question concernant le déploiement ou la configuration, consulter la
 **Studio du Cap Brun** - Développé avec ❤️ pour la création de contenu assistée par IA
 # Trigger CI/CD workflow
 # Trigger CI/CD with correct secrets
+# Vérification du déploiement Netlify - Mon Sep 15 02:05:35 UTC 2025
