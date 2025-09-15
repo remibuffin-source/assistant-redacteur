@@ -145,3 +145,4 @@ Pour toute question concernant le déploiement ou la configuration, consulter la
 # Trigger CI/CD workflow
 # Trigger CI/CD with correct secrets
 # Vérification du déploiement Netlify - Mon Sep 15 02:05:35 UTC 2025
+# Test déploiement Netlify avec secrets configurés - Mon Sep 15 02:37:38 UTC 2025
