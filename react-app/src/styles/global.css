@@ -181,7 +181,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Changé de center à flex-start pour meilleur centrage */
+  justify-content: center; /* Corrigé pour centrer verticalement */
   min-height: calc(100vh - 200px);
   width: 100%;
   box-sizing: border-box;

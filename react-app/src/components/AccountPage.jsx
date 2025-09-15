@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
+import { useNavigate } from 'react-router-dom';
 import './AccountPage.css';
 
 const AccountPage = () => {
   const { autoSaveData, updateAutoSave } = useAssistantAutoSave();
   const [activeTab, setActiveTab] = useState('profile');
+  const navigate = useNavigate();
 
   const [userData, setUserData] = useState({
     username: autoSaveData.username || '',
@@ -18,6 +20,16 @@ const AccountPage = () => {
     theme: autoSaveData.theme || 'auto'
   });
 
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
   const handleInputChange = (field, value) => {
     const newData = { ...userData, [field]: value };
     setUserData(newData);
@@ -29,8 +41,60 @@ const AccountPage = () => {
     alert('Paramètres sauvegardés avec succès !');
   };
 
+  const handlePasswordChange = (field, value) => {
+    setPasswordData(prev => ({ ...prev, [field]: value }));
+    setPasswordError('');
+    setPasswordSuccess('');
+  };
+
+  const handleChangePassword = () => {
+    if (!passwordData.currentPassword) {
+      setPasswordError('Veuillez entrer votre mot de passe actuel');
+      return;
+    }
+
+    if (!passwordData.newPassword) {
+      setPasswordError('Veuillez entrer un nouveau mot de passe');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError('Le mot de passe doit contenir au moins 8 caractères');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    
+    // Simuler le changement de mot de passe (remplacer par appel API réel)
+    setTimeout(() => {
+      setIsChangingPassword(false);
+      setPasswordSuccess('Mot de passe changé avec succès !');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      setTimeout(() => setPasswordSuccess(''), 3000);
+    }, 1500);
+  };
+
+  const handleBackToMain = () => {
+    navigate('/');
+  };
+
   return (
     <div className="account-page">
+      <button className="back-button" onClick={handleBackToMain}>
+        <i className="fas fa-arrow-left"></i>
+        Retour à l'accueil
+      </button>
+      
       <div className="account-header">
         <h2>
           <i className="fas fa-user-circle"></i>
@@ -211,6 +275,8 @@ const AccountPage = () => {
               <input
                 type="password"
                 id="currentPassword"
+                value={passwordData.currentPassword}
+                onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                 placeholder="Entrez votre mot de passe actuel"
               />
             </div>
@@ -220,7 +286,9 @@ const AccountPage = () => {
               <input
                 type="password"
                 id="newPassword"
-                placeholder="Entrez votre nouveau mot de passe"
+                value={passwordData.newPassword}
+                onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                placeholder="Entrez votre nouveau mot de passe (min. 8 caractères)"
               />
             </div>
 
@@ -229,14 +297,53 @@ const AccountPage = () => {
               <input
                 type="password"
                 id="confirmPassword"
+                value={passwordData.confirmPassword}
+                onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
                 placeholder="Confirmez votre nouveau mot de passe"
               />
             </div>
 
-            <button className="btn-change-password">
-              <i className="fas fa-key"></i>
-              Changer le mot de passe
+            {passwordError && (
+              <div className="alert alert-error">
+                <i className="fas fa-exclamation-circle"></i>
+                {passwordError}
+              </div>
+            )}
+
+            {passwordSuccess && (
+              <div className="alert alert-success">
+                <i className="fas fa-check-circle"></i>
+                {passwordSuccess}
+              </div>
+            )}
+
+            <button
+              className={`btn-change-password ${isChangingPassword ? 'loading' : ''}`}
+              onClick={handleChangePassword}
+              disabled={isChangingPassword}
+            >
+              {isChangingPassword ? (
+                <>
+                  <div className="loader"></div>
+                  Changement en cours...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-key"></i>
+                  Changer le mot de passe
+                </>
+              )}
             </button>
+
+            <div className="password-strength">
+              <h4>Conseils de sécurité :</h4>
+              <ul>
+                <li>Utilisez au moins 8 caractères</li>
+                <li>Combinez lettres, chiffres et symboles</li>
+                <li>Évitez les mots de passe courants</li>
+                <li>Changez régulièrement votre mot de passe</li>
+              </ul>
+            </div>
           </div>
         )}
       </div>
