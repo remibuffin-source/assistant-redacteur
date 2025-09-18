@@ -1,0 +1,395 @@
+/* Page Abonnement - Recharge Libre */
+.subscription-page {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background: rgba(255, 107, 53, 0.1);
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.subscription-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  border-bottom: 3px solid #ff6b35;
+  padding-bottom: 2rem;
+  margin-top: 2rem;
+}
+
+.subscription-header h2 {
+  color: #ff6b35;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.subscription-header p {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Solde actuel */
+.current-balance {
+  margin-bottom: 3rem;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #ff6b35, #e55a2b);
+  color: white;
+  padding: 2rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+}
+
+.balance-card i {
+  font-size: 3rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1rem;
+  border-radius: 50%;
+}
+
+.balance-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.balance-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+/* Options de recharge */
+.recharge-options {
+  margin-bottom: 3rem;
+}
+
+.recharge-options h3 {
+  color: #ff6b35;
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.amount-btn {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.amount-btn:hover {
+  border-color: #ff6b35;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2);
+}
+
+.amount-btn.selected {
+  background: rgba(255, 107, 53, 0.1);
+  border-color: #ff6b35;
+  box-shadow: 0 5px 20px rgba(255, 107, 53, 0.3);
+}
+
+.amount-btn .amount {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ff6b35;
+  margin-bottom: 0.5rem;
+}
+
+.amount-btn .label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.custom-amount {
+  text-align: center;
+}
+
+.custom-amount h4 {
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.custom-input {
+  position: relative;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.custom-input input {
+  width: 100%;
+  padding: 1rem 3rem 1rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 1.2rem;
+  background: var(--input-bg);
+  color: var(--text-color);
+  transition: border-color 0.2s ease;
+}
+
+.custom-input input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.custom-input .currency {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff6b35;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+/* Message liberté */
+.freedom-message {
+  background: rgba(255, 107, 53, 0.05);
+  border: 2px solid rgba(255, 107, 53, 0.2);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.freedom-icon {
+  flex-shrink: 0;
+}
+
+.freedom-icon i {
+  font-size: 3rem;
+  color: #ff6b35;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 1.5rem;
+  border-radius: 50%;
+}
+
+.freedom-content h4 {
+  color: #ff6b35;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.freedom-content p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.freedom-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.freedom-content li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.freedom-content li i {
+  color: #ff6b35;
+}
+
+/* Action de recharge */
+.recharge-action {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.recharge-btn {
+  background: linear-gradient(135deg, #ff6b35, #e55a2b);
+  color: white;
+  border: none;
+  padding: 1.25rem 3rem;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+.recharge-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(255, 107, 53, 0.6);
+}
+
+.recharge-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.security-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.security-note i {
+  color: #ff6b35;
+}
+
+/* Grille de fonctionnalités */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.feature-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-color: #ff6b35;
+}
+
+.feature-card i {
+  font-size: 2.5rem;
+  color: #ff6b35;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature-card h4 {
+  color: var(--text-color);
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+}
+
+.feature-card p {
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Loader */
+.loader {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .subscription-page {
+    padding: 1rem;
+  }
+  
+  .subscription-header h2 {
+    font-size: 2rem;
+  }
+  
+  .balance-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .preset-amounts {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .freedom-message {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .recharge-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .preset-amounts {
+    grid-template-columns: 1fr;
+  }
+  
+  .subscription-header h2 {
+    font-size: 1.8rem;
+  }
+  
+  .balance-amount {
+    font-size: 2rem;
+  }
+}

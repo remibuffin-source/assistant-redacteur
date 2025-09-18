@@ -150,7 +150,7 @@ const MenuBar = ({ onHelp }) => {
   };
 
   const openSubscription = () => {
-    alert('Gestion des abonnements - En développement');
+    navigate('/subscription');
   };
 
   useEffect(() => {

@@ -9,15 +9,18 @@ const AccountPage = () => {
   const navigate = useNavigate();
 
   const [userData, setUserData] = useState({
-    username: autoSaveData.username || '',
-    email: autoSaveData.email || '',
-    firstName: autoSaveData.firstName || '',
-    lastName: autoSaveData.lastName || '',
-    company: autoSaveData.company || '',
+    username: autoSaveData.username || 'utilisateur123',
+    email: autoSaveData.email || 'contact@studioducapbrun.com',
+    firstName: autoSaveData.firstName || 'Studio',
+    lastName: autoSaveData.lastName || 'du Cap Brun',
+    company: autoSaveData.company || 'Studio du Cap Brun',
+    phone: autoSaveData.phone || '+33 6 12 34 56 78',
+    address: autoSaveData.address || '123 Avenue de la Création, 75000 Paris',
     language: autoSaveData.language || 'fr',
     notifications: autoSaveData.notifications !== undefined ? autoSaveData.notifications : true,
     autoSave: autoSaveData.autoSave !== undefined ? autoSaveData.autoSave : true,
-    theme: autoSaveData.theme || 'auto'
+    theme: autoSaveData.theme || 'auto',
+    bio: autoSaveData.bio || 'Créateur de contenu passionné par l\'IA et la communication digitale'
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -185,8 +188,60 @@ const AccountPage = () => {
                 id="company"
                 value={userData.company}
                 onChange={(e) => handleInputChange('company', e.target.value)}
-                placeholder="Votre entreprise (optionnel)"
+                placeholder="Votre entreprise"
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="phone">Téléphone</label>
+              <input
+                type="tel"
+                id="phone"
+                value={userData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="+33 6 12 34 56 78"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="address">Adresse</label>
+              <input
+                type="text"
+                id="address"
+                value={userData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                placeholder="Votre adresse complète"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="bio">Biographie</label>
+              <textarea
+                id="bio"
+                value={userData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Décrivez-vous en quelques mots..."
+                rows="3"
+              />
+            </div>
+
+            {/* Statistiques utilisateur */}
+            <div className="security-stats">
+              <div className="stat-item">
+                <i className="fas fa-file-alt"></i>
+                <div>
+                  <h4>Contenus créés</h4>
+                  <p>247 publications</p>
+                </div>
+              </div>
+              
+              <div className="stat-item">
+                <i className="fas fa-calendar"></i>
+                <div>
+                  <h4>Membre depuis</h4>
+                  <p>Janvier 2024</p>
+                </div>
+              </div>
             </div>
           </div>
         )}

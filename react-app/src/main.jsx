@@ -7,6 +7,7 @@ import ConfigAPIPage from './components/ConfigAPIPage'
 import CalendarPage from './components/CalendarPage'
 import ResultsManagementPage from './components/ResultsManagementPage'
 import AccountPage from './components/AccountPage'
+import SubscriptionPage from './components/SubscriptionPage'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/results" element={<ResultsManagementPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/subscription" element={<SubscriptionPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

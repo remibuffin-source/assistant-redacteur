@@ -99,6 +99,24 @@ const AdvancedEditor = ({ content, onSave, onClose, onPublish, onSaveAsTemplate,
     setShowEmojiPicker(false);
   };
 
+  const formatTextColor = (color) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString();
+    
+    if (selectedText) {
+      const coloredText = `<span style="color: ${color};">${selectedText}</span>`;
+      range.deleteContents();
+      range.insertNode(document.createRange().createContextualFragment(coloredText));
+      updateEditorContent();
+    } else {
+      document.execCommand('foreColor', false, color);
+      updateEditorContent();
+    }
+  };
+
   const handleImageUpload = (event) => {
     const files = event.target.files;
     if (!files.length) return;
@@ -317,11 +335,34 @@ const AdvancedEditor = ({ content, onSave, onClose, onPublish, onSaveAsTemplate,
         {showEmojiPicker && (
           <div className="emoji-picker">
             <div className="emoji-grid">
-              {['😀', '😂', '😍', '🥰', '😎', '🤩', '👍', '❤️', '🔥', '✨'].map(emoji => (
+              {[
+                '😀', '😂', '😍', '🥰', '😎', '🤩', '👍', '❤️', '🔥', '✨',
+                '🎉', '💯', '🌟', '💪', '🙌', '👏', '🤝', '💡', '📚', '🎯',
+                '📝', '🔍', '💼', '🎨', '🎭', '🎬', '🎵', '🎶', '🏆', '⚡',
+                '🌈', '🌞', '🌻', '🍀', '🎁', '🎄', '🎓', '🏅', '💎', '🔮',
+                '📱', '💻', '🎮', '🏖️', '🍕', '☕', '🎂', '🚀', '🌍', '💫'
+              ].map(emoji => (
                 <button key={emoji} onClick={() => insertEmoji(emoji)} className="emoji-btn">
                   {emoji}
                 </button>
               ))}
+            </div>
+            <div className="text-colors">
+              <button onClick={() => formatTextColor('#FF0000')} style={{color: '#FF0000'}} title="Rouge">
+                A
+              </button>
+              <button onClick={() => formatTextColor('#0000FF')} style={{color: '#0000FF'}} title="Bleu">
+                A
+              </button>
+              <button onClick={() => formatTextColor('#008000')} style={{color: '#008000'}} title="Vert">
+                A
+              </button>
+              <button onClick={() => formatTextColor('#FFA500')} style={{color: '#FFA500'}} title="Orange">
+                A
+              </button>
+              <button onClick={() => formatTextColor('#800080')} style={{color: '#800080'}} title="Violet">
+                A
+              </button>
             </div>
             <button className="emoji-more" onClick={() => window.open('https://emojikeyboard.top/fr/#emojis-1', '_blank')}>
               Plus d'emojis...

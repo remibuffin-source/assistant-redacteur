@@ -1,7 +1,7 @@
 .config-api-page {
   max-width: 1200px;
   margin: 2rem auto;
-  padding: 2rem;
+  padding: 2rem 1.5rem; /* Padding équilibré (réduit droite/gauche) */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -46,9 +46,10 @@
 
 .config-header h1 {
   font-size: 2.5rem;
-  color: var(--primary-color);
+  color: #ff6b35; /* Orange vif pour le titre principal */
   margin-bottom: 0.5rem;
   font-weight: 700;
+  text-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
 }
 
 .config-header p {
@@ -88,8 +89,10 @@
 }
 
 .tab-btn.active {
-  background: var(--primary-color);
+  background: #ff6b35; /* Orange pour l'onglet actif */
   color: white;
+  border: 2px solid #ff6b35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .api-content {
@@ -141,10 +144,11 @@
 }
 
 .service-info h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-color);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff6b35; /* Orange pour les titres de services */
   margin: 0;
+  margin-bottom: 0.25rem;
 }
 
 .service-info p {

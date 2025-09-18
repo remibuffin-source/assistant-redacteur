@@ -112,28 +112,92 @@
 /* Zone d'édition */
 .editor-content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 2rem;
   border: none;
   outline: none;
-  min-height: 300px;
-  max-height: 400px;
+  min-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
   background: var(--input-bg);
   color: var(--text-color);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 1.1rem;
+  line-height: 1.8;
   border-radius: var(--border-radius);
-  margin: 1rem;
+  margin: 1.5rem;
+  text-align: left;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .editor-content:focus {
   outline: 2px solid var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .editor-content[contenteditable="true"]:empty:before {
   content: attr(placeholder);
   color: var(--text-muted);
   font-style: italic;
+  font-size: 1.1rem;
+}
+
+/* Styles pour le contenu éditable */
+.editor-content strong {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.editor-content em {
+  font-style: italic;
+  color: var(--text-color);
+}
+
+.editor-content u {
+  text-decoration: underline;
+  color: var(--text-color);
+}
+
+.editor-content s {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.editor-content blockquote {
+  border-left: 4px solid var(--primary-color);
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.editor-content ul, .editor-content ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.editor-content li {
+  margin: 0.5rem 0;
+}
+
+.editor-content a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.editor-content a:hover {
+  color: var(--primary-hover);
+}
+
+.editor-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius);
+  margin: 1rem 0;
+}
+
+.editor-content video {
+  max-width: 100%;
+  border-radius: var(--border-radius);
+  margin: 1rem 0;
 }
 
 /* Picker d'emojis */
@@ -184,6 +248,36 @@
 .emoji-more:hover {
   background: var(--primary-color);
   color: white;
+}
+
+/* Boutons de couleurs de texte */
+.text-colors {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.text-colors button {
+  background: var(--secondary-bg);
+  border: 2px solid var(--border-color);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.text-colors button:hover {
+  transform: scale(1.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 }
 
 /* Modal média */
