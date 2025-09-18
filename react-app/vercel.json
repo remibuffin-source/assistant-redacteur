@@ -23,6 +23,6 @@
     }
   },
   "env": {
-    "VITE_APP_TITLE": "Assistant Rédacteur"
+    "VITE_APP_TITLE": "Assistant Rédacteur - Studio du Cap Brun"
   }
 }
