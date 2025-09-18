@@ -1,11 +1,13 @@
 # Dependencies
 node_modules/
-.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Build outputs
-dist/
-build/
-.netlify/
+# Production builds
+/dist/
+/build/
+/out/
 
 # Environment variables
 .env
@@ -15,13 +17,13 @@ build/
 .env.production.local
 
 # Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
+logs/
+*.log
+certbot-logs/
+ssl-temp/
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
@@ -33,14 +35,38 @@ coverage/
 # nyc test coverage
 .nyc_output
 
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
 # Dependency directories
 jspm_packages/
+
+# TypeScript v1 declaration files
+typings/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
 
 # Optional eslint cache
 .eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
 # Optional REPL history
 .node_repl_history
@@ -51,21 +77,29 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# parcel-bundler cache (https://parceljs.org/)
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache
 .cache
 .parcel-cache
 
-# next.js build output
+# Next.js build output
 .next
 
-# nuxt.js build output
+# Nuxt.js build / generate output
 .nuxt
+dist
 
-# vuepress build output
+# Gatsby files
+.cache/
+public
+
+# Vuepress build output
 .vuepress/dist
 
 # Serverless directories
-.serverless
+.serverless/
 
 # FuseBox cache
 .fusebox/
@@ -79,20 +113,30 @@ jspm_packages/
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# Vite build cache
-.vite/
+# Temporary folders
+tmp/
+temp/
 
-# MacOS
-.DS_Store
+# Build archives
+deploy-build*.tar.gz
 
-# Windows
-Thumbs.db
+# SSL certificates
+*.pem
+*.key
+*.crt
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Nginx temporary configs
+nginx-*.conf
+nginx-temp-config.conf
 
-# Netlify
-.netlify/
+# Browser automation files
+browser-action-*.js
+visual-analysis-report.md
+capture-specific.js
+
+# Documentation files (already tracked ones are kept)
+# ACCESS-GUIDE.md
+# CERTBOT-*.md
+# DNS-*.md
+# NGINX-*.md
+# VPS-*.md
