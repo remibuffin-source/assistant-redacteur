@@ -1,7 +1,13 @@
 import { useState } from 'react';
+import { useAssistantAutoSave } from '../hooks/useLocalStorage';
+import { getHomeText } from '../i18n/homeTranslations';
 
 const ResultsManager = ({ result, onCopy, onDownload }) => {
-  const [activeTab, setActiveTab] = useState('current');
+  const { autoSaveData } = useAssistantAutoSave();
+  const userLanguage = autoSaveData.language || 'fr';
+  const t = (path) => getHomeText(userLanguage, path);
+
+  const [activeTab, setActiveTab] = useState('full');
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -53,10 +59,10 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
                     <i className="fas fa-expand"></i> Voir en entier
                   </button>
                   <div className="action-buttons">
-                    <button className="btn-action" onClick={onCopy} title="Copier">
+                    <button className="btn-action" onClick={onCopy} title={t('sections.resultsManager.actions.copy')}>
                       <i className="fas fa-copy"></i>
                     </button>
-                    <button className="btn-action" onClick={onDownload} title="Télécharger">
+                    <button className="btn-action" onClick={onDownload} title={t('sections.resultsManager.actions.download')}>
                       <i className="fas fa-download"></i>
                     </button>
                   </div>
@@ -99,10 +105,10 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
         </div>
         <div className="full-content-actions">
           <button className="btn-action-large" onClick={onCopy}>
-            <i className="fas fa-copy"></i> Copier le contenu
+            <i className="fas fa-copy"></i> {t('sections.resultsManager.actions.copy')}
           </button>
           <button className="btn-action-large" onClick={onDownload}>
-            <i className="fas fa-download"></i> Télécharger
+            <i className="fas fa-download"></i> {t('sections.resultsManager.actions.download')}
           </button>
         </div>
       </div>
@@ -112,9 +118,9 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
 
   return (
     <div className="section">
-      <h3 className="section-title">
+      <h3 className="section-title" title={t('sections.resultsManager.tooltip')}>
         <i className="fas fa-cog"></i>
-        Gestion des résultats
+        {t('sections.resultsManager.title')}
       </h3>
       
       <div className="results-tabs">
@@ -124,7 +130,7 @@ const ResultsManager = ({ result, onCopy, onDownload }) => {
             onClick={() => handleTabChange('full')}
             data-tab="full"
           >
-            Vue complète
+            {t('sections.resultsManager.tabs.full')}
           </button>
         )}
       </div>

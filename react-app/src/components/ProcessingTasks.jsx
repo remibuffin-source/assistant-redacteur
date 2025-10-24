@@ -1,52 +1,58 @@
+import { useAssistantAutoSave } from '../hooks/useLocalStorage';
+import { getHomeText } from '../i18n/homeTranslations';
+
 const ProcessingTasks = ({ selectedTasks, onTaskToggle }) => {
+  const { autoSaveData } = useAssistantAutoSave();
+  const userLanguage = autoSaveData.language || 'fr';
+  const t = (path) => getHomeText(userLanguage, path);
   const taskOptions = [
     {
       id: 'resume',
-      name: 'Résumer',
+      name: t('sections.processingTasks.tasks.resume'),
       icon: 'fas fa-compress-alt',
-      description: 'Résumer le contenu'
+      description: t('sections.processingTasks.tasks.resume')
     },
     {
       id: 'develop',
-      name: 'Développer',
+      name: t('sections.processingTasks.tasks.develop'),
       icon: 'fas fa-expand-alt',
-      description: 'Développer le contenu'
+      description: t('sections.processingTasks.tasks.develop')
     },
     {
       id: 'extract',
-      name: 'Extraire arguments',
+      name: t('sections.processingTasks.tasks.extract'),
       icon: 'fas fa-search',
-      description: 'Extraire les arguments clés'
+      description: t('sections.processingTasks.tasks.extract')
     },
     {
       id: 'correct',
-      name: 'Corriger',
+      name: t('sections.processingTasks.tasks.correct'),
       icon: 'fas fa-spell-check',
-      description: 'Corriger les erreurs'
+      description: t('sections.processingTasks.tasks.correct')
     },
     {
       id: 'ideas',
-      name: 'Idées supplémentaires',
+      name: t('sections.processingTasks.tasks.ideas'),
       icon: 'fas fa-lightbulb',
-      description: 'Générer des idées supplémentaires'
+      description: t('sections.processingTasks.tasks.ideas')
     },
     {
       id: 'rewrite',
-      name: 'Réécriture',
+      name: t('sections.processingTasks.tasks.rewrite'),
       icon: 'fas fa-edit',
-      description: 'Réécrire le contenu'
+      description: t('sections.processingTasks.tasks.rewrite')
     },
     {
       id: 'analyze',
-      name: 'Analyse',
+      name: t('sections.processingTasks.tasks.analyze'),
       icon: 'fas fa-chart-line',
-      description: 'Analyser le contenu'
+      description: t('sections.processingTasks.tasks.analyze')
     },
     {
       id: 'translate',
-      name: 'Traduction',
+      name: t('sections.processingTasks.tasks.translate'),
       icon: 'fas fa-language',
-      description: 'Traduire le contenu'
+      description: t('sections.processingTasks.tasks.translate')
     }
   ];
 
@@ -58,7 +64,7 @@ const ProcessingTasks = ({ selectedTasks, onTaskToggle }) => {
     <div className="section">
       <h3 className="section-title">
         <i className="fas fa-cogs"></i>
-        Tâches de Traitement Intelligent
+        {t('sections.processingTasks.title')}
       </h3>
       
       <div className="task-grid-original">

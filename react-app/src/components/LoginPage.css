@@ -1,0 +1,236 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start; /* Aligné vers le haut */
+  justify-content: center;
+  background: #102939; /* Nouvelle couleur de fond */
+  padding: 20px;
+  padding-top: 50px; /* Centré légèrement vers le haut */
+}
+
+.login-container {
+  background: white;
+  border-radius: 10px; /* Boutons plus arrondis */
+  padding: 30px; /* Réduit de 40px à 30px pour réduire la hauteur */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 708px; /* Élargi de 57% au total (450 * 1.57 = 708) */
+  max-height: 75vh; /* Réduit la hauteur de 25% */
+  overflow-y: auto; /* Scroll si nécessaire */
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-logo {
+  width: 120px; /* Élargi pour afficher le logo complet */
+  height: auto; /* Hauteur automatique pour garder les proportions */
+  margin-bottom: 20px;
+  border-radius: 10px;
+  object-fit: contain; /* Contenir au lieu de cover pour voir le logo entier */
+}
+
+.login-header h1 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 2em;
+}
+
+.login-header p {
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.login-form {
+  margin-bottom: 25px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50; /* Couleur sombre pour contraster avec le fond blanc */
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 10px; /* Boutons plus arrondis */
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  background: #f8f9fa;
+  color: #2c3e50; /* Couleur de texte sombre pour contraster */
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #ff6b2c; /* Couleur orange pour le focus */
+  background: white;
+  color: #2c3e50; /* Couleur de texte sombre */
+}
+
+.form-group input::placeholder {
+  color: #aab8c2;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-error {
+  background: #fee;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.alert-success {
+  background: #eff;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ff6b2c 0%, #e55a2b 100%); /* Couleur orange */
+  color: white;
+  border: none;
+  border-radius: 10px; /* Boutons plus arrondis */
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-login:hover {
+  background: linear-gradient(135deg, #e55a2b 0%, #d14d1f 100%); /* Couleur orange plus foncée */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 107, 44, 0.3); /* Ombre orange */
+}
+
+.btn-login:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-login.loading {
+  background: #95a5a6;
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.login-footer {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-footer p {
+  color: #7f8c8d;
+  margin-bottom: 15px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #ff6b2c; /* Couleur orange */
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.link-button:hover {
+  color: #e55a2b; /* Couleur orange plus foncée */
+}
+
+.forgot-password {
+  color: #ff6b2c; /* Couleur orange */
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+  color: #e55a2b; /* Couleur orange plus foncée */
+}
+
+.demo-credentials {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px; /* Boutons plus arrondis */
+  border-left: 4px solid #ff6b2c; /* Couleur orange */
+  margin-top: 20px;
+}
+
+.demo-credentials h4 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.demo-credentials p {
+  margin: 5px 0;
+  font-size: 13px;
+  color: #7f8c8d;
+}
+
+.demo-credentials strong {
+  color: #2c3e50;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  
+  .login-header h1 {
+    font-size: 1.5em;
+  }
+  
+  .login-logo {
+    width: 60px;
+    height: 60px;
+  }
+}

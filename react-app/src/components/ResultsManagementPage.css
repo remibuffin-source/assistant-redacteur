@@ -5,9 +5,15 @@
 
 /* Vue Grille Éditeur */
 .editor-grid-view {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 2rem 60px; /* Padding équilibré comme les autres pages */
+  max-width: 1600px;
+  margin: 100px auto 0 auto; /* Centrage horizontal forcé */
+  width: 100%;
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .editor-header {
@@ -41,7 +47,7 @@
 
 .header-content h1 {
   margin: 0;
-  color: var(--primary-color);
+  color: #ff6b2c;
   font-size: 2.5rem;
   font-weight: 700;
 }
@@ -78,9 +84,9 @@
 .search-box input {
   padding: 0.75rem 0.75rem 0.75rem 3rem;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   background: var(--input-bg);
-  color: var(--text-color);
+  color: #1a1a1a;
   width: 100%;
   font-size: 1rem;
 }
@@ -89,18 +95,18 @@
   background: var(--input-bg);
   border: 1px solid var(--border-color);
   padding: 0.75rem;
-  border-radius: var(--border-radius);
-  color: var(--text-color);
+  border-radius: 10px;
+  color: #1a1a1a;
   min-width: 150px;
   font-size: 1rem;
 }
 
 .btn-create {
-  background: var(--primary-color);
+  background: #ff6b2c;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
   display: flex;
@@ -110,7 +116,7 @@
 }
 
 .btn-create:hover {
-  background: var(--primary-hover);
+  background: #e55a2b;
 }
 
 /* Grille de contenu */
@@ -123,7 +129,7 @@
 .content-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   padding: 1.5rem;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -133,7 +139,7 @@
 .content-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--primary-color);
+  border-color: #ff6b2c;
 }
 
 .card-header {
@@ -254,11 +260,11 @@
 }
 
 .btn-create-large {
-  background: var(--primary-color);
+  background: #ff6b2c;
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 600;
@@ -269,7 +275,7 @@
 }
 
 .btn-create-large:hover {
-  background: var(--primary-hover);
+  background: #e55a2b;
 }
 
 /* Responsive */

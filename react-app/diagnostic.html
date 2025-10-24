@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic - Assistant Rédactionnel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostic - Assistant Rédactionnel</h1>
+
+        <div class="status info">
+            <h3>📋 État du serveur</h3>
+            <p><strong>Serveur démarré :</strong> <span id="serverStatus">Vérification...</span></p>
+            <p><strong>Heure actuelle :</strong> <span id="currentTime"></span></p>
+        </div>
+
+        <div class="status warning">
+            <h3>🔗 Tests d'accès</h3>
+            <p><a href="/" class="button">🏠 Accueil</a></p>
+            <p><a href="/calendar" class="button">📅 Calendrier</a></p>
+        </div>
+
+        <div class="status error">
+            <h3>⚠️ Si le calendrier ne s'affiche pas :</h3>
+            <ul>
+                <li>Vérifiez que JavaScript est activé dans votre navigateur</li>
+                <li>Ouvrez la console développeur (F12) et recherchez les erreurs</li>
+                <li>Essayez de rafraîchir la page (Ctrl+F5)</li>
+                <li>Vérifiez que le serveur affiche "Serving HTTP on 0.0.0.0 port 3003"</li>
+            </ul>
+        </div>
+
+        <div class="status success">
+            <h3>✅ Ce qui devrait fonctionner :</h3>
+            <ul>
+                <li>Interface calendrier moderne avec boîte de contrôle</li>
+                <li>Formulaire de création de publications</li>
+                <li>Éditeur multimédia intégré comme popup</li>
+                <li>Gestion des plateformes (Instagram, Twitter, Facebook, etc.)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Mise à jour de l'heure
+        document.getElementById('currentTime').textContent = new Date().toLocaleString();
+
+        // Test de connectivité au serveur
+        fetch(window.location.origin + '/')
+            .then(response => {
+                document.getElementById('serverStatus').textContent = '✅ En ligne';
+            })
+            .catch(error => {
+                document.getElementById('serverStatus').textContent = '❌ Hors ligne - ' + error.message;
+            });
+
+        console.log('🔍 Page de diagnostic chargée');
+        console.log('🌐 Origine:', window.location.origin);
+        console.log('📅 Test calendrier:', window.location.origin + '/calendar');
+    </script>
+</body>
+</html>

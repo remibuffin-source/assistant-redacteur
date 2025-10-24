@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialisation Authentification - Assistant Rédacteur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section h2 {
+            color: #444;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .account-info {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .account-info strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .account-info code {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        button.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .icon {
+            font-size: 24px;
+        }
+        
+        .users-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .user-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-item .badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Initialisation Authentification</h1>
+        <p class="subtitle">Assistant Rédacteur - Studio du Cap Brun</p>
+        
+        <div class="section">
+            <h2><span class="icon">👤</span> Compte Administrateur</h2>
+            <div class="account-info">
+                <strong>Email :</strong>
+                <code>admin@studioducapbrun.com</code>
+            </div>
+            <div class="account-info">
+                <strong>Mot de passe :</strong>
+                <code>AdminStudio2025!</code>
+            </div>
+            <div class="account-info">
+                <strong>Rôle :</strong>
+                <code>Administrateur</code>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="icon">🧪</span> Compte de Test</h2>
+            <div class="account-info">
+                <strong>Email :</strong>
+                <code>test@example.com</code>
+            </div>
+            <div class="account-info">
+                <strong>Mot de passe :</strong>
+                <code>Test1234!</code>
+            </div>
+            <div class="account-info">
+                <strong>Rôle :</strong>
+                <code>Utilisateur</code>
+            </div>
+            <button class="success" onclick="createTestAccount()">✅ Créer le compte de test</button>
+        </div>
+        
+        <div class="section">
+            <h2><span class="icon">⚙️</span> Actions</h2>
+            <button onclick="initializeAuth()">🔄 Initialiser l'authentification</button>
+            <button onclick="showUsers()">👥 Afficher les utilisateurs</button>
+            <button class="danger" onclick="resetAuth()">🗑️ Réinitialiser tout</button>
+            <button onclick="testLogin()">🔑 Tester la connexion admin</button>
+        </div>
+        
+        <div id="status"></div>
+        
+        <div id="usersList" class="users-list" style="display: none;"></div>
+    </div>
+    
+    <script>
+        // Fonction de hachage (identique à authService.js)
+        function hashPassword(password) {
+            return btoa(password + '_salt_2025');
+        }
+        
+        // Initialiser l'authentification
+        function initializeAuth() {
+            const users = JSON.parse(localStorage.getItem('auth_users') || '[]');
+            
+            // Vérifier si l'admin existe
+            const adminExists = users.some(user => user.email === 'admin@studioducapbrun.com');
+            
+            if (!adminExists) {
+                const adminUser = {
+                    id: 'admin_' + Date.now(),
+                    email: 'admin@studioducapbrun.com',
+                    username: 'admin',
+                    firstName: 'Administrateur',
+                    lastName: 'Studio',
+                    company: 'Studio du Cap Brun',
+                    phone: '+33 6 12 34 56 78',
+                    role: 'admin',
+                    isAdmin: true,
+                    isVerified: true,
+                    createdAt: new Date().toISOString(),
+                    hashedPassword: hashPassword('AdminStudio2025!')
+                };
+                
+                users.push(adminUser);
+                localStorage.setItem('auth_users', JSON.stringify(users));
+                
+                showStatus('✅ Compte administrateur créé avec succès !', 'success');
+            } else {
+                showStatus('ℹ️ Le compte administrateur existe déjà.', 'info');
+            }
+        }
+        
+        // Créer un compte de test
+        function createTestAccount() {
+            const users = JSON.parse(localStorage.getItem('auth_users') || '[]');
+            
+            // Vérifier si le compte test existe
+            const testExists = users.some(user => user.email === 'test@example.com');
+            
+            if (testExists) {
+                showStatus('ℹ️ Le compte de test existe déjà.', 'info');
+                return;
+            }
+            
+            const testUser = {
+                id: 'test_' + Date.now(),
+                email: 'test@example.com',
+                username: 'test',
+                firstName: 'Utilisateur',
+                lastName: 'Test',
+                company: 'Test Company',
+                phone: '+33 6 00 00 00 00',
+                role: 'user',
+                isAdmin: false,
+                isVerified: true,
+                createdAt: new Date().toISOString(),
+                hashedPassword: hashPassword('Test1234!')
+            };
+            
+            users.push(testUser);
+            localStorage.setItem('auth_users', JSON.stringify(users));
+            
+            showStatus('✅ Compte de test créé avec succès !', 'success');
+        }
+        
+        // Afficher les utilisateurs
+        function showUsers() {
+            const users = JSON.parse(localStorage.getItem('auth_users') || '[]');
+            const usersList = document.getElementById('usersList');
+            
+            if (users.length === 0) {
+                showStatus('ℹ️ Aucun utilisateur trouvé. Initialisez d\'abord l\'authentification.', 'info');
+                usersList.style.display = 'none';
+                return;
+            }
+            
+            let html = '<h3 style="margin-bottom: 10px;">📋 Liste des utilisateurs :</h3>';
+            users.forEach(user => {
+                html += `
+                    <div class="user-item">
+                        <div>
+                            <strong>${user.firstName} ${user.lastName}</strong><br>
+                            <small>${user.email}</small>
+                        </div>
+                        <span class="badge">${user.isAdmin ? 'Admin' : 'User'}</span>
+                    </div>
+                `;
+            });
+            
+            usersList.innerHTML = html;
+            usersList.style.display = 'block';
+            showStatus(`✅ ${users.length} utilisateur(s) trouvé(s).`, 'success');
+        }
+        
+        // Réinitialiser l'authentification
+        function resetAuth() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir supprimer TOUS les utilisateurs et sessions ?')) {
+                localStorage.removeItem('auth_users');
+                localStorage.removeItem('auth_sessions');
+                localStorage.removeItem('auth_pending_verifications');
+                localStorage.removeItem('auth_data');
+                document.getElementById('usersList').style.display = 'none';
+                showStatus('✅ Authentification réinitialisée. Cliquez sur "Initialiser" pour recréer l\'admin.', 'success');
+            }
+        }
+        
+        // Tester la connexion admin
+        function testLogin() {
+            const users = JSON.parse(localStorage.getItem('auth_users') || '[]');
+            const admin = users.find(user => user.email === 'admin@studioducapbrun.com');
+            
+            if (!admin) {
+                showStatus('❌ Compte administrateur introuvable. Initialisez d\'abord.', 'error');
+                return;
+            }
+            
+            const testPassword = 'AdminStudio2025!';
+            const hashedTest = hashPassword(testPassword);
+            
+            if (admin.hashedPassword === hashedTest) {
+                showStatus('✅ Test de connexion réussi ! Le mot de passe admin fonctionne.', 'success');
+            } else {
+                showStatus('❌ Erreur : Le mot de passe ne correspond pas.', 'error');
+            }
+        }
+        
+        // Afficher un message de statut
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+        }
+        
+        // Initialiser au chargement
+        window.onload = function() {
+            initializeAuth();
+            showStatus('✅ Page d\'initialisation chargée. Utilisez les boutons ci-dessus.', 'info');
+        };
+    </script>
+</body>
+</html>

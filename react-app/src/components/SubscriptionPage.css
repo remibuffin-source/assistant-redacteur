@@ -1,9 +1,14 @@
 /* Page Abonnement - Recharge Libre */
 .subscription-page {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 2rem;
-  min-height: 100vh;
+  max-width: 1600px;
+  margin: 96px auto 0 auto; /* Remonté de 4px (100px -> 96px) */
+  padding: 2rem 60px; /* Padding équilibré comme les autres pages */
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .back-button {
@@ -24,21 +29,21 @@
 }
 
 .back-button:hover {
-  background: rgba(255, 107, 53, 0.1);
-  border-color: #ff6b35;
-  color: #ff6b35;
+  background: rgba(255, 107, 44, 0.1);
+  border-color: #ff6b2c;
+  color: #ff6b2c;
 }
 
 .subscription-header {
   text-align: center;
   margin-bottom: 3rem;
-  border-bottom: 3px solid #ff6b35;
+  border-bottom: 3px solid #ff6b2c;
   padding-bottom: 2rem;
   margin-top: 2rem;
 }
 
 .subscription-header h2 {
-  color: #ff6b35;
+  color: #ff6b2c;
   font-size: 2.5rem;
   margin-bottom: 1rem;
   font-weight: 700;
@@ -61,14 +66,14 @@
 }
 
 .balance-card {
-  background: linear-gradient(135deg, #ff6b35, #e55a2b);
+  background: linear-gradient(135deg, #ff6b2c, #e55a2b);
   color: white;
   padding: 2rem;
-  border-radius: 20px;
+  border-radius: 10px; /* Boutons plus arrondis */
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 10px 30px rgba(255, 107, 44, 0.3);
 }
 
 .balance-card i {
@@ -96,7 +101,7 @@
 }
 
 .recharge-options h3 {
-  color: #ff6b35;
+  color: #ff6b2c;
   font-size: 1.8rem;
   margin-bottom: 2rem;
   text-align: center;
@@ -109,10 +114,54 @@
   margin-bottom: 2rem;
 }
 
+/* Boutons horizontaux compacts */
+.preset-amounts-horizontal {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.amount-btn-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 250px;
+  height: 150px;
+  text-align: center;
+}
+
+.amount-large {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.amount-btn-compact:hover {
+  border-color: var(--accent-color);
+  background: rgba(255, 107, 44, 0.1);
+  transform: translateY(-2px);
+}
+
+.amount-btn-compact.selected {
+  border-color: var(--accent-color);
+  background: rgba(255, 107, 44, 0.2);
+  color: var(--accent-color);
+}
+
 .amount-btn {
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
-  border-radius: 15px;
+  border-radius: 10px; /* Boutons plus arrondis */
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -120,22 +169,22 @@
 }
 
 .amount-btn:hover {
-  border-color: #ff6b35;
+  border-color: #ff6b2c;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2);
+  box-shadow: 0 5px 15px rgba(255, 107, 44, 0.2);
 }
 
 .amount-btn.selected {
-  background: rgba(255, 107, 53, 0.1);
-  border-color: #ff6b35;
-  box-shadow: 0 5px 20px rgba(255, 107, 53, 0.3);
+  background: rgba(255, 107, 44, 0.1);
+  border-color: #ff6b2c;
+  box-shadow: 0 5px 20px rgba(255, 107, 44, 0.3);
 }
 
 .amount-btn .amount {
   display: block;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #ff6b35;
+  color: #ff6b2c;
   margin-bottom: 0.5rem;
 }
 
@@ -177,26 +226,76 @@
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
-.custom-input .currency {
+.custom-input .currency,
+.custom-input-horizontal .currency {
   position: absolute;
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
   color: #ff6b35;
-  font-weight: 600;
-  font-size: 1.2rem;
+  font-weight: 700;
+  font-size: 1.5rem; /* Plus gros pour être bien visible */
+  pointer-events: none; /* Ne bloque pas les clics */
 }
 
 /* Message liberté */
 .freedom-message {
-  background: rgba(255, 107, 53, 0.05);
-  border: 2px solid rgba(255, 107, 53, 0.2);
+  background: linear-gradient(135deg, rgba(255, 107, 44, 0.1), rgba(255, 107, 44, 0.05));
+  border: 1px solid rgba(255, 107, 44, 0.3);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 2rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* Message de liberté en haut */
+.freedom-message-top {
+  background: linear-gradient(135deg, rgba(255, 107, 44, 0.3), rgba(255, 107, 44, 0.2));
+  border: 2px solid rgba(255, 107, 44, 0.4);
   border-radius: 20px;
   padding: 2.5rem;
-  margin-bottom: 3rem;
+  margin: 0 0 3rem 0;
   display: flex;
-  gap: 2rem;
   align-items: flex-start;
+  gap: 2rem;
+  box-shadow: 0 4px 20px rgba(255, 107, 44, 0.1);
+  position: relative;
+}
+
+/* Solde actuel intégré */
+.balance-card-integrated {
+  position: absolute;
+  bottom: 25px;
+  right: 25px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent-color);
+  border-radius: 15px;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 200px;
+  height: auto;
+  box-shadow: 0 4px 15px rgba(255, 107, 44, 0.2);
+}
+
+.balance-card-integrated i {
+  font-size: 1.5rem;
+  color: var(--accent-color);
+}
+
+.balance-card-integrated .balance-info h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.balance-card-integrated .balance-amount {
+  font-size: 1.73rem;
+  font-weight: bold;
+  color: var(--accent-color);
 }
 
 .freedom-icon {
@@ -212,7 +311,7 @@
 }
 
 .freedom-content h4 {
-  color: #ff6b35;
+  color: #ff6b2c;
   font-size: 1.5rem;
   margin-bottom: 1rem;
 }
@@ -221,6 +320,7 @@
   color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 1.5rem;
+  font-size: 1.17rem; /* ~2pt bigger than default */
 }
 
 .freedom-content ul {
@@ -242,17 +342,124 @@
 }
 
 /* Action de recharge */
-.recharge-action {
+.recharge-options h3 {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+  font-size: 2rem;
+}
+
+.custom-amount-inline h4 {
+  font-size: 2rem !important;
+  margin-bottom: 1.5rem;
+}
+
+.choose-amount-title {
+  font-size: 2rem !important;
+}
+
+/* Montant personnalisé en ligne */
+.custom-amount-inline {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.custom-input-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  position: relative; /* Pour que le € en position absolute fonctionne */
+}
+
+/* Boutons des montants prédéfinis */
+.preset-amounts-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.amount-btn-compact {
+  padding: 0 1rem;
+  height: 44px; /* réduit ~40px si plus grand avant */
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.amount-btn-compact.selected {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 44, 0.2);
+}
+
+.amount-large {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.amount-input {
+  padding: 1.25rem 3rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  width: 288px; /* Élargi de 10% supplémentaire (262px * 1.1 = 288px) */
+  text-align: center;
+  font-weight: 600;
+}
+
+.recharge-btn-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 3rem;
+  background: linear-gradient(135deg, #ff6b2c, #e55a2b);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 264px; /* Élargi de 10% (240px * 1.1 = 264px) */
+  height: auto;
+}
+
+.recharge-btn-inline:hover {
+  background: #e55a2b;
+  transform: translateY(-1px);
+}
+
+.recharge-btn-inline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.recharge-action-bottom {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.recharge-action-bottom .security-note {
+  margin-top: -4px; /* Remonté de 4px */
+  margin-bottom: 8px; /* 8px d'espace avec les boîtes du dessous */
 }
 
 .recharge-btn {
-  background: linear-gradient(135deg, #ff6b35, #e55a2b);
+  background: linear-gradient(135deg, #ff6b2c, #e55a2b);
   color: white;
   border: none;
   padding: 1.25rem 3rem;
-  border-radius: 50px;
+  border-radius: 10px; /* Boutons plus arrondis */
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
@@ -261,12 +468,12 @@
   gap: 0.75rem;
   transition: all 0.3s ease;
   margin-bottom: 1rem;
-  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 8px 25px rgba(255, 107, 44, 0.4);
 }
 
 .recharge-btn:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(255, 107, 53, 0.6);
+  box-shadow: 0 12px 35px rgba(255, 107, 44, 0.6);
 }
 
 .recharge-btn:disabled {
@@ -288,11 +495,13 @@
   color: #ff6b35;
 }
 
-/* Grille de fonctionnalités */
+/* Grille de fonctionnalités - 3 colonnes sur une ligne */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
   gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .feature-card {

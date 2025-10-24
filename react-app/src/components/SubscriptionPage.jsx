@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
+import { getSubscriptionText } from '../i18n/subscriptionTranslations';
+import MenuBar from './MenuBar';
+import StripePayment from './StripePayment';
+import { createInvoice } from '../utils/invoiceGenerator';
 import './SubscriptionPage.css';
 
 const SubscriptionPage = () => {
@@ -10,16 +14,16 @@ const SubscriptionPage = () => {
   const [customAmount, setCustomAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Récupérer la langue depuis les données utilisateur
+  const userLanguage = autoSaveData.language || 'fr';
+  const t = (path) => getSubscriptionText(userLanguage, path);
+
   const presetAmounts = [
     { amount: 10, label: '10€ - Essentiel' },
     { amount: 25, label: '25€ - Confort' },
     { amount: 50, label: '50€ - Professionnel' },
     { amount: 100, label: '100€ - Expert' }
   ];
-
-  const handleBackToMain = () => {
-    navigate('/');
-  };
 
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount);
@@ -31,147 +35,157 @@ const SubscriptionPage = () => {
     setSelectedAmount('');
   };
 
-  const handleRecharge = async () => {
-    const amount = customAmount || selectedAmount;
-    if (!amount || amount <= 0) {
-      alert('Veuillez sélectionner ou saisir un montant valide');
+  const [showStripePayment, setShowStripePayment] = useState(false);
+
+  const handleRecharge = () => {
+    const amount = selectedAmount || customAmount;
+    if (!amount || parseFloat(amount) <= 0) {
+      alert(t('recharge.invalidAmount'));
       return;
     }
 
     setIsProcessing(true);
+
+    // Ouvrir le terminal de paiement Stripe
+    setShowStripePayment(true);
+  };
+
+  const handlePaymentSuccess = (amount) => {
+    const newBalance = (autoSaveData.balance || 0) + parseFloat(amount);
+    updateAutoSave({ ...autoSaveData, balance: newBalance });
     
-    // Simuler le processus de recharge
-    setTimeout(() => {
-      const newBalance = (autoSaveData.balance || 0) + parseFloat(amount);
-      updateAutoSave({ ...autoSaveData, balance: newBalance });
-      
-      setIsProcessing(false);
-      alert(`✅ Recharge réussie ! ${amount}€ ont été ajoutés à votre solde.`);
-      navigate('/');
-    }, 2000);
+    // Générer automatiquement une facture
+    const invoice = createInvoice(
+      parseFloat(amount),
+      autoSaveData.email || 'contact@studioducapbrun.com',
+      'stripe'
+    );
+    
+    console.log('Facture générée:', invoice);
+    
+    setIsProcessing(false);
+    setShowStripePayment(false);
+    alert(t('recharge.successMessage').replace('{amount}', amount) + `\n\nFacture ${invoice.number} générée avec succès !`);
+    navigate('/');
+  };
+
+  const handlePaymentError = (error) => {
+    console.error('Erreur de paiement:', error);
+    setIsProcessing(false);
+    setShowStripePayment(false);
+    alert(t('recharge.errorMessage'));
   };
 
   const currentBalance = autoSaveData.balance || 0;
 
   return (
-    <div className="subscription-page">
-      <button className="back-button" onClick={handleBackToMain}>
-        <i className="fas fa-arrow-left"></i>
-        Retour à l'accueil
-      </button>
-      
-      <div className="subscription-header">
-        <h2>
-          <i className="fas fa-coins"></i>
-          Recharge Libre
-        </h2>
-        <p>Rechargez votre solde selon vos besoins, sans engagement ni date d'expiration</p>
-      </div>
+    <div className="page-container">
+      <MenuBar onHelp={() => {}} />
+      <div className="page-content">
+        <div className="subscription-page" style={{ marginTop: '-50px' }}>
 
-      <div className="current-balance">
-        <div className="balance-card">
-          <i className="fas fa-wallet"></i>
-          <div className="balance-info">
-            <h3>Solde actuel</h3>
-            <span className="balance-amount">{currentBalance.toFixed(2)}€</span>
+          {/* Solde actuel intégré dans le message de liberté */}
+          <div className="freedom-message-top">
+            <div className="freedom-icon">
+              <i className="fas fa-dove"></i>
+            </div>
+            <div className="freedom-content">
+              <h4>{t('freedom.title')}</h4>
+              <p>
+                {t('freedom.description')}
+              </p>
+              <ul>
+                <li><i className="fas fa-check"></i> {t('freedom.noCommitment')}</li>
+                <li><i className="fas fa-check"></i> {t('freedom.noExpiration')}</li>
+                <li><i className="fas fa-check"></i> {t('freedom.yourPace')}</li>
+                <li><i className="fas fa-check"></i> {t('freedom.totalControl')}</li>
+              </ul>
+            </div>
+            {/* Solde actuel en bas à droite */}
+            <div className="balance-card-integrated">
+              <i className="fas fa-wallet"></i>
+              <div className="balance-info">
+                <h3>{t('balance.title')}</h3>
+                <span className="balance-amount">{currentBalance.toFixed(2)}{t('balance.currency')}</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="recharge-options">
-        <h3>Choisissez votre montant</h3>
-        
-        <div className="preset-amounts">
-          {presetAmounts.map((preset) => (
-            <button
-              key={preset.amount}
-              className={`amount-btn ${selectedAmount === preset.amount ? 'selected' : ''}`}
-              onClick={() => handleAmountSelect(preset.amount)}
-            >
-              <span className="amount">{preset.amount}€</span>
-              <span className="label">{preset.label}</span>
-            </button>
-          ))}
-        </div>
+          <div className="recharge-options">
+            <h3 className="choose-amount-title">{t('recharge.chooseAmount')}</h3>
+            
+            <div className="custom-amount-inline">
+              <div className="custom-input-horizontal">
+                <input
+                  type="number"
+                  value={customAmount}
+                  onChange={(e) => handleCustomAmountChange(e.target.value)}
+                  placeholder={t('recharge.placeholder')}
+                  min="1"
+                  step="0.01"
+                  className="amount-input"
+                />
+                <button
+                  className="recharge-btn-inline"
+                  onClick={handleRecharge}
+                  disabled={isProcessing || (!selectedAmount && !customAmount)}
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="loader"></div>
+                      {t('recharge.processing')}
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-bolt"></i>
+                      {t('recharge.button')}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
 
-        <div className="custom-amount">
-          <h4>Ou saisissez un montant personnalisé</h4>
-          <div className="custom-input">
-            <input
-              type="number"
-              value={customAmount}
-              onChange={(e) => handleCustomAmountChange(e.target.value)}
-              placeholder="Montant en euros"
-              min="1"
-              step="0.01"
+          {/* Terminal de paiement Stripe */}
+          {showStripePayment && (
+            <StripePayment
+              amount={parseFloat(selectedAmount || customAmount)}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+              onCancel={() => {
+                setShowStripePayment(false);
+                setIsProcessing(false);
+              }}
             />
-            <span className="currency">€</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="freedom-message">
-        <div className="freedom-icon">
-          <i className="fas fa-dove"></i>
-        </div>
-        <div className="freedom-content">
-          <h4>Liberté totale, sans contrainte</h4>
-          <p>
-            Chez nous, pas d'abonnement contraignant ni de date de péremption. 
-            Rechargez uniquement ce dont vous avez besoin, quand vous en avez besoin. 
-            Votre argent reste disponible indéfinement, pour une consommation à votre rythme.
-          </p>
-          <ul>
-            <li><i className="fas fa-check"></i> Pas d'engagement</li>
-            <li><i className="fas fa-check"></i> Pas de date d'expiration</li>
-            <li><i className="fas fa-check"></i> Consommation à votre tempo</li>
-            <li><i className="fas fa-check"></i> Contrôle total de vos dépenses</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="recharge-action">
-        <button
-          className="recharge-btn"
-          onClick={handleRecharge}
-          disabled={isProcessing || (!selectedAmount && !customAmount)}
-        >
-          {isProcessing ? (
-            <>
-              <div className="loader"></div>
-              Traitement en cours...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-bolt"></i>
-              Recharger {customAmount || selectedAmount}€
-            </>
           )}
-        </button>
-        
-        <p className="security-note">
-          <i className="fas fa-shield-alt"></i>
-          Paiement sécurisé - Vos données bancaires sont cryptées
-        </p>
-      </div>
 
-      <div className="features-grid">
-        <div className="feature-card">
-          <i className="fas fa-infinity"></i>
-          <h4>Valable à vie</h4>
-          <p>Votre solde n'expire jamais, utilisez-le quand vous voulez</p>
-        </div>
-        
-        <div className="feature-card">
-          <i className="fas fa-chart-line"></i>
-          <h4>Économisez</h4>
-          <p>Payez seulement ce que vous consommez, sans frais cachés</p>
-        </div>
-        
-        <div className="feature-card">
-          <i className="fas fa-sync"></i>
-          <h4>Flexibilité</h4>
-          <p>Rechargez petit à petit selon vos besoins réels</p>
+          <div className="recharge-action-bottom">
+            
+            <p className="security-note">
+              <i className="fas fa-shield-alt"></i>
+              {t('security.note')}
+            </p>
+          </div>
+
+          <div className="features-grid">
+            <div className="feature-card">
+              <i className="fas fa-infinity"></i>
+              <h4>{t('features.lifetime.title')}</h4>
+              <p>{t('features.lifetime.description')}</p>
+            </div>
+            
+            <div className="feature-card">
+              <i className="fas fa-chart-line"></i>
+              <h4>{t('features.savings.title')}</h4>
+              <p>{t('features.savings.description')}</p>
+            </div>
+            
+            <div className="feature-card">
+              <i className="fas fa-sync"></i>
+              <h4>{t('features.flexibility.title')}</h4>
+              <p>{t('features.flexibility.description')}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

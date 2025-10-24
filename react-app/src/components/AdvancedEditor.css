@@ -13,15 +13,16 @@
 }
 
 .editor-container {
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
+  background: #102939; /* Fond #102939 comme demandé */
+  border-radius: 10px;
   width: 100%;
   max-width: 1200px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-2xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Header */
@@ -30,13 +31,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem;
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--border-color);
+  background: #102939; /* Même fond que le container */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .editor-header h2 {
   margin: 0;
-  color: var(--primary-color);
+  color: #ff6b2c;
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -44,23 +45,23 @@
 .editor-stats {
   display: flex;
   gap: 1rem;
-  color: var(--text-muted);
+  color: #ffffff; /* Texte blanc pour contraste */
   font-size: 0.9rem;
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #ffffff; /* Texte blanc */
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  background: var(--hover-bg);
-  color: var(--text-color);
+  background: rgba(255, 107, 44, 0.2);
+  color: #ff6b2c;
 }
 
 /* Barre d'outils */
@@ -68,8 +69,8 @@
   display: flex;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--border-color);
+  background: #102939; /* Même fond */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   flex-wrap: wrap;
 }
 
@@ -80,11 +81,11 @@
 }
 
 .editor-toolbar button {
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0.5rem;
-  border-radius: var(--border-radius);
-  color: var(--text-color);
+  border-radius: 10px;
+  color: #ffffff; /* Texte blanc */
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 2.5rem;
@@ -95,17 +96,17 @@
 }
 
 .editor-toolbar button:hover {
-  background: var(--hover-bg);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  background: rgba(255, 107, 44, 0.2);
+  border-color: #ff6b2c;
+  color: #ff6b2c;
 }
 
 .editor-toolbar select {
-  background: var(--input-bg);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 0.5rem;
-  border-radius: var(--border-radius);
-  color: var(--text-color);
+  border-radius: 10px;
+  color: #1a1a1a; /* Texte noir dans les selects */
   min-width: 100px;
 }
 
@@ -118,24 +119,25 @@
   min-height: 400px;
   max-height: 500px;
   overflow-y: auto;
-  background: var(--input-bg);
-  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.97); /* Fond blanc pour l'édition */
+  color: #1a1a1a; /* TEXTE NOIR pour la lisibilité */
   font-size: 1.1rem;
   line-height: 1.8;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   margin: 1.5rem;
   text-align: left;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .editor-content:focus {
-  outline: 2px solid var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  outline: 2px solid #ff6b2c;
+  box-shadow: 0 0 0 4px rgba(255, 107, 44, 0.2);
 }
 
 .editor-content[contenteditable="true"]:empty:before {
   content: attr(placeholder);
-  color: var(--text-muted);
+  color: #666666; /* Placeholder gris */
   font-style: italic;
   font-size: 1.1rem;
 }
@@ -143,30 +145,30 @@
 /* Styles pour le contenu éditable */
 .editor-content strong {
   font-weight: 700;
-  color: var(--text-color);
+  color: #1a1a1a; /* Texte noir */
 }
 
 .editor-content em {
   font-style: italic;
-  color: var(--text-color);
+  color: #1a1a1a; /* Texte noir */
 }
 
 .editor-content u {
   text-decoration: underline;
-  color: var(--text-color);
+  color: #1a1a1a; /* Texte noir */
 }
 
 .editor-content s {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: #666666; /* Gris pour le texte barré */
 }
 
 .editor-content blockquote {
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid #ff6b2c;
   margin: 1rem 0;
   padding-left: 1.5rem;
   font-style: italic;
-  color: var(--text-muted);
+  color: #666666;
 }
 
 .editor-content ul, .editor-content ol {
@@ -179,24 +181,24 @@
 }
 
 .editor-content a {
-  color: var(--primary-color);
+  color: #ff6b2c;
   text-decoration: underline;
 }
 
 .editor-content a:hover {
-  color: var(--primary-hover);
+  color: #e55a2b;
 }
 
 .editor-content img {
   max-width: 100%;
   height: auto;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   margin: 1rem 0;
 }
 
 .editor-content video {
   max-width: 100%;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   margin: 1rem 0;
 }
 
@@ -205,11 +207,11 @@
   position: absolute;
   bottom: 100%;
   left: 1rem;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  background: #102939; /* Même fond */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   padding: 1rem;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   z-index: 1000;
 }
 
@@ -235,33 +237,34 @@
 }
 
 .emoji-more {
-  background: var(--primary-light);
-  color: var(--primary-color);
+  background: rgba(255, 107, 44, 0.2);
+  color: #ff6b2c;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   cursor: pointer;
   font-size: 0.9rem;
   width: 100%;
 }
 
 .emoji-more:hover {
-  background: var(--primary-color);
+  background: #ff6b2c;
   color: white;
 }
 
 /* Boutons de couleurs de texte */
 .text-colors {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.3rem;
   margin: 1rem 0;
   justify-content: center;
   flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .text-colors button {
-  background: var(--secondary-bg);
-  border: 2px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
@@ -276,8 +279,8 @@
 
 .text-colors button:hover {
   transform: scale(1.1);
-  border-color: var(--primary-color);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  border-color: #ff6b2c;
+  box-shadow: 0 0 10px rgba(255, 107, 44, 0.3);
 }
 
 /* Modal média */
@@ -295,16 +298,17 @@
 }
 
 .media-modal-content {
-  background: var(--card-bg);
+  background: #102939; /* Même fond */
   padding: 2rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   max-width: 400px;
   width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .media-modal-content h3 {
   margin: 0 0 1.5rem 0;
-  color: var(--text-color);
+  color: #ffffff; /* Texte blanc */
   text-align: center;
 }
 
@@ -319,12 +323,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-color);
+  color: #ffffff; /* Texte blanc */
   cursor: pointer;
 }
 
 .media-options input[type="radio"] {
-  accent-color: var(--primary-color);
+  accent-color: #ff6b2c;
 }
 
 .media-actions {
@@ -342,35 +346,36 @@
 }
 
 .media-actions button:first-child {
-  background: var(--primary-color);
+  background: #ff6b2c;
   color: white;
 }
 
 .media-actions button:first-child:hover {
-  background: var(--primary-hover);
+  background: #e55a2b;
 }
 
 .media-actions button:last-child {
-  background: var(--secondary-bg);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .media-actions button:last-child:hover {
-  background: var(--hover-bg);
+  background: rgba(255, 107, 44, 0.2);
 }
 
 /* Section webcam */
 .webcam-section {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border-color);
-  background: var(--header-bg);
+  background: var(--bg-secondary);
 }
 
 .webcam-section h4 {
   margin: 0 0 1rem 0;
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .webcam-controls {
@@ -381,11 +386,11 @@
 }
 
 .btn-record {
-  background: var(--error-color);
+  background: #dc3545; /* Rouge pour enregistrer */
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -394,15 +399,15 @@
 }
 
 .btn-record:hover {
-  background: var(--error-hover);
+  background: #c82333;
 }
 
 .btn-stop {
-  background: var(--success-color);
+  background: #28a745; /* Vert pour arrêter */
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -411,14 +416,14 @@
 }
 
 .btn-stop:hover {
-  background: var(--success-hover);
+  background: #218838;
 }
 
 .webcam-preview {
   width: 200px;
   height: 150px;
-  border-radius: var(--border-radius);
-  border: 2px solid var(--primary-color);
+  border-radius: 10px;
+  border: 2px solid #ff6b2c;
 }
 
 /* Actions finales */
@@ -427,8 +432,8 @@
   gap: 1rem;
   justify-content: flex-end;
   padding: 1.5rem;
-  border-top: 1px solid var(--border-color);
-  background: var(--header-bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: #102939; /* Même fond */
 }
 
 .editor-actions button {
@@ -444,39 +449,39 @@
 }
 
 .btn-delete {
-  background: var(--error-color);
+  background: #dc3545; /* Rouge pour supprimer */
   color: white;
 }
 
 .btn-delete:hover {
-  background: var(--error-hover);
+  background: #c82333;
 }
 
 .btn-template {
-  background: var(--warning-color);
-  color: white;
+  background: #ffc107; /* Jaune pour modèle */
+  color: #212529;
 }
 
 .btn-template:hover {
-  background: var(--warning-hover);
+  background: #e0a800;
 }
 
 .btn-save {
-  background: var(--primary-color);
+  background: #ff6b2c;
   color: white;
 }
 
 .btn-save:hover {
-  background: var(--primary-hover);
+  background: #e55a2b;
 }
 
 .btn-publish {
-  background: var(--success-color);
+  background: #28a745; /* Vert pour publier */
   color: white;
 }
 
 .btn-publish:hover {
-  background: var(--success-hover);
+  background: #218838;
 }
 
 /* Responsive */

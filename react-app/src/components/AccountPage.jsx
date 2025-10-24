@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import MenuBar from './MenuBar';
 import './AccountPage.css';
+import './AccountPage-override.css';
+import './AccountPage-force.css';
 
 const AccountPage = () => {
   const { autoSaveData, updateAutoSave } = useAssistantAutoSave();
   const [activeTab, setActiveTab] = useState('profile');
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [userData, setUserData] = useState({
     username: autoSaveData.username || 'utilisateur123',
@@ -29,9 +34,17 @@ const AccountPage = () => {
     confirmPassword: ''
   });
 
+  const [emailData, setEmailData] = useState({
+    newEmail: '',
+    confirmPassword: ''
+  });
+
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [emailSuccess, setEmailSuccess] = useState('');
 
   const handleInputChange = (field, value) => {
     const newData = { ...userData, [field]: value };
@@ -48,6 +61,12 @@ const AccountPage = () => {
     setPasswordData(prev => ({ ...prev, [field]: value }));
     setPasswordError('');
     setPasswordSuccess('');
+  };
+
+  const handleEmailChange = (field, value) => {
+    setEmailData(prev => ({ ...prev, [field]: value }));
+    setEmailError('');
+    setEmailSuccess('');
   };
 
   const handleChangePassword = () => {
@@ -87,53 +106,183 @@ const AccountPage = () => {
     }, 1500);
   };
 
+  const handleChangeEmail = async () => {
+    if (!emailData.newEmail) {
+      setEmailError('Veuillez entrer un nouvel email');
+      return;
+    }
+
+    if (!emailData.confirmPassword) {
+      setEmailError('Veuillez confirmer votre mot de passe');
+      return;
+    }
+
+    // Validation basique de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailData.newEmail)) {
+      setEmailError('Veuillez entrer un email valide');
+      return;
+    }
+
+    setIsChangingEmail(true);
+    
+    try {
+      // Simulation de changement d'email - remplacer par appel API réel
+      setTimeout(() => {
+        setIsChangingEmail(false);
+        setEmailSuccess('Email changé avec succès !');
+        
+        // Mettre à jour l'email dans les données utilisateur
+        handleInputChange('email', emailData.newEmail);
+        
+        setEmailData({
+          newEmail: '',
+          confirmPassword: ''
+        });
+        
+        setTimeout(() => setEmailSuccess(''), 3000);
+      }, 1500);
+    } catch (error) {
+      setIsChangingEmail(false);
+      setEmailError('Erreur lors du changement d\'email');
+    }
+  };
+
   const handleBackToMain = () => {
     navigate('/');
   };
 
-  return (
-    <div className="account-page">
-      <button className="back-button" onClick={handleBackToMain}>
-        <i className="fas fa-arrow-left"></i>
-        Retour à l'accueil
-      </button>
+  // Auth guard: redirect to login if unauthenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  // Force l'écriture dans tous les inputs avec JavaScript
+  useEffect(() => {
+    const forceAllInputs = () => {
+      // Sélectionne tous les inputs, textarea et select de la page
+      const inputs = document.querySelectorAll('.account-page input, .account-page textarea, .account-page select');
       
-      <div className="account-header">
-        <h2>
-          <i className="fas fa-user-circle"></i>
-          Mon Compte
-        </h2>
-        <p>Gérez vos paramètres personnels et préférences</p>
-      </div>
+      inputs.forEach(input => {
+        if (input) {
+          // Force les propriétés d'écriture
+          input.style.pointerEvents = 'auto';
+          input.style.userSelect = 'text';
+          input.style.webkitUserSelect = 'text';
+          input.style.mozUserSelect = 'text';
+          input.style.msUserSelect = 'text';
+          input.style.cursor = input.type === 'checkbox' ? 'pointer' : 'text';
+          input.style.zIndex = '100';
+          input.style.position = 'relative';
+          input.style.backgroundColor = input.type === 'checkbox' ? 'transparent' : 'rgba(255, 255, 255, 0.97)';
+          input.style.color = input.type === 'checkbox' ? 'inherit' : '#1a1a1a';
+          input.style.border = input.type === 'checkbox' ? 'none' : '1px solid rgba(255, 255, 255, 0.3)';
+          input.style.borderRadius = input.type === 'checkbox' ? '0' : '8px';
+          input.style.padding = input.type === 'checkbox' ? '0' : (input.tagName === 'TEXTAREA' ? '12px 15px' : '12px 15px');
+          input.style.fontSize = '14px';
+          input.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+          input.style.direction = 'ltr';
+          input.style.textAlign = 'left';
+          input.style.outline = 'none';
+          input.style.webkitAppearance = input.type === 'checkbox' ? 'checkbox' : 'none';
+          input.style.mozAppearance = input.type === 'checkbox' ? 'checkbox' : 'none';
+          input.style.appearance = input.type === 'checkbox' ? 'checkbox' : 'none';
+          input.style.opacity = '1';
+          input.style.visibility = 'visible';
+          input.style.display = input.type === 'checkbox' ? 'inline-block' : 'block';
+          input.style.width = input.type === 'checkbox' ? '18px' : '100%';
+          input.style.height = input.type === 'checkbox' ? '18px' : 'auto';
+          input.style.boxSizing = 'border-box';
+          
+          // Propriétés ultra-forcées pour les champs de texte
+          if (input.type !== 'checkbox' && input.tagName !== 'SELECT') {
+            input.contentEditable = 'true';
+            input.style.webkitUserModify = 'read-write';
+            input.style.mozUserModify = 'read-write';
+            input.style.userModify = 'read-write';
+            input.style.webkitTextFillColor = '#1a1a1a';
+          }
+          
+          // Événements pour s'assurer que l'input fonctionne
+          if (input.type !== 'checkbox') {
+            input.addEventListener('focus', () => {
+              input.style.borderColor = '#ff6b2c';
+              input.style.boxShadow = '0 0 0 2px rgba(255, 107, 44, 0.2)';
+            });
+            
+            input.addEventListener('blur', () => {
+              input.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              input.style.boxShadow = 'none';
+            });
+          }
+        }
+      });
+    };
 
-      <div className="account-tabs">
-        <button 
-          className={activeTab === 'profile' ? 'active' : ''}
-          onClick={() => setActiveTab('profile')}
-        >
-          <i className="fas fa-user"></i>
-          Profil
-        </button>
-        <button 
-          className={activeTab === 'preferences' ? 'active' : ''}
-          onClick={() => setActiveTab('preferences')}
-        >
-          <i className="fas fa-cog"></i>
-          Préférences
-        </button>
-        <button 
-          className={activeTab === 'security' ? 'active' : ''}
-          onClick={() => setActiveTab('security')}
-        >
-          <i className="fas fa-shield-alt"></i>
-          Sécurité
-        </button>
-      </div>
+    // Applique immédiatement et après un délai
+    forceAllInputs();
+    const timer1 = setTimeout(forceAllInputs, 100);
+    const timer2 = setTimeout(forceAllInputs, 500);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [activeTab]); // Re-applique quand on change d'onglet
 
-      <div className="account-content">
-        {activeTab === 'profile' && (
-          <div className="tab-content">
-            <h3>Informations personnelles</h3>
+  // Loader while auth initializes
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <MenuBar onHelp={() => {}} />
+        <div className="page-content" style={{display:'flex', alignItems:'center', justifyContent:'center', minHeight: '60vh'}}>
+          <div className="loader" />
+        </div>
+      </div>
+    );
+  }
+
+  // Do not render content while redirecting unauthenticated users
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className="page-container">
+      <MenuBar onHelp={() => {}} />
+      <div className="page-content">
+        <div className="account-page">
+          <h2 className="page-title">
+            Mon Compte
+          </h2>
+
+          <div className="account-tabs">
+            <button 
+              className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('profile')}
+            >
+              Profil
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
+              onClick={() => setActiveTab('security')}
+            >
+              Sécurité
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'preferences' ? 'active' : ''}`}
+              onClick={() => setActiveTab('preferences')}
+            >
+              Préférences
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'subscription' ? 'active' : ''}`}
+              onClick={() => setActiveTab('subscription')}
+            >
+              Abonnement
+            </button>
             
             <div className="form-row">
               <div className="form-group">
@@ -323,72 +472,144 @@ const AccountPage = () => {
                   <p>{new Date().toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="currentPassword">Mot de passe actuel</label>
-              <input
-                type="password"
-                id="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                placeholder="Entrez votre mot de passe actuel"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="newPassword">Nouveau mot de passe</label>
-              <input
-                type="password"
-                id="newPassword"
-                value={passwordData.newPassword}
-                onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-                placeholder="Entrez votre nouveau mot de passe (min. 8 caractères)"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-                placeholder="Confirmez votre nouveau mot de passe"
-              />
-            </div>
-
-            {passwordError && (
-              <div className="alert alert-error">
-                <i className="fas fa-exclamation-circle"></i>
-                {passwordError}
+              <div className="stat-item">
+                <i className="fas fa-envelope"></i>
+                <div>
+                  <h4>Email actuel</h4>
+                  <p>{userData.email}</p>
+                </div>
               </div>
-            )}
+            </div>
 
-            {passwordSuccess && (
-              <div className="alert alert-success">
-                <i className="fas fa-check-circle"></i>
-                {passwordSuccess}
+            {/* Section Changement d'Email */}
+            <div className="security-section">
+              <h4>Changer l'adresse email</h4>
+              
+              <div className="form-group">
+                <label htmlFor="newEmail">Nouvel email</label>
+                <input
+                  type="email"
+                  id="newEmail"
+                  value={emailData.newEmail}
+                  onChange={(e) => handleEmailChange('newEmail', e.target.value)}
+                  placeholder="Entrez votre nouvel email"
+                />
               </div>
-            )}
 
-            <button
-              className={`btn-change-password ${isChangingPassword ? 'loading' : ''}`}
-              onClick={handleChangePassword}
-              disabled={isChangingPassword}
-            >
-              {isChangingPassword ? (
-                <>
-                  <div className="loader"></div>
-                  Changement en cours...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-key"></i>
-                  Changer le mot de passe
-                </>
+              <div className="form-group">
+                <label htmlFor="emailPassword">Confirmer le mot de passe</label>
+                <input
+                  type="password"
+                  id="emailPassword"
+                  value={emailData.confirmPassword}
+                  onChange={(e) => handleEmailChange('confirmPassword', e.target.value)}
+                  placeholder="Entrez votre mot de passe pour confirmer"
+                />
+              </div>
+
+              {emailError && (
+                <div className="alert alert-error">
+                  <i className="fas fa-exclamation-circle"></i>
+                  {emailError}
+                </div>
               )}
-            </button>
+
+              {emailSuccess && (
+                <div className="alert alert-success">
+                  <i className="fas fa-check-circle"></i>
+                  {emailSuccess}
+                </div>
+              )}
+
+              <button
+                className={`btn-change-email ${isChangingEmail ? 'loading' : ''}`}
+                onClick={handleChangeEmail}
+                disabled={isChangingEmail}
+              >
+                {isChangingEmail ? (
+                  <>
+                    <div className="loader"></div>
+                    Changement en cours...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-envelope"></i>
+                    Changer l'email
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Section Changement de Mot de Passe */}
+            <div className="security-section">
+              <h4>Changer le mot de passe</h4>
+              
+              <div className="form-group">
+                <label htmlFor="currentPassword">Mot de passe actuel</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                  placeholder="Entrez votre mot de passe actuel"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="newPassword">Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                  placeholder="Entrez votre nouveau mot de passe (min. 8 caractères)"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                  placeholder="Confirmez votre nouveau mot de passe"
+                />
+              </div>
+
+              {passwordError && (
+                <div className="alert alert-error">
+                  <i className="fas fa-exclamation-circle"></i>
+                  {passwordError}
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="alert alert-success">
+                  <i className="fas fa-check-circle"></i>
+                  {passwordSuccess}
+                </div>
+              )}
+
+              <button
+                className={`btn-change-password ${isChangingPassword ? 'loading' : ''}`}
+                onClick={handleChangePassword}
+                disabled={isChangingPassword}
+              >
+                {isChangingPassword ? (
+                  <>
+                    <div className="loader"></div>
+                    Changement en cours...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-key"></i>
+                    Changer le mot de passe
+                  </>
+                )}
+              </button>
+            </div>
 
             <div className="password-strength">
               <h4>Conseils de sécurité :</h4>
@@ -397,6 +618,7 @@ const AccountPage = () => {
                 <li>Combinez lettres, chiffres et symboles</li>
                 <li>Évitez les mots de passe courants</li>
                 <li>Changez régulièrement votre mot de passe</li>
+                <li>Utilisez un email valide et sécurisé</li>
               </ul>
             </div>
           </div>
@@ -408,11 +630,13 @@ const AccountPage = () => {
           <i className="fas fa-save"></i>
           Sauvegarder les modifications
         </button>
-        
+
         <button className="btn-cancel">
           <i className="fas fa-times"></i>
           Annuler
         </button>
+      </div>
+        </div>
       </div>
     </div>
   );

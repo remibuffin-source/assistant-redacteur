@@ -1,0 +1,581 @@
+/* --- Layout Général --- */
+.calendar-layout {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    background-color: #f8f9fa;
+}
+
+/* --- Colonne de Filtres (Sidebar) --- */
+.filter-sidebar {
+    width: 207px;
+    flex-shrink: 0;
+    background-color: #fff;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto; /* NOUVEAU : Ajout du scroll si le contenu dépasse */
+}
+
+/* NOUVEAU : Styles pour la nouvelle section Séquence */
+.sequence-section {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.sequence-section h2 {
+    font-size: 1.2em;
+    color: #16a085; /* Une autre couleur pour la distinguer */
+    border-bottom: 2px solid #16a085;
+    padding-bottom: 10px;
+    margin-top: 5px;
+    margin-bottom: 12px;
+}
+
+.modules-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.module-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.module-checkbox:hover {
+    background-color: #f1f1f1;
+}
+
+.module-checkbox input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.btn-create-sequence {
+    width: 100%;
+    padding: 10px 16px;
+    margin-top: 15px;
+    background-color: #1abc9c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+.btn-create-sequence:hover {
+    background-color: #16a085;
+}
+/* --- Fin des styles pour la section Séquence --- */
+
+
+.filter-sidebar h2 {
+    font-size: 1.2em;
+    color: #e67e22;
+    border-bottom: 2px solid #e67e22;
+    padding-bottom: 10px;
+    margin-top: 5px; /* Remonté de 25px (30px - 25px = 5px) */
+    margin-bottom: 12px; /* Padding de 12px entre titre et premier bouton */
+}
+
+.platform-icon-sidebar {
+    width: 20px !important;
+    height: 20px !important;
+    object-fit: contain;
+    margin-right: 8px;
+}
+
+.platform-filter i {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 8px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-checkbox i {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.platform-checkbox span {
+    vertical-align: middle;
+    line-height: 16px;
+    font-size: 14px;
+}
+
+.io-section {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.io-section button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    margin-bottom: 10px; /* NOUVEAU : Ajout d'un espacement entre les boutons */
+}
+
+/* NOUVEAU : Styles spécifiques pour les boutons import/export */
+.import-button {
+    background-color: #27ae60;
+}
+.import-button:hover {
+    background-color: #229954;
+}
+.export-button {
+    background-color: #2980b9;
+}
+.export-button:hover {
+    background-color: #2471a3;
+}
+/* --- Fin des styles import/export --- */
+
+
+/* --- Zone du Calendrier --- */
+.calendar-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow: auto;
+    height: 100vh;
+}
+
+/* Agrandir la zone horaire pour éviter la barre de défilement */
+.fc-timegrid-body {
+    min-height: 800px !important;
+}
+
+.fc-scroller {
+    overflow-y: hidden !important;
+}
+
+/* Forcer la locale FR pour les boutons */
+.fc .fc-button-primary { text-transform: capitalize; }
+
+/* --- Style des "Cartes" de Post --- */
+.fc-event { cursor: grab !important; border: none !important; background-color: transparent !important; padding: 0; margin: 0; }
+.fc-event:active { cursor: grabbing !important; }
+.post-card {
+    background-color: white; border-radius: 6px; padding: 3px 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid;
+    overflow: hidden; font-size: 11px; color: #333;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 50px;
+    max-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0; /* Pas de marge entre les cartes */
+}
+.post-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+.post-card.status-published { border-color: #2ecc71; }
+.post-card.status-scheduled { border-color: #3498db; }
+.post-card.status-draft { border-color: #f1c40f; }
+.post-card.source-local { background-color: #e8f6f3; }
+
+.post-card-title { font-weight: 600; margin-bottom: 1px; white-space: normal; font-size: 10px; line-height: 1.0; }
+.post-card-content { font-size: 8px; color: #555; white-space: normal; line-height: 1.1; overflow: hidden; }
+
+/* --- Ajustements FullCalendar --- */
+.fc .fc-daygrid-day.fc-day-today { background-color: #fef9e7; }
+.fc .fc-toolbar-title { 
+    font-size: 1.5em;
+    color: #e67e22 !important; /* Titre en orange */
+}
+.fc-daygrid-day-frame { 
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+}
+
+.fc-daygrid-day-events {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Styles pour la vue semaine */
+.fc-timegrid-slot {
+    height: 3em;
+}
+
+/* Horaires en gris foncé pour semaine et jour */
+.fc-timegrid-slot-label {
+    color: #333 !important;
+    font-weight: 600;
+}
+
+/* Supprimer la mise en valeur du lundi et des business hours */
+.fc .fc-non-business {
+    background-color: transparent !important;
+}
+
+.fc .fc-bg-event {
+    opacity: 0 !important;
+}
+
+/* Supprimer les numéros de semaine en vue mois */
+.fc-daygrid-week-number {
+    display: none !important;
+}
+
+/* Fond jaune léger pour samedi et dimanche */
+.fc-day-sat,
+.fc-day-sun {
+    background-color: rgba(255, 255, 224, 0.3) !important; /* Jaune très léger */
+}
+
+/* Fond jaune pour weekend en vue semaine/jour */
+.fc-timegrid-col.fc-day-sat,
+.fc-timegrid-col.fc-day-sun {
+    background-color: rgba(255, 255, 224, 0.3) !important;
+}
+
+.fc .fc-daygrid-day-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    padding: 4px 8px;
+}
+
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    background-color: #e67e22;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fc-day-header-black {
+    color: #333 !important; /* Jours de la semaine en noir */
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    text-transform: capitalize !important; /* Première lettre en majuscule */
+}
+
+/* --- Modal de planification --- */
+.schedule-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.schedule-modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #e67e22;
+    font-size: 1.3em;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: #e67e22;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Remonter les éléments de la modal */
+.content-section {
+    margin-bottom: 5px;
+    margin-top: -6px;
+}
+
+.platforms-selection {
+    margin-top: -10px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #333;
+}
+
+.date-publication-label {
+    white-space: nowrap;
+    width: 200px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.platform-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.date-input-double {
+    min-width: 160px !important;
+    height: 36px !important; /* Réduction de 2px */
+}
+
+.time-input-double {
+    min-width: 148px !important;
+    height: 36px !important; /* Réduction de 2px */
+}
+
+.status-select {
+    min-width: 148px !important;
+    border: 2px solid #e67e22 !important; /* Liseré orange léger */
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: white;
+    color: #333;
+    transition: border-color 0.2s;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #d35400 !important; /* Orange plus foncé au focus */
+    box-shadow: 0 0 0 2px rgba(230, 126, 34, 0.2);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #e67e22;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 16px;
+    align-items: end;
+}
+
+.platforms-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+.platform-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px; /* Réduit le padding */
+    margin-bottom: 4px; /* Espacement réduit */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    background-color: #f8f9fa;
+    min-height: 40px; /* Hauteur réduite */
+    color: #333;
+    border: 1px solid #6c757d; /* Liseret gris foncé */
+}
+
+.platform-filter:hover {
+    background-color: #e9ecef;
+    border-color: #e67e22;
+    color: #333;
+    border: 2px solid #e67e22; /* Bordure orange au hover */
+}
+
+.platform-filter.active {
+    background-color: #fef9e7;
+    border-color: #e67e22;
+    color: #333;
+    border: 2px solid #e67e22; /* Bordure orange en état actif */
+}
+
+.platform-filter .count {
+    margin-left: auto;
+    background-color: #e9ecef;
+    padding: 1px 6px; /* Padding réduit */
+    border-radius: 10px; /* Plus petit */
+    font-size: 11px; /* Police plus petite */
+    font-weight: 600;
+    min-width: 18px; /* Largeur minimale réduite */
+    text-align: center;
+}
+
+.platform-filter.active .count {
+    background-color: #e67e22;
+    color: white;
+}
+
+.platform-checkbox input[type="checkbox"] {
+    width: auto;
+    margin: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+.platform-icon {
+    width: 16px;
+    height: 16px;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    object-fit: contain;
+    margin: 0 4px 0 0;
+    vertical-align: middle;
+}
+
+.platform-checkbox:hover {
+    border-color: #e67e22;
+    background-color: #fef9e7;
+}
+
+.platform-checkbox:has(input:checked) span {
+    font-weight: 600;
+}
+
+.platform-checkbox:has(input:checked) {
+    border-color: #e67e22;
+    background-color: #fdebd0;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 15px 24px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+    margin-top: -50px;
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background-color: #f1f1f1;
+    color: #666;
+}
+
+.btn-cancel:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-save {
+    background-color: #e67e22;
+    color: white;
+}
+
+.btn-save:hover {
+    background-color: #d35400;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .schedule-modal {
+        width: 95%;
+        margin: 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .platforms-selection {
+        grid-template-columns: 1fr;
+    }
+}

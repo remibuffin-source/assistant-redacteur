@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { useNavigate } from 'react-router-dom';
+import MenuBar from './MenuBar';
 import AdvancedEditor from './AdvancedEditor';
 import './ResultsManagementPage.css';
 
@@ -101,10 +102,6 @@ const ResultsManagementPage = () => {
   const renderContentGrid = () => (
     <div className="editor-grid-view">
       <div className="editor-header">
-        <button className="back-btn" onClick={() => navigate('/')}>
-          <i className="fas fa-arrow-left"></i>
-          Retour à l'application
-        </button>
         <div className="header-content">
           <h1>Éditeur de Contenus</h1>
           <p>Gérez et modifiez tous vos contenus générés</p>
@@ -191,22 +188,27 @@ const ResultsManagementPage = () => {
   );
 
   return (
-    <div className="results-management-page">
-      {!isEditing && renderContentGrid()}
-      
-      {isEditing && selectedContent && (
-        <AdvancedEditor
-          content={selectedContent.content}
-          onSave={handleSaveContent}
-          onClose={() => {
-            setIsEditing(false);
-            setSelectedContent(null);
-          }}
-          onPublish={handlePublishContent}
-          onSaveAsTemplate={handleSaveAsTemplate}
-          onDelete={handleDeleteContent}
-        />
-      )}
+    <div className="page-container">
+      <MenuBar onHelp={() => {}} />
+      <div className="page-content">
+        <div className="results-management-page">
+          {!isEditing && renderContentGrid()}
+          
+          {isEditing && selectedContent && (
+            <AdvancedEditor
+              content={selectedContent.content}
+              onSave={handleSaveContent}
+              onClose={() => {
+                setIsEditing(false);
+                setSelectedContent(null);
+              }}
+              onPublish={handlePublishContent}
+              onSaveAsTemplate={handleSaveAsTemplate}
+              onDelete={handleDeleteContent}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

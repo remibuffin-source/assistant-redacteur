@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useAssistantAutoSave } from '../hooks/useLocalStorage';
+import { getHomeText } from '../i18n/homeTranslations';
 
 const AdvancedOptions = ({ options, onOptionsChange }) => {
+  const { autoSaveData } = useAssistantAutoSave();
+  const userLanguage = autoSaveData.language || 'fr';
+  const t = (path) => getHomeText(userLanguage, path);
+  
   const [localOptions, setLocalOptions] = useState({
     style: 'professionnel',
     length: 3,
@@ -39,15 +45,15 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
 
   return (
     <div className="section">
-      <h3 className="section-title">
+      <h3 className="section-title" title={t('sections.advancedOptions.tooltip')}>
         <i className="fas fa-sliders-h"></i>
-        Personnalisation avancée
+        {t('sections.advancedOptions.title')}
       </h3>
       
       <div className="advanced-options-grid">
         {/* Style et état d'esprit */}
         <div className="option-group-original">
-          <h4>Style et état d'esprit</h4>
+          <h4>{t('sections.advancedOptions.style.title')}</h4>
           <div className="radio-group-original">
             <label>
               <input 
@@ -57,7 +63,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.style === 'professionnel'}
                 onChange={(e) => handleOptionChange('style', e.target.value)}
               />
-              Professionnel
+              {t('sections.advancedOptions.style.professional')}
             </label>
             <label>
               <input 
@@ -67,7 +73,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.style === 'creatif'}
                 onChange={(e) => handleOptionChange('style', e.target.value)}
               />
-              Créatif
+              {t('sections.advancedOptions.style.creative')}
             </label>
             <label>
               <input 
@@ -77,7 +83,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.style === 'academique'}
                 onChange={(e) => handleOptionChange('style', e.target.value)}
               />
-              Académique
+              {t('sections.advancedOptions.style.academic')}
             </label>
             <label>
               <input 
@@ -87,7 +93,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.style === 'decontracte'}
                 onChange={(e) => handleOptionChange('style', e.target.value)}
               />
-              Décontracté
+              {t('sections.advancedOptions.style.casual')}
             </label>
             <label>
               <input 
@@ -97,7 +103,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.style === 'persuasif'}
                 onChange={(e) => handleOptionChange('style', e.target.value)}
               />
-              Persuasif
+              {t('sections.advancedOptions.style.persuasive')}
             </label>
             <label>
               <input 
@@ -107,14 +113,14 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.style === 'informatif'}
                 onChange={(e) => handleOptionChange('style', e.target.value)}
               />
-              Informatif
+              {t('sections.advancedOptions.style.informative')}
             </label>
           </div>
         </div>
 
         {/* Longueur du contenu et créativité */}
         <div className="option-group-original">
-          <h4>Longueur du contenu</h4>
+          <h4>{t('sections.advancedOptions.length.title')}</h4>
           <div className="slider-container-original length-slider-container">
             <label>20%</label>
             <input
@@ -131,9 +137,9 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
             </div>
           </div>
           
-          <h4 style={{ marginTop: '22px' }}>Niveau de créativité</h4>
+          <h4 style={{ marginTop: '22px' }}>{t('sections.advancedOptions.creativity.title')}</h4>
           <div className="slider-container-original">
-            <label>Conservateur</label>
+            <label>{t('sections.advancedOptions.creativity.conservative')}</label>
             <input
               type="range"
               id="creativitySlider"
@@ -142,13 +148,13 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
               value={localOptions.creativity}
               onChange={(e) => handleOptionChange('creativity', parseInt(e.target.value))}
             />
-            <label>Créatif</label>
+            <label>{t('sections.advancedOptions.creativity.creative')}</label>
           </div>
         </div>
 
         {/* Adaptation au média */}
         <div className="option-group-original">
-          <h4>Adaptation au média</h4>
+          <h4>{t('sections.advancedOptions.adaptation.title')}</h4>
           <div className="radio-group-original">
             <label>
               <input 
@@ -158,7 +164,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.adaptation === 'web'}
                 onChange={(e) => handleOptionChange('adaptation', e.target.value)}
               />
-              Web/Digital
+              {t('sections.advancedOptions.adaptation.web')}
             </label>
             <label>
               <input 
@@ -168,7 +174,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.adaptation === 'print'}
                 onChange={(e) => handleOptionChange('adaptation', e.target.value)}
               />
-              Littéraire/Print
+              {t('sections.advancedOptions.adaptation.print')}
             </label>
             <label>
               <input 
@@ -178,7 +184,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.adaptation === 'social'}
                 onChange={(e) => handleOptionChange('adaptation', e.target.value)}
               />
-              Réseaux sociaux
+              {t('sections.advancedOptions.adaptation.social')}
             </label>
             <label>
               <input 
@@ -188,7 +194,7 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
                 checked={localOptions.adaptation === 'presentation'}
                 onChange={(e) => handleOptionChange('adaptation', e.target.value)}
               />
-              Présentation
+              {t('sections.advancedOptions.adaptation.presentation')}
             </label>
           </div>
         </div>

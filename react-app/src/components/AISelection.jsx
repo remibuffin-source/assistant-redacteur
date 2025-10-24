@@ -1,4 +1,29 @@
+import { useAssistantAutoSave } from '../hooks/useLocalStorage';
+import { getHomeText } from '../i18n/homeTranslations';
+
 const AISelection = ({ selectedAI, onAISelect }) => {
+  const { autoSaveData } = useAssistantAutoSave();
+  const userLanguage = autoSaveData.language || 'fr';
+  const t = (path) => getHomeText(userLanguage, path);
+  
+  // Fonction pour afficher l'info DeepL
+  const showDeepLInfo = () => {
+    alert(
+      '📄 DeepL, formats pour les Pièces Jointes :\n\n' +
+      '✅ FORMATS SUPPORTÉS :\n' +
+      '• DOCX (Word 2007+)\n' +
+      '• PPTX (PowerPoint 2007+)\n' +
+      '• XLSX (Excel 2007+)\n' +
+      '• PDF\n' +
+      '• TXT, HTML, HTM\n' +
+      '• XLF, XLIFF\n\n' +
+      '❌ FORMATS NON SUPPORTÉS :\n' +
+      '• ODT, ODS, ODP (OpenDocument)\n' +
+      '• DOC, XLS, PPT (Office ancien)\n' +
+      '• RTF, EPUB\n\n' +
+      '💡 Convertissez vos fichiers ODT/DOC en DOCX ou PDF avant de les traduire.'
+    );
+  };
   const aiOptions = [
     {
       id: 'claude',
@@ -9,13 +34,13 @@ const AISelection = ({ selectedAI, onAISelect }) => {
     {
       id: 'gpt4',
       name: 'GPT-4',
-      icon: 'gpt4',
+      icon: 'gpt4-new',
       description: 'Modèle de langage puissant'
     },
     {
       id: 'gemini',
       name: 'Gemini',
-      icon: 'gemini',
+      icon: 'gemini-new',
       description: 'IA générative Google'
     },
     {
@@ -37,6 +62,12 @@ const AISelection = ({ selectedAI, onAISelect }) => {
       description: 'Assistant IA nouvelle génération'
     },
     {
+      id: 'deepl',
+      name: 'DeepL',
+      icon: 'Deepl',
+      description: 'Traduction professionnelle IA'
+    },
+    {
       id: 'elevenlabs',
       name: 'ElevenLabs',
       icon: 'elevenlabs',
@@ -51,6 +82,10 @@ const AISelection = ({ selectedAI, onAISelect }) => {
   ];
 
   const handleAISelect = (aiId) => {
+    // Si c'est DeepL, afficher d'abord l'info sur les formats supportés
+    if (aiId === 'deepl') {
+      showDeepLInfo();
+    }
     onAISelect(aiId);
   };
 
@@ -58,7 +93,7 @@ const AISelection = ({ selectedAI, onAISelect }) => {
     <div className="section-compact ai-section">
       <h3 className="section-title-compact">
         <i className="fas fa-robot"></i>
-        Sélection de l'IA
+        {t('sections.aiSelection.title')}
       </h3>
       
       <div className="ai-selection-grid">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
@@ -16,17 +16,45 @@ export const useLocalStorage = (key, initialValue) => {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      // Notify other hook instances in the same window
+      const evt = new CustomEvent('localStorage:update', { detail: { key } });
+      window.dispatchEvent(evt);
     } catch (error) {
       console.error(`Error setting localStorage key "${key}":`, error);
     }
   };
+
+  // Keep in sync when storage changes elsewhere or when our custom event fires
+  useEffect(() => {
+    const refresh = () => {
+      try {
+        const item = window.localStorage.getItem(key);
+        const parsed = item ? JSON.parse(item) : initialValue;
+        setStoredValue(parsed);
+      } catch (e) {
+        // ignore
+      }
+    };
+    const onStorage = (e) => {
+      if (e.key === key) refresh();
+    };
+    const onCustom = (e) => {
+      if (e.detail?.key === key) refresh();
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('localStorage:update', onCustom);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('localStorage:update', onCustom);
+    };
+  }, [key, initialValue]);
 
   return [storedValue, setValue];
 };
 
 // Hook spécifique pour la sauvegarde automatique de l'assistant
 export const useAssistantAutoSave = () => {
-  const [autoSaveData, setAutoSaveData] = useLocalStorage('assistantRedacteur_autoSave', {
+  const defaultAutoSave = {
     projectTitle: '',
     targetAudience: '',
     projectDescription: '',
@@ -58,7 +86,30 @@ export const useAssistantAutoSave = () => {
       blog: '',
       website: ''
     }
-  });
+  };
+  const [autoSaveData, setAutoSaveData] = useLocalStorage('assistantRedacteur_autoSave', defaultAutoSave);
+
+  // Migration: garantir la présence de toutes les clés attendues (y compris apiKeys)
+  useEffect(() => {
+    const merged = {
+      ...defaultAutoSave,
+      ...autoSaveData,
+      apiKeys: {
+        ...defaultAutoSave.apiKeys,
+        ...(autoSaveData?.apiKeys || {})
+      }
+    };
+    // Mettre à jour le stockage si le schéma a évolué
+    try {
+      const a = JSON.stringify(merged);
+      const b = JSON.stringify(autoSaveData);
+      if (a !== b) {
+        setAutoSaveData(merged);
+      }
+    } catch {
+      setAutoSaveData(merged);
+    }
+  }, [autoSaveData, setAutoSaveData]);
 
   const updateAutoSave = (updates) => {
     setAutoSaveData(prev => ({
