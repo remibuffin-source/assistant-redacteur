@@ -6,7 +6,7 @@ frontend:
         - echo "🚀 Démarrage du build - Assistant Rédactionnel"
         - cd react-app
         - echo "📦 Installation des dépendances..."
-        - npm ci --legacy-peer-deps
+        - npm install --legacy-peer-deps
         - echo "✅ Dépendances installées"
     build:
       commands:
