@@ -115,15 +115,15 @@ const EmailVerification = () => {
           Nous avons envoyé un code de vérification à l'adresse <strong>{email}</strong>
         </p>
 
-        {displayCode && (
+        {displayCode && import.meta.env.DEV && (
           <div className="code-display-box">
             <div className="code-display-header">
-              <i className="fas fa-key"></i>
-              <strong>Votre code de vérification :</strong>
+              <i className="fas fa-exclamation-triangle"></i>
+              <strong>Mode développement - Code affiché :</strong>
             </div>
             <div className="code-display-value">{displayCode}</div>
             <small className="code-display-hint">
-              Copiez ce code et collez-le dans le champ ci-dessous
+              ⚠️ En production, ce code sera envoyé par email uniquement
             </small>
           </div>
         )}
