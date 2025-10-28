@@ -74,10 +74,10 @@ const AISelection = ({ selectedAI, onAISelect }) => {
       description: 'Synthèse vocale avancée'
     },
     {
-      id: 'custom',
-      name: 'Personnalisé',
-      icon: 'custom',
-      description: 'Configuration personnalisée'
+      id: 'qwen3',
+      name: 'Qwen3',
+      icon: 'qwen3',
+      description: 'IA multimodale avancée'
     }
   ];
 

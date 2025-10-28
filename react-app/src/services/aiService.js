@@ -344,6 +344,10 @@ export class AIService {
       else if (aiType.includes('kimi')) {
         apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
       }
+      // Qwen3 (OpenRouter)
+      else if (aiType.includes('qwen')) {
+        apiKey = import.meta.env.VITE_QWEN3_API_KEY;
+      }
       // DeepL
       else if (aiType.includes('deepl')) {
         apiKey = import.meta.env.VITE_DEEPL_API_KEY;
@@ -434,6 +438,13 @@ export class AIService {
       } else if (aiType.includes('kimi')) {
         return await this.callKimiAPI(promptData.userPrompt, {
           model: this.getKimiModel(aiType),
+          temperature: promptData.temperature,
+          max_tokens: promptData.maxTokens,
+          systemMessage: promptData.systemPrompt
+        });
+      } else if (aiType.includes('qwen')) {
+        return await this.callQwen3API(promptData.userPrompt, {
+          model: this.getQwen3Model(aiType),
           temperature: promptData.temperature,
           max_tokens: promptData.maxTokens,
           systemMessage: promptData.systemPrompt
@@ -529,6 +540,13 @@ export class AIService {
             max_tokens: promptData.maxTokens,
             systemMessage: promptData.systemPrompt
           });
+        } else if (aiType.includes('qwen')) {
+          return await this.callQwen3API(fullPrompt, {
+            model: this.getQwen3Model(aiType),
+            temperature: promptData.temperature,
+            max_tokens: promptData.maxTokens,
+            systemMessage: promptData.systemPrompt
+          });
         }
       }
       
@@ -586,10 +604,19 @@ export class AIService {
    * Appelle une API multimodale (vision)
    */
   static async callMultimodalAPI(aiType, promptData, media) {
-    // Pour l'instant, seul GPT-4 Vision est supporté
+    // GPT-4 Vision
     if (aiType.includes('gpt') && aiType.includes('vision')) {
       return await this.callGPTVisionAPI(promptData.userPrompt, media, {
         model: 'gpt-4-vision-preview',
+        temperature: promptData.temperature,
+        max_tokens: promptData.maxTokens
+      });
+    }
+    
+    // Qwen3 Vision (multimodal via OpenRouter)
+    if (aiType.includes('qwen')) {
+      return await this.callQwen3VisionAPI(promptData.userPrompt, media, {
+        model: this.getQwen3Model(aiType),
         temperature: promptData.temperature,
         max_tokens: promptData.maxTokens
       });
@@ -655,6 +682,69 @@ export class AIService {
       
     } catch (error) {
       console.error('Erreur GPT-4 Vision:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Appelle l'API Qwen3 Vision via OpenRouter
+   */
+  static async callQwen3VisionAPI(prompt, media, options) {
+    const apiKey = import.meta.env.VITE_QWEN3_API_KEY;
+    
+    if (!apiKey || apiKey === 'votre_cle_api_qwen3_ici') {
+      throw new Error('Clé API Qwen3 requise pour Qwen3 Vision');
+    }
+    
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Assistant Rédacteur'
+        },
+        body: JSON.stringify({
+          model: options.model || 'qwen/qwen3-vl-30b-a3b-thinking',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: prompt
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${media.mimeType};base64,${media.data}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: options.max_tokens || 4000,
+          temperature: options.temperature || 0.7
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Erreur API Qwen3 Vision/OpenRouter (${response.status}): ${errorData.error?.message || response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      return {
+        success: true,
+        content: result.choices[0].message.content,
+        model: result.model,
+        usage: result.usage
+      };
+      
+    } catch (error) {
+      console.error('Erreur Qwen3 Vision:', error);
       throw error;
     }
   }
@@ -730,6 +820,18 @@ export class AIService {
       'kimi2': 'moonshotai/kimi-k2-0905'
     };
     return models[aiType] || 'moonshotai/kimi-k2-0905';
+  }
+
+  /**
+   * Retourne le modèle Qwen3 approprié (via OpenRouter)
+   */
+  static getQwen3Model(aiType) {
+    const models = {
+      'qwen': 'qwen/qwen3-vl-30b-a3b-thinking',
+      'qwen3': 'qwen/qwen3-vl-30b-a3b-thinking',
+      'qwen3-vl': 'qwen/qwen3-vl-30b-a3b-thinking'
+    };
+    return models[aiType] || 'qwen/qwen3-vl-30b-a3b-thinking';
   }
 
   static async simulateAICall(aiType, data) {
@@ -1263,6 +1365,81 @@ ${templates[aiType] || `Contenu généré par ${aiType}:\n\n${data.content}`}
     } catch (error) {
       console.error('Erreur lors de l\'appel Kimi:', error);
       throw new Error(`Erreur Kimi: ${error.message}`);
+    }
+  }
+
+  /**
+   * Appel API Qwen3 via OpenRouter
+   */
+  static async callQwen3API(prompt, options = {}) {
+    let apiKey;
+    try {
+      apiKey = import.meta.env.VITE_QWEN3_API_KEY;
+    } catch {
+      apiKey = process.env.VITE_QWEN3_API_KEY || 'test-api-key';
+    }
+    
+    if (!apiKey || apiKey === 'votre_cle_api_qwen3_ici') {
+      throw new Error('Clé API Qwen3 non configurée. Veuillez configurer VITE_QWEN3_API_KEY dans votre fichier .env.local');
+    }
+
+    const {
+      model = 'qwen/qwen3-vl-30b-a3b-thinking',
+      temperature = 0.7,
+      max_tokens = 2000,
+      systemMessage = 'Vous êtes un assistant rédactionnel expert.'
+    } = options;
+
+    try {
+      const messages = [
+        {
+          role: 'system',
+          content: systemMessage
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ];
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Assistant Rédacteur'
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature,
+          max_tokens,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Erreur Qwen3/OpenRouter (${response.status}): ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Format de réponse Qwen3 invalide');
+      }
+
+      return {
+        success: true,
+        content: data.choices[0].message.content,
+        usage: data.usage,
+        model: data.model
+      };
+
+    } catch (error) {
+      console.error('Erreur lors de l\'appel Qwen3:', error);
+      throw new Error(`Erreur Qwen3: ${error.message}`);
     }
   }
 

@@ -40,6 +40,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "nodemailer": "^7.0.9",
+    "pdfjs-dist": "^5.4.296",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^6.30.1",

@@ -105,12 +105,14 @@ const ConfigAPIPage = () => {
   // }, [isAuthenticated, isLoading, navigate]);
 
   const aiServices = [
-    { id: 'openai', name: 'OpenAI', icon: 'fab fa-openai', description: 'GPT-4, GPT-3.5' },
-    { id: 'anthropic', name: 'Anthropic', icon: 'fas fa-brain', description: 'Claude 2, Claude 3' },
-    { id: 'gemini', name: 'Gemini', icon: 'fas fa-gem', description: 'Google Gemini' },
-    { id: 'deepseek', name: 'DeepSeek', icon: 'fas fa-search', description: 'DeepSeek AI' },
+    { id: 'openai', name: 'OpenAI', icon: 'fab fa-openai', description: 'GPT-5' },
+    { id: 'anthropic', name: 'Anthropic', icon: 'fas fa-brain', description: 'Claude 4.5, Claude 3' },
+    { id: 'gemini', name: 'Gemini', icon: 'fas fa-gem', description: 'Gemini 2.5 Pro' },
+    { id: 'deepseek', name: 'DeepSeek', icon: 'fas fa-search', description: 'DeepSeek Chat' },
     { id: 'grok', name: 'Grok', icon: 'fas fa-robot', description: 'X AI Grok' },
-    { id: 'kimi', name: 'Kimi', icon: 'fas fa-comment', description: 'Moonshot AI' }
+    { id: 'kimi', name: 'Kimi', icon: 'fas fa-comment', description: 'Moonshot AI' },
+    { id: 'qwen3', name: 'Qwen3', icon: 'fas fa-star', description: 'Qwen3 - IA multimodale', url: 'https://qwenlm.github.io/' },
+    { id: 'openrouter', name: 'OpenRouter', icon: 'fas fa-route', description: 'Qwen3-VL-30B-A3B-Thinking', url: 'https://openrouter.ai/qwen/qwen3-vl-30b-a3b-thinking' }
   ];
 
   const networkServices = [

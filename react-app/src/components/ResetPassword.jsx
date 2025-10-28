@@ -192,18 +192,6 @@ const ResetPassword = () => {
               </form>
             ) : (
               <form onSubmit={handleResetPassword} className="reset-form">
-                {generatedCode && (
-                  <div className="code-display-box">
-                    <div className="code-display-header">
-                      <i className="fas fa-key"></i>
-                      <strong>Votre code de vérification :</strong>
-                    </div>
-                    <div className="code-display-value">{generatedCode}</div>
-                    <small className="code-display-hint">
-                      Copiez ce code et collez-le dans le champ ci-dessous
-                    </small>
-                  </div>
-                )}
 
                 <div className="form-group">
                   <label htmlFor="code">Code de vérification</label>

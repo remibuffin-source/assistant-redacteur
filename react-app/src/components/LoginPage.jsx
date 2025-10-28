@@ -199,29 +199,6 @@ const LoginPage = () => {
                   />
                 </div>
               </div>
-
-              <div className="form-group">
-                <label htmlFor="username">Nom d'utilisateur</label>
-                <input
-                  type="text"
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  placeholder="Votre nom d'utilisateur"
-                  required={!isLogin}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="company">Entreprise (optionnel)</label>
-                <input
-                  type="text"
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
-                  placeholder="Votre entreprise"
-                />
-              </div>
             </>
           )}
 

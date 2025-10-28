@@ -105,19 +105,14 @@ const ConfigAPIPageFixed = () => {
   const isAdmin = user?.role === 'admin' || user?.email === 'admin@studioducapbrun.com';
 
   const aiServices = [
-    { id: 'anthropic', name: 'Claude 3.5 Sonnet', description: 'Claude 3.5 Sonnet - Excellence', iconPath: '/icons/claude.ico', docs: 'https://docs.anthropic.com/claude/reference/getting-started-with-the-api' },
-    { id: 'anthropic-haiku', name: 'Claude 3 Haiku', description: 'Claude 3 Haiku - Rapide', iconPath: '/icons/claude.ico', docs: 'https://docs.anthropic.com/claude/docs/models-overview' },
+    { id: 'anthropic', name: 'Claude 4.5 Sonnet', description: 'Claude 4.5 Sonnet - Excellence', iconPath: '/icons/claude.ico', docs: 'https://docs.anthropic.com/claude/reference/getting-started-with-the-api' },
     { id: 'deepl', name: 'DeepL API', description: 'DeepL - Traduction professionnelle', iconPath: '/icons/Deepl.ico', docs: 'https://www.deepl.com/docs-api' },
     { id: 'deepseek', name: 'DeepSeek Chat', description: 'DeepSeek Chat - IA conversationnelle', iconPath: '/icons/deepseek.ico', docs: 'https://platform.deepseek.com/api-docs/' },
-    { id: 'deepseek-v3', name: 'DeepSeek V3', description: 'DeepSeek V3 - Dernière génération', iconPath: '/icons/deepseek.ico', docs: 'https://platform.deepseek.com/api-docs/' },
-    { id: 'gemini', name: 'Gemini 2.0 Flash', description: 'Gemini 2.0 Flash - Multimodal', iconPath: '/icons/gemini.ico', docs: 'https://ai.google.dev/gemini-api/docs' },
-    { id: 'gemini-pro', name: 'Gemini Pro', description: 'Gemini Pro - Performance optimale', iconPath: '/icons/gemini.ico', docs: 'https://ai.google.dev/gemini-api/docs/models/gemini' },
-    { id: 'gpt-vision', name: 'GPT-4o Vision', description: 'GPT-4o Vision - Analyse d\'images', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/guides/vision' },
+    { id: 'gemini', name: 'Gemini 2.5 Pro', description: 'Gemini 2.5 Pro - Multimodal avancé', iconPath: '/icons/gemini.ico', docs: 'https://ai.google.dev/gemini-api/docs' },
     { id: 'grok', name: 'Grok', description: 'Grok - xAI', iconPath: '/icons/grok.ico', docs: 'https://docs.x.ai/api' },
-    { id: 'grok-2', name: 'Grok 2', description: 'Grok 2 - Dernière version xAI', iconPath: '/icons/grok.ico', docs: 'https://docs.x.ai/api' },
     { id: 'kimi', name: 'Kimi (OpenRouter)', description: 'Kimi - LLM via OpenRouter', iconPath: '/icons/kimi2.ico', docs: 'https://openrouter.ai/docs' },
-    { id: 'openai', name: 'OpenAI GPT-4o', description: 'GPT-4o - Modèle le plus puissant', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/api-reference' },
-    { id: 'openai-mini', name: 'OpenAI GPT-4o Mini', description: 'GPT-4o Mini - Rapide et économique', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/models/gpt-4o-mini' },
+    { id: 'openai', name: 'GPT-5', description: 'GPT-5 - Modèle le plus puissant d\'OpenAI', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/api-reference' },
+    { id: 'qwen3', name: 'Qwen3', description: 'Qwen3 - IA multimodale avancée', iconPath: '/icons/qwen3.ico', docs: 'https://qwenlm.github.io/' },
     { id: 'whisper', name: 'Whisper Large V3', description: 'Whisper - Transcription audio', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/guides/speech-to-text' }
   ];
 

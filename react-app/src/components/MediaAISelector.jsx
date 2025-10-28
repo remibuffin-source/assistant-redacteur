@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getHomeText } from '../i18n/homeTranslations';
 
@@ -16,7 +17,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     audio: 'whisper-large-v3',
     image: 'gpt-4o-vision',
     spreadsheet: 'gpt-4o',
-    web: 'claude-3.5-sonnet'
+    web: 'claude-4.5-sonnet'
   });
 
   // Fonction pour traduire les infos des IA
@@ -59,8 +60,8 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       quality: 'Excellente',
       icon: '👁️'
     },
-    'claude-3.5-sonnet': {
-      name: 'Claude 3.5 Sonnet',
+    'claude-4.5-sonnet': {
+      name: 'Claude 4.5 Sonnet',
       provider: 'Anthropic',
       cost: '$3.00/1M tokens',
       speed: 'Rapide',
@@ -114,6 +115,14 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       speed: 'Très rapide',
       quality: 'Excellente',
       icon: '🤖'
+    },
+    'qwen3': {
+      name: 'Qwen3',
+      provider: 'Alibaba Cloud',
+      cost: '$0.40/1M tokens',
+      speed: 'Très rapide',
+      quality: 'Excellente',
+      icon: '🌟'
     }
   };
 
@@ -122,7 +131,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     text: {
       label: t('sections.uploadArea.aiSelector.text'),
       icon: '📝',
-      recommendedAIs: ['gpt-4o-mini', 'gpt-4o', 'claude-3.5-sonnet', 'claude-3-opus', 'gemini-pro', 'deepseek-v3', 'grok-4'],
+      recommendedAIs: ['gpt-4o-mini', 'gpt-4o', 'claude-4.5-sonnet', 'claude-3-opus', 'gemini-pro', 'deepseek-v3', 'grok-4', 'qwen3'],
       defaultAI: 'gpt-4o-mini'
     },
     audio: {
@@ -134,20 +143,20 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     image: {
       label: t('sections.uploadArea.aiSelector.image'),
       icon: '🖼️',
-      recommendedAIs: ['gpt-4o-vision', 'claude-3.5-sonnet', 'gemini-pro', 'grok-4'],
+      recommendedAIs: ['gpt-4o-vision', 'claude-4.5-sonnet', 'gemini-pro', 'grok-4', 'qwen3'],
       defaultAI: 'gpt-4o-vision'
     },
     spreadsheet: {
       label: t('sections.uploadArea.aiSelector.table'),
       icon: '📊',
-      recommendedAIs: ['gpt-4o', 'claude-3.5-sonnet', 'gpt-4o-mini', 'deepseek-v3', 'grok-4'],
+      recommendedAIs: ['gpt-4o', 'claude-4.5-sonnet', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
       defaultAI: 'gpt-4o'
     },
     web: {
       label: t('sections.uploadArea.aiSelector.website'),
       icon: '🌐',
-      recommendedAIs: ['claude-3.5-sonnet', 'gpt-4o', 'gpt-4o-mini', 'deepseek-v3', 'grok-4'],
-      defaultAI: 'claude-3.5-sonnet'
+      recommendedAIs: ['claude-4.5-sonnet', 'gpt-4o', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
+      defaultAI: 'claude-4.5-sonnet'
     }
   };
 
@@ -171,39 +180,39 @@ const MediaAISelector = ({ onAIConfigChange }) => {
   // Profils prédéfinis
   const profiles = {
     fast: {
-      name: 'Rapide',
+      name: t('sections.uploadArea.aiSelector.profiles.fast'),
       icon: '🚀',
-      description: 'Ultra-rapide, moins détaillé et pas cher ou gratuit',
+      description: t('sections.uploadArea.aiSelector.profiles.fastDesc'),
       config: {
-        text: 'gpt-4o-mini',
-        audio: 'whisper-large-v3',
-        image: 'gemini-pro',
-        spreadsheet: 'gpt-4o-mini',
-        web: 'gpt-4o-mini'
+        text: 'kimi',
+        audio: 'qwen3',
+        image: 'qwen3',
+        spreadsheet: 'qwen3',
+        web: 'qwen3'
       }
     },
     balanced: {
-      name: 'Équilibré',
+      name: t('sections.uploadArea.aiSelector.profiles.balancedNew'),
       icon: '⚖️',
-      description: 'Bon compromis vitesse/qualité',
+      description: t('sections.uploadArea.aiSelector.profiles.balancedDesc'),
       config: {
-        text: 'gpt-4o',
-        audio: 'whisper-large-v3',
-        image: 'gpt-4o-vision',
-        spreadsheet: 'claude-3.5-sonnet',
-        web: 'claude-3.5-sonnet'
+        text: 'deepseek-chat',
+        audio: 'qwen3',
+        image: 'qwen3',
+        spreadsheet: 'claude-4.5-sonnet',
+        web: 'claude-4.5-sonnet'
       }
     },
     precise: {
-      name: 'Précis',
+      name: t('sections.uploadArea.aiSelector.profiles.precise'),
       icon: '🎯',
-      description: 'Max de détails et analyse HQ, plus lent et plus cher',
+      description: t('sections.uploadArea.aiSelector.profiles.preciseDesc'),
       config: {
-        text: 'claude-3-opus',
-        audio: 'whisper-large-v3',
-        image: 'gpt-4o-vision',
-        spreadsheet: 'claude-3.5-sonnet',
-        web: 'claude-3.5-sonnet'
+        text: 'claude-4.5-sonnet',
+        audio: 'claude-4.5-sonnet',
+        image: 'gemini-2.5-pro',
+        spreadsheet: 'gemini-2.5-pro',
+        web: 'gemini-2.5-pro'
       }
     }
   };
@@ -231,6 +240,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
   const [profileIndex, setProfileIndex] = useState(getProfileIndex(aiConfig) >= 0 ? getProfileIndex(aiConfig) : 1);
   const [dropdownPos, setDropdownPos] = useState({ openFor: null, top: 0, left: 0, width: 0 });
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showPdfPopup, setShowPdfPopup] = useState(false);
 
   useEffect(() => {
     // Garder l'index aligné si config change via sélection individuelle
@@ -434,19 +444,21 @@ const MediaAISelector = ({ onAIConfigChange }) => {
             <div
               key={key}
               onClick={() => handleApplyProfileIndex(idx)}
-              title="Déterminez la qualité d'analyse des contenus que vous fournissez."
+              title={profile.description}
               style={{
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '10px',
                 cursor: 'pointer',
-                padding: '6px 16px',
+                padding: '12px 20px',
                 borderRadius: '10px',
                 border: isActive ? '2px solid #ff6b35' : '2px solid rgba(255, 255, 255, 0.2)',
                 background: isActive ? 'rgba(255, 107, 53, 0.2)' : 'rgba(255, 255, 255, 0.05)',
                 transition: 'all 0.3s ease',
                 minWidth: '160px',
+                maxWidth: '600px',
                 boxShadow: isActive ? '0 4px 12px rgba(255, 107, 53, 0.3)' : '0 2px 6px rgba(0, 0, 0, 0.2)',
                 transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                 position: 'relative'
@@ -467,34 +479,18 @@ const MediaAISelector = ({ onAIConfigChange }) => {
               }}
             >
               <div style={{
-                fontSize: '25.6px',
+                fontSize: '24.78px',
                 lineHeight: 1,
                 flexShrink: 0
               }}>
                 {profile.icon}
               </div>
               <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '3px',
-                flex: 1
+                fontSize: '14px',
+                fontWeight: '700',
+                color: isActive ? '#ff6b35' : 'var(--text-primary)'
               }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  color: isActive ? '#ff6b35' : 'var(--text-primary)',
-                  textAlign: 'left'
-                }}>
-                  {profile.name}
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: 'var(--text-secondary)',
-                  textAlign: 'left',
-                  lineHeight: 1.3
-                }}>
-                  {profile.description}
-                </div>
+                {profile.name}
               </div>
               {isActive && (
                 <div style={{
@@ -511,6 +507,123 @@ const MediaAISelector = ({ onAIConfigChange }) => {
           );
         })}
       </div>
+
+      {/* Bouton d'aide avec popup PDF */}
+      <div
+        onClick={() => setShowPdfPopup(true)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: 'rgba(255, 107, 44, 0.1)',
+          border: '2px solid #ff6b35',
+          color: '#ff6b35',
+          fontSize: '20px',
+          fontWeight: '700',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 2px 8px rgba(255, 107, 44, 0.2)',
+          flexShrink: 0
+        }}
+        title="Informations sur les IA disponibles"
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#ff6b35';
+          e.currentTarget.style.color = 'white';
+          e.currentTarget.style.transform = 'scale(1.1)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(255, 107, 44, 0.1)';
+          e.currentTarget.style.color = '#ff6b35';
+          e.currentTarget.style.transform = 'scale(1)';
+        }}
+      >
+        ?
+      </div>
+
+      {/* Popup PDF */}
+      {showPdfPopup && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            zIndex: 99999999
+          }}
+          onClick={() => setShowPdfPopup(false)}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '90%',
+              maxWidth: '1200px',
+              height: 'calc(100vh - 40px)',
+              background: 'white',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowPdfPopup(false)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: '#ff6b35',
+                border: 'none',
+                color: 'white',
+                fontSize: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000000,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#e55a25';
+                e.currentTarget.style.transform = 'scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ff6b35';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              ×
+            </button>
+            <embed
+              src={`/Infos%20IA${userLanguage !== 'fr' ? `_${userLanguage}` : ''}.pdf#view=FitH&toolbar=0&navpanes=0&scrollbar=1&statusbar=0&messages=0&zoom=100`}
+              type="application/pdf"
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none'
+              }}
+              title="Informations sur les IA"
+              onError={(e) => {
+                // Si le PDF traduit n'existe pas, charger la version française
+                if (userLanguage !== 'fr') {
+                  e.target.src = '/Infos%20IA.pdf#view=FitH&toolbar=0&navpanes=0&scrollbar=1&statusbar=0&messages=0&zoom=100';
+                }
+              }}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Menu déroulant Profil (ancien - caché) */}
       {isAdmin && (

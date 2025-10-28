@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAssistantAutoSave } from '../hooks/useLocalStorage'
 import { getHomeText } from '../i18n/homeTranslations'
 
@@ -14,6 +14,19 @@ export default function AdvancedPersonalization({ data = {}, onChange }) {
     adaptation: data.adaptation || 'web',
     ...data
   })
+
+  // Synchroniser formData quand data change (lors du chargement d'un modèle)
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0) {
+      setFormData({
+        style: data.style || 'professionnel',
+        length: data.length || 3,
+        creativity: data.creativity || 3,
+        adaptation: data.adaptation || 'web',
+        ...data
+      });
+    }
+  }, [data]);
 
   const handleInputChange = useCallback((field, value) => {
     const newData = { ...formData, [field]: value }

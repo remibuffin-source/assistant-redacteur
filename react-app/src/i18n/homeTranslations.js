@@ -47,7 +47,13 @@ export const homeTranslations = {
           profiles: {
             budget: 'Budget',
             balanced: 'Équilibré',
-            quality: 'Qualité'
+            quality: 'Qualité',
+            fast: 'Rapide',
+            fastDesc: 'Choisissez la qualité d\'analyse des pièces jointes',
+            balancedNew: 'Équilibré',
+            balancedDesc: 'Choisissez la qualité d\'analyse des pièces jointes',
+            precise: 'Précis',
+            preciseDesc: 'Choisissez la qualité d\'analyse des pièces jointes'
           },
           aiInfo: {
             speed: 'Vitesse',
@@ -236,7 +242,13 @@ export const homeTranslations = {
           profiles: {
             budget: 'Budget',
             balanced: 'Balanced',
-            quality: 'Quality'
+            quality: 'Quality',
+            fast: 'Fast',
+            fastDesc: 'Choose the quality of analysis for attachments',
+            balancedNew: 'Balanced',
+            balancedDesc: 'Choose the quality of analysis for attachments',
+            precise: 'Precise',
+            preciseDesc: 'Choose the quality of analysis for attachments'
           },
           aiInfo: {
             speed: 'Speed',
@@ -425,7 +437,13 @@ export const homeTranslations = {
           profiles: {
             budget: 'Presupuesto',
             balanced: 'Equilibrado',
-            quality: 'Calidad'
+            quality: 'Calidad',
+            fast: 'Rápido',
+            fastDesc: 'Elija la calidad de análisis de los archivos adjuntos',
+            balancedNew: 'Equilibrado',
+            balancedDesc: 'Elija la calidad de análisis de los archivos adjuntos',
+            precise: 'Preciso',
+            preciseDesc: 'Elija la calidad de análisis de los archivos adjuntos'
           },
           aiInfo: {
             speed: 'Velocidad',
@@ -614,7 +632,13 @@ export const homeTranslations = {
           profiles: {
             budget: 'Budget',
             balanced: 'Ausgewogen',
-            quality: 'Qualität'
+            quality: 'Qualität',
+            fast: 'Schnell',
+            fastDesc: 'Wählen Sie die Analysequalität für Anhänge',
+            balancedNew: 'Ausgewogen',
+            balancedDesc: 'Wählen Sie die Analysequalität für Anhänge',
+            precise: 'Präzise',
+            preciseDesc: 'Wählen Sie die Analysequalität für Anhänge'
           },
           aiInfo: {
             speed: 'Geschwindigkeit',
