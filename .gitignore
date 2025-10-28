@@ -94,7 +94,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - Commenté pour permettre le tracking des assets statiques (icônes, PDFs)
 
 # Vuepress build output
 .vuepress/dist
