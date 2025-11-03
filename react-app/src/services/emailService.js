@@ -16,6 +16,7 @@ class EmailService {
 
     // Mode développement : afficher les codes au lieu d'envoyer
     // Changez en false pour activer l'envoi d'emails réels
+    // Production : utilise VITE_EMAIL_SERVER_URL pour se connecter au serveur email
     this.isDevelopment = false; // false = envoi réel via serveur Node.js, true = simulation
   }
 
