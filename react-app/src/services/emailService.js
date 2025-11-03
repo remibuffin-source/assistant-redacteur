@@ -67,7 +67,8 @@ class EmailService {
       }
 
       // Appel à votre API backend qui utilisera Nodemailer
-      const response = await fetch('http://localhost:3001/api/send-email', {
+      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3001';
+      const response = await fetch(`${emailServerUrl}/api/send-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

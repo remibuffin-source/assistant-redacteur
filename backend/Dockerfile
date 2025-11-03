@@ -34,5 +34,5 @@ EXPOSE 4000
 ENV NODE_ENV=production
 ENV PORT=4000
 
-# Démarrer l'application (version minimale pour tester)
-CMD ["node", "server-minimal.js"]
+# Démarrer l'application (version complète avec toutes les routes)
+CMD ["node", "server.js"]
