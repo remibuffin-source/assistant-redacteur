@@ -69,7 +69,12 @@ class EmailService {
       }
 
       // Appel à l'API email (Lambda en production, serveur local en dev)
-      const response = await fetch(`${emailServerUrl}/api/send-email`, {
+      // Lambda n'a pas besoin du /api/send-email, il gère tout à la racine
+      const endpoint = emailServerUrl.includes('amazonaws.com') 
+        ? emailServerUrl 
+        : `${emailServerUrl}/api/send-email`;
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
