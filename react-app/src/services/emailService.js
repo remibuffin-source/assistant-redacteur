@@ -60,15 +60,15 @@ class EmailService {
 
     // En production : envoyer réellement l'email
     try {
-      // Note: Cette partie nécessite un backend Node.js
-      // Pour l'instant, on retourne une erreur explicative
+      // Appel au serveur email (local ou Lambda)
+      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3001';
       
-      if (!this.config.auth.user || !this.config.auth.pass) {
-        throw new Error('Configuration email manquante. Veuillez configurer VITE_EMAIL_USER et VITE_EMAIL_PASSWORD');
+      // Vérification uniquement pour le mode local (sans VITE_EMAIL_SERVER_URL)
+      if (!emailServerUrl.includes('amazonaws.com') && (!this.config.auth.user || !this.config.auth.pass)) {
+        throw new Error('Configuration email manquante. Veuillez configurer VITE_EMAIL_USER et VITE_EMAIL_PASSWORD pour le développement local');
       }
 
-      // Appel à votre API backend qui utilisera Nodemailer
-      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3001';
+      // Appel à l'API email (Lambda en production, serveur local en dev)
       const response = await fetch(`${emailServerUrl}/api/send-email`, {
         method: 'POST',
         headers: {
