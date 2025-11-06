@@ -35,7 +35,7 @@ VITE_EMAIL_SERVER_URL=https://e6f6kya0zj.execute-api.eu-west-1.amazonaws.com/def
 
 ### Lambda (Production - Backend Email)
 ```bash
-FROM_EMAIL=assistant.studioducapbrun@gmail.com
+FROM_EMAIL=noreply@assistant-redacteur.fr
 ```
 
 ### .env.local (Développement)
