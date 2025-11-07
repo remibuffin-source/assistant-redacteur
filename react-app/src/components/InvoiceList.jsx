@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import './InvoiceList.css';
+import { getInvoiceTranslations } from '../i18n/invoiceTranslations';
+import { downloadInvoicePDF } from '../utils/invoicePDFGenerator';
 
 /**
  * Composant pour afficher la liste des factures
  * Chaque recharge génère automatiquement une facture
  */
-const InvoiceList = ({ userEmail, userName, userAddress, userCompany }) => {
+const InvoiceList = ({ userEmail, userName, userAddress, userCompany, language = 'fr' }) => {
   const [invoices, setInvoices] = useState([]);
+  const t = getInvoiceTranslations(language);
 
   useEffect(() => {
     // Charger les factures depuis localStorage
@@ -576,8 +579,8 @@ const InvoiceList = ({ userEmail, userName, userAddress, userCompany }) => {
                   </button>
                   <button 
                     className="btn-download" 
-                    onClick={() => generateInvoicePDF(invoice)}
-                    title="Télécharger"
+                    onClick={() => downloadInvoicePDF(invoice, { userName, userEmail, userAddress, userCompany }, language)}
+                    title={t.downloadPDF}
                   >
                     <i className="fas fa-download"></i>
                   </button>

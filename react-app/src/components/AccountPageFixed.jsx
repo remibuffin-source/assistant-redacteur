@@ -275,6 +275,7 @@ const AccountPageFixed = () => {
               userName={`${userData.firstName} ${userData.lastName}`}
               userAddress={userData.address}
               userCompany={userData.company}
+              language={userData.language}
             />
           </div>
         </div>
