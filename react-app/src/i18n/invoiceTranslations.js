@@ -99,43 +99,43 @@ export const invoiceTranslations = {
     stripe: 'Tarjeta de crédito (Stripe)',
     card: 'Tarjeta de crédito'
   },
-  it: {
-    invoice: 'FATTURA',
-    invoiceNumber: 'Fattura N°',
-    date: 'Data',
-    dueDate: 'Data di scadenza',
-    billTo: 'Fatturato a',
-    billFrom: 'Emittente',
-    description: 'Descrizione',
-    quantity: 'Quantità',
-    unitPrice: 'Prezzo unitario',
-    total: 'Totale',
-    subtotal: 'Subtotale',
-    vat: 'IVA',
-    totalTTC: 'Totale',
-    paymentMethod: 'Metodo di pagamento',
-    status: 'Stato',
-    paid: 'Pagata',
-    pending: 'In attesa',
-    cancelled: 'Annullata',
-    creditRecharge: 'Ricarica credito - Assistente di Scrittura',
-    creditSubtitle: 'Credito per l\'utilizzo dei servizi di assistenza alla scrittura e distribuzione di contenuti.',
+  de: {
+    invoice: 'RECHNUNG',
+    invoiceNumber: 'Rechnung Nr.',
+    date: 'Datum',
+    dueDate: 'Fälligkeitsdatum',
+    billTo: 'Rechnung an',
+    billFrom: 'Aussteller',
+    description: 'Beschreibung',
+    quantity: 'Menge',
+    unitPrice: 'Einzelpreis',
+    total: 'Gesamt',
+    subtotal: 'Zwischensumme',
+    vat: 'MwSt.',
+    totalTTC: 'Gesamtsumme',
+    paymentMethod: 'Zahlungsmethode',
+    status: 'Status',
+    paid: 'Bezahlt',
+    pending: 'Ausstehend',
+    cancelled: 'Storniert',
+    creditRecharge: 'Guthaben-Aufladung - Schreibassistent',
+    creditSubtitle: 'Guthaben für die Nutzung von Schreibhilfe- und Content-Verteilungsdiensten.',
     companyName: 'Studio du Cap Brun',
-    companyAddress: 'Tolone, Francia',
+    companyAddress: 'Toulon, Frankreich',
     companyEmail: 'contact@studioducapbrun.com',
-    thankYou: 'Grazie per la vostra fiducia!',
-    footer: 'Questa fattura è stata generata automaticamente.',
-    downloadPDF: 'Scarica PDF',
-    viewInvoice: 'Visualizza fattura',
-    noInvoices: 'Nessuna fattura disponibile',
-    stripe: 'Carta di credito (Stripe)',
-    card: 'Carta di credito'
+    thankYou: 'Vielen Dank für Ihr Vertrauen!',
+    footer: 'Diese Rechnung wurde automatisch erstellt.',
+    downloadPDF: 'PDF herunterladen',
+    viewInvoice: 'Rechnung ansehen',
+    noInvoices: 'Keine Rechnungen verfügbar',
+    stripe: 'Kreditkarte (Stripe)',
+    card: 'Kreditkarte'
   }
 };
 
 /**
  * Récupère les traductions pour une langue donnée
- * @param {string} lang - Code de langue (fr, en, es, it)
+ * @param {string} lang - Code de langue (fr, en, es, de)
  * @returns {object} - Traductions
  */
 export const getInvoiceTranslations = (lang = 'fr') => {

@@ -4,7 +4,7 @@ import { getInvoiceTranslations } from '../i18n/invoiceTranslations';
  * Génère le HTML d'une facture avec support multilingue
  * @param {object} invoice - La facture
  * @param {object} userInfo - Informations utilisateur (userName, userEmail, userAddress, userCompany)
- * @param {string} language - Code de langue (fr, en, es, it)
+ * @param {string} language - Code de langue (fr, en, es, de)
  * @returns {string} - HTML de la facture
  */
 export const generateInvoiceHTML = (invoice, userInfo, language = 'fr') => {
@@ -14,11 +14,13 @@ export const generateInvoiceHTML = (invoice, userInfo, language = 'fr') => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString(language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : language === 'it' ? 'it-IT' : 'fr-FR', options);
+    const locale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : language === 'de' ? 'de-DE' : 'fr-FR';
+    return date.toLocaleDateString(locale, options);
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat(language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : language === 'it' ? 'it-IT' : 'fr-FR', {
+    const locale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : language === 'de' ? 'de-DE' : 'fr-FR';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
