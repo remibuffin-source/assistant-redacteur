@@ -71,11 +71,7 @@ function AppRoutes() {
         {/* Routes protégées - Administrateur uniquement */}
         <Route 
           path="/config-api" 
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <ConfigAPIPageFixed key={getRouteKey('/config-api')} />
-            </ProtectedRoute>
-          } 
+          element={<ConfigAPIPageFixed key={getRouteKey('/config-api')} />} 
         />
         <Route 
           path="/admin-prompt-builder" 
@@ -105,35 +101,19 @@ function AppRoutes() {
         />
         <Route 
           path="/calendar" 
-          element={
-            <ProtectedRoute>
-              <CalendarPage key={getRouteKey('/calendar')} />
-            </ProtectedRoute>
-          } 
+          element={<CalendarPage key={getRouteKey('/calendar')} />} 
         />
         <Route 
           path="/account" 
-          element={
-            <ProtectedRoute>
-              <AccountPageFixed key={getRouteKey('/account')} />
-            </ProtectedRoute>
-          } 
+          element={<AccountPageFixed key={getRouteKey('/account')} />} 
         />
         <Route 
           path="/subscription" 
-          element={
-            <ProtectedRoute>
-              <SubscriptionPage key={getRouteKey('/subscription')} />
-            </ProtectedRoute>
-          } 
+          element={<SubscriptionPage key={getRouteKey('/subscription')} />} 
         />
         <Route 
           path="/editor" 
-          element={
-            <ProtectedRoute>
-              <ContentEditorFixed key={getRouteKey('/editor')} />
-            </ProtectedRoute>
-          } 
+          element={<ContentEditorFixed key={getRouteKey('/editor')} />} 
         />
         <Route 
           path="/advanced-editor" 

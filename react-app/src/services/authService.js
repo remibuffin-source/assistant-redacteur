@@ -1,78 +1,15 @@
 import { emailService } from './emailService';
 
-// Service d'authentification robuste pour la production
+// URL de la Lambda d'authentification
+const AUTH_API_URL = 'https://2si3fl5hx65k7i6pwaia352zya0izdxg.lambda-url.eu-west-1.on.aws';
+
+// Service d'authentification avec DynamoDB
 class AuthService {
   constructor() {
-    this.USERS_KEY = 'auth_users';
-    this.SESSIONS_KEY = 'auth_sessions';
-    this.PENDING_VERIFICATIONS_KEY = 'auth_pending_verifications';
-    this.initializeAdminAccount();
+    // Plus besoin d'initialiser le compte admin, il sera créé manuellement dans DynamoDB si nécessaire
   }
 
-  // Initialiser le compte administrateur par défaut
-  initializeAdminAccount() {
-    const users = this.getUsers();
-
-    // Vérifier si l'admin existe déjà
-    const adminExists = users.some(user => user.email === 'admin@studioducapbrun.com');
-
-    if (!adminExists) {
-      const hashedPassword = this.hashPassword('AdminStudio2025!');
-      const adminUser = {
-        id: 'admin_' + Date.now(),
-        email: 'admin@studioducapbrun.com',
-        username: 'admin',
-        firstName: 'Administrateur',
-        lastName: 'Studio',
-        company: 'Studio du Cap Brun',
-        phone: '+33 6 12 34 56 78',
-        role: 'admin',
-        isAdmin: true,
-        isVerified: true,
-        createdAt: new Date().toISOString(),
-        hashedPassword: hashedPassword
-      };
-
-      users.push(adminUser);
-      this.saveUsers(users);
-
-      console.log('✅ Compte administrateur créé :');
-      console.log('   Email: admin@studioducapbrun.com');
-      console.log('   Mot de passe: AdminStudio2025!');
-    }
-  }
-
-  // Récupérer tous les utilisateurs
-  getUsers() {
-    try {
-      const users = localStorage.getItem(this.USERS_KEY);
-      return users ? JSON.parse(users) : [];
-    } catch (error) {
-      console.error('Erreur lors de la récupération des utilisateurs:', error);
-      return [];
-    }
-  }
-
-  // Sauvegarder les utilisateurs
-  saveUsers(users) {
-    try {
-      localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des utilisateurs:', error);
-      throw new Error('Impossible de sauvegarder les données utilisateur');
-    }
-  }
-
-  // Hacher un mot de passe (simulation - en production utiliser bcrypt)
-  hashPassword(password) {
-    // Simulation simple - en production utiliser bcrypt ou argon2
-    return btoa(password + '_salt_2025');
-  }
-
-  // Vérifier un mot de passe
-  verifyPassword(password, hashedPassword) {
-    return this.hashPassword(password) === hashedPassword;
-  }
+  // Méthodes utilitaires conservées pour compatibilité
 
   // Valider la force d'un mot de passe
   validatePasswordStrength(password) {
@@ -114,10 +51,9 @@ class AuthService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  // Vérifier si un email existe déjà
+  // Vérifier si un email existe déjà (géré par la Lambda)
   emailExists(email) {
-    const users = this.getUsers();
-    return users.some(user => user.email.toLowerCase() === email.toLowerCase());
+    return false; // La Lambda vérifiera
   }
 
   // Inscrire un nouvel utilisateur
@@ -141,342 +77,184 @@ class AuthService {
       throw new Error(passwordValidation.errors.join('. '));
     }
 
-    // Vérifier si l'email existe déjà
-    if (this.emailExists(email)) {
-      throw new Error('Cette adresse email est déjà utilisée');
+    try {
+      // Appeler la Lambda pour créer l'utilisateur
+      const response = await fetch(`${AUTH_API_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, firstName, lastName })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de l\'inscription');
+      }
+
+      // Envoyer l'email de vérification
+      await emailService.sendVerificationEmail(
+        email,
+        data.verificationCode,
+        `${firstName} ${lastName}`
+      );
+
+      return {
+        success: true,
+        message: 'Compte créé avec succès. Vérifiez votre email pour confirmer votre inscription.',
+        userId: data.userId,
+        requiresVerification: true,
+        verificationCode: data.verificationCode
+      };
+    } catch (error) {
+      console.error('Erreur register:', error);
+      throw error;
     }
-
-    // Créer l'utilisateur
-    const newUser = {
-      id: 'user_' + Date.now(),
-      email: email.toLowerCase(),
-      username: email.split('@')[0],
-      firstName,
-      lastName,
-      company: company || '',
-      phone: phone || '',
-      role: 'user',
-      isAdmin: false,
-      isVerified: false,
-      createdAt: new Date().toISOString(),
-      hashedPassword: this.hashPassword(password)
-    };
-
-    // Sauvegarder l'utilisateur
-    const users = this.getUsers();
-    users.push(newUser);
-    this.saveUsers(users);
-
-    // Créer la vérification par email
-    const verificationCode = this.generateVerificationCode();
-    const pendingVerifications = this.getPendingVerifications();
-    pendingVerifications.push({
-      email: email.toLowerCase(),
-      code: verificationCode,
-      userId: newUser.id,
-      type: 'email_verification',
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString()
-    });
-    this.savePendingVerifications(pendingVerifications);
-
-    // Envoyer l'email de vérification
-    const emailResult = await emailService.sendVerificationEmail(
-      email,
-      verificationCode,
-      `${firstName} ${lastName}`
-    );
-
-    return {
-      success: true,
-      message: 'Compte créé avec succès. Vérifiez votre email pour confirmer votre inscription.',
-      userId: newUser.id,
-      requiresVerification: true,
-      verificationCode: emailResult.code
-    };
   }
 
   // Vérifier le code de confirmation par email
-  verifyEmailCode(email, code) {
-    const pendingVerifications = this.getPendingVerifications();
-    const verification = pendingVerifications.find(
-      v => v.email === email.toLowerCase() && v.code === code
-    );
+  async verifyEmailCode(email, code) {
+    try {
+      const response = await fetch(`${AUTH_API_URL}/verify-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
 
-    if (!verification) {
-      throw new Error('Code de vérification invalide');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Code incorrect');
+      }
+
+      return {
+        success: true,
+        message: 'Email vérifié avec succès. Vous pouvez maintenant vous connecter.'
+      };
+    } catch (error) {
+      console.error('Erreur verifyEmailCode:', error);
+      throw error;
     }
-
-    // Vérifier l'expiration
-    if (new Date() > new Date(verification.expiresAt)) {
-      const updatedVerifications = pendingVerifications.filter(v => v !== verification);
-      this.savePendingVerifications(updatedVerifications);
-      throw new Error('Code de vérification expiré');
-    }
-
-    // Marquer l'utilisateur comme vérifié
-    const users = this.getUsers();
-    const userIndex = users.findIndex(u => u.id === verification.userId);
-    if (userIndex !== -1) {
-      users[userIndex].isVerified = true;
-      this.saveUsers(users);
-    }
-
-    // Supprimer la vérification utilisée
-    const updatedVerifications = pendingVerifications.filter(v => v !== verification);
-    this.savePendingVerifications(updatedVerifications);
-
-    return {
-      success: true,
-      message: 'Email vérifié avec succès. Vous pouvez maintenant vous connecter.'
-    };
   }
 
   // Connecter un utilisateur
   async login(email, password) {
-    const users = this.getUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    try {
+      const response = await fetch(`${AUTH_API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (!user) {
-      throw new Error('Adresse email ou mot de passe incorrect');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur de connexion');
+      }
+
+      // Stocker l'utilisateur en localStorage pour la session
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      localStorage.setItem('authToken', data.user.userId); // Utiliser userId comme token
+
+      return {
+        success: true,
+        user: data.user,
+        token: data.user.userId
+      };
+    } catch (error) {
+      console.error('Erreur login:', error);
+      throw error;
     }
-
-    if (!user.isVerified) {
-      throw new Error('Veuillez vérifier votre email avant de vous connecter');
-    }
-
-    if (!this.verifyPassword(password, user.hashedPassword)) {
-      throw new Error('Adresse email ou mot de passe incorrect');
-    }
-
-    // Créer une session
-    const sessionToken = this.generateToken();
-    const session = {
-      token: sessionToken,
-      userId: user.id,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    };
-
-    const sessions = this.getSessions();
-    sessions.push(session);
-    this.saveSessions(sessions);
-
-    // Retourner les données utilisateur (sans le mot de passe)
-    const { hashedPassword, ...userData } = user;
-
-    return {
-      success: true,
-      user: userData,
-      token: sessionToken
-    };
   }
 
   // Vérifier la validité d'un token de session
   verifyToken(token) {
-    const sessions = this.getSessions();
-    const session = sessions.find(s => s.token === token);
-
-    if (!session) {
-      return null;
-    }
-
-    // Vérifier l'expiration
-    if (new Date() > new Date(session.expiresAt)) {
-      const updatedSessions = sessions.filter(s => s !== session);
-      this.saveSessions(updatedSessions);
-      return null;
-    }
-
-    // Récupérer les données utilisateur
-    const users = this.getUsers();
-    const user = users.find(u => u.id === session.userId);
-
-    if (!user) {
-      return null;
-    }
-
-    // Retourner les données utilisateur (sans le mot de passe)
-    const { hashedPassword, ...userData } = user;
-    return userData;
+    // Récupérer l'utilisateur depuis localStorage
+    const userStr = localStorage.getItem('currentUser');
+    return userStr ? JSON.parse(userStr) : null;
   }
 
   // Déconnecter un utilisateur
   logout(token) {
-    if (token) {
-      const sessions = this.getSessions();
-      const updatedSessions = sessions.filter(s => s.token !== token);
-      this.saveSessions(updatedSessions);
-    }
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('authToken');
   }
 
-  // Récupérer les sessions
-  getSessions() {
-    try {
-      const sessions = localStorage.getItem(this.SESSIONS_KEY);
-      return sessions ? JSON.parse(sessions) : [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  // Sauvegarder les sessions
-  saveSessions(sessions) {
-    try {
-      localStorage.setItem(this.SESSIONS_KEY, JSON.stringify(sessions));
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des sessions:', error);
-    }
-  }
-
-  // Récupérer les vérifications en attente
-  getPendingVerifications() {
-    try {
-      const verifications = localStorage.getItem(this.PENDING_VERIFICATIONS_KEY);
-      return verifications ? JSON.parse(verifications) : [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  // Sauvegarder les vérifications en attente
-  savePendingVerifications(verifications) {
-    try {
-      localStorage.setItem(this.PENDING_VERIFICATIONS_KEY, JSON.stringify(verifications));
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des vérifications:', error);
-    }
-  }
-
-  // Nettoyer les sessions expirées
+  // Méthodes de nettoyage (plus nécessaires avec DynamoDB)
   cleanupExpiredSessions() {
-    const sessions = this.getSessions();
-    const now = new Date();
-    const validSessions = sessions.filter(session => new Date(session.expiresAt) > now);
-
-    if (validSessions.length !== sessions.length) {
-      this.saveSessions(validSessions);
-    }
-
-    return validSessions.length;
+    return 0;
   }
 
-  // Nettoyer les vérifications expirées
   cleanupExpiredVerifications() {
-    const verifications = this.getPendingVerifications();
-    const now = new Date();
-    const validVerifications = verifications.filter(v => new Date(v.expiresAt) > now);
-
-    if (validVerifications.length !== verifications.length) {
-      this.savePendingVerifications(validVerifications);
-    }
-
-    return validVerifications.length;
+    return 0;
   }
 
   // Demander une réinitialisation de mot de passe
   async requestPasswordReset(email) {
-    const users = this.getUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    try {
+      const response = await fetch(`${AUTH_API_URL}/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
 
-    if (!user) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de la réinitialisation');
+      }
+
+      // Envoyer l'email de réinitialisation
+      await emailService.sendPasswordResetEmail(
+        email,
+        data.resetCode,
+        email.split('@')[0]
+      );
+
       return {
         success: true,
-        message: 'Si cette adresse email existe, vous recevrez un code de réinitialisation.'
+        message: 'Un code de réinitialisation a été envoyé à votre adresse email.',
+        code: data.resetCode
       };
+    } catch (error) {
+      console.error('Erreur requestPasswordReset:', error);
+      throw error;
     }
-
-    // Générer un code de réinitialisation
-    const resetCode = this.generateVerificationCode();
-    const pendingVerifications = this.getPendingVerifications();
-    
-    // Supprimer les anciennes demandes de réinitialisation pour cet email
-    const filteredVerifications = pendingVerifications.filter(
-      v => !(v.email === email.toLowerCase() && v.type === 'password_reset')
-    );
-
-    filteredVerifications.push({
-      email: email.toLowerCase(),
-      code: resetCode,
-      userId: user.id,
-      type: 'password_reset',
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString()
-    });
-    this.savePendingVerifications(filteredVerifications);
-
-    // Envoyer l'email de réinitialisation
-    const emailResult = await emailService.sendPasswordResetEmail(
-      email,
-      resetCode,
-      `${user.firstName} ${user.lastName}`
-    );
-
-    return {
-      success: true,
-      message: 'Un code de réinitialisation a été envoyé à votre adresse email.',
-      code: emailResult.code
-    };
   }
 
-  // Vérifier le code de réinitialisation
+  // Vérifier le code de réinitialisation (géré par la Lambda)
   verifyResetCode(email, code) {
-    const pendingVerifications = this.getPendingVerifications();
-    const verification = pendingVerifications.find(
-      v => v.email === email.toLowerCase() && v.code === code && v.type === 'password_reset'
-    );
-
-    if (!verification) {
-      return { success: false, error: 'Code de réinitialisation invalide' };
-    }
-
-    // Vérifier l'expiration
-    if (new Date() > new Date(verification.expiresAt)) {
-      const updatedVerifications = pendingVerifications.filter(v => v !== verification);
-      this.savePendingVerifications(updatedVerifications);
-      return { success: false, error: 'Code de réinitialisation expiré' };
-    }
-
-    return { success: true, userId: verification.userId };
+    return { success: true };
   }
 
   // Réinitialiser le mot de passe
   async resetPassword(email, code, newPassword) {
-    // Vérifier le code
-    const verification = this.verifyResetCode(email, code);
-    if (!verification.success) {
-      throw new Error(verification.error);
-    }
-
     // Valider le nouveau mot de passe
     const passwordValidation = this.validatePasswordStrength(newPassword);
     if (!passwordValidation.isValid) {
       throw new Error(passwordValidation.errors.join('. '));
     }
 
-    // Mettre à jour le mot de passe ET vérifier le compte
-    const users = this.getUsers();
-    const userIndex = users.findIndex(u => u.id === verification.userId);
-    
-    if (userIndex === -1) {
-      throw new Error('Utilisateur introuvable');
+    try {
+      const response = await fetch(`${AUTH_API_URL}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, newPassword })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de la réinitialisation');
+      }
+
+      return {
+        success: true,
+        message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.'
+      };
+    } catch (error) {
+      console.error('Erreur resetPassword:', error);
+      throw error;
     }
-
-    users[userIndex].hashedPassword = this.hashPassword(newPassword);
-    users[userIndex].isVerified = true; // Vérifier automatiquement le compte
-    this.saveUsers(users);
-
-    // Supprimer le code de réinitialisation utilisé
-    const pendingVerifications = this.getPendingVerifications();
-    const updatedVerifications = pendingVerifications.filter(
-      v => !(v.email === email.toLowerCase() && v.type === 'password_reset')
-    );
-    this.savePendingVerifications(updatedVerifications);
-
-    return {
-      success: true,
-      message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.'
-    };
   }
 }
 

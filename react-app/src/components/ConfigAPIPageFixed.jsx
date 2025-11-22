@@ -154,8 +154,23 @@ const ConfigAPIPageFixed = () => {
     setTesting(prev => ({ ...prev, [service]: true }));
     
     try {
-      // Vraie validation avec requête API
-      const result = await validateApiKey(service, currentKey);
+      // Test via le backend (sécurisé)
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/admin/test-api-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          service,
+          apiKey: currentKey
+        })
+      });
+      
+      const result = await response.json();
       
       setTestResults(prev => ({ 
         ...prev, 

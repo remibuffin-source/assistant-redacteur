@@ -8,6 +8,7 @@ export const menuTranslations = {
       analyze: 'Analyse',
       account: 'Mon Compte',
       config: 'Config API',
+      network: 'Accès Réseaux',
       calendar: 'Calendrier',
       editor: 'Éditeur',
       subscription: 'Recharge',
@@ -64,6 +65,10 @@ export const menuTranslations = {
           title: 'Config API',
           description: 'Configurez vos clés API pour les services d\'IA et les réseaux sociaux.'
         },
+        network: {
+          title: 'Accès Réseaux',
+          description: 'Connectez et gérez vos comptes de réseaux sociaux pour publier automatiquement.'
+        },
         calendar: {
           title: 'Calendrier',
           description: 'Planifiez et organisez vos publications sur un calendrier interactif.'
@@ -87,6 +92,7 @@ export const menuTranslations = {
       analyze: 'Analyze',
       account: 'My Account',
       config: 'API Config',
+      network: 'Network Access',
       calendar: 'Calendar',
       editor: 'Editor',
       subscription: 'Recharge',
@@ -143,6 +149,10 @@ export const menuTranslations = {
           title: 'API Config',
           description: 'Configure your API keys for AI services and social networks.'
         },
+        network: {
+          title: 'Network Access',
+          description: 'Connect and manage your social media accounts to publish automatically.'
+        },
         calendar: {
           title: 'Calendar',
           description: 'Plan and organize your publications on an interactive calendar.'
@@ -166,6 +176,7 @@ export const menuTranslations = {
       analyze: 'Análisis',
       account: 'Mi Cuenta',
       config: 'Config API',
+      network: 'Acceso a Redes',
       calendar: 'Calendario',
       editor: 'Editor',
       subscription: 'Recarga',
@@ -222,6 +233,10 @@ export const menuTranslations = {
           title: 'Config API',
           description: 'Configure sus claves API para servicios de IA y redes sociales.'
         },
+        network: {
+          title: 'Acceso a Redes',
+          description: 'Conecte y gestione sus cuentas de redes sociales para publicar automáticamente.'
+        },
         calendar: {
           title: 'Calendario',
           description: 'Planifique y organice sus publicaciones en un calendario interactivo.'
@@ -245,6 +260,7 @@ export const menuTranslations = {
       analyze: 'Analyse',
       account: 'Mein Konto',
       config: 'API-Konfig',
+      network: 'Netzwerkzugang',
       calendar: 'Kalender',
       editor: 'Editor',
       subscription: 'Aufladen',
@@ -300,6 +316,10 @@ export const menuTranslations = {
         config: {
           title: 'API-Konfig',
           description: 'Konfigurieren Sie Ihre API-Schlüssel für KI-Dienste und soziale Netzwerke.'
+        },
+        network: {
+          title: 'Netzwerkzugang',
+          description: 'Verbinden und verwalten Sie Ihre Social-Media-Konten, um automatisch zu veröffentlichen.'
         },
         calendar: {
           title: 'Kalender',

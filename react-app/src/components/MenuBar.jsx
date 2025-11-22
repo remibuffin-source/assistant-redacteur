@@ -432,7 +432,7 @@ const MenuBar = ({ onHelp }) => {
                 </button>
                 <button className="menu-btn" onClick={() => handleMenuClick('network')}>
                   <i className="fas fa-share-alt"></i>
-                  <span>Accès Réseaux</span>
+                  <span>{t('buttons.network')}</span>
                 </button>
                 <button className="menu-btn" onClick={() => handleMenuClick('calendar')}>
                   <i className="fas fa-calendar-alt"></i>

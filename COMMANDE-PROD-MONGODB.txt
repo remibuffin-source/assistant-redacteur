@@ -1,0 +1,9 @@
+# Commande à exécuter pour configurer MongoDB en production
+# REMPLACE "TON_MOT_DE_PASSE" par ton vrai mot de passe MongoDB !
+
+cd backend
+
+eb setenv MONGODB_URI="mongodb+srv://assistant-redactionnel:TON_MOT_DE_PASSE@assistant-redacteur.v6ru523.mongodb.net/assistant-redacteur?retryWrites=true&w=majority&appName=assistant-redacteur" ENCRYPTION_KEY="vWxIei1hCpFJaHwkYKjuyzP9dD8N0Lm7"
+
+# Ensuite, déployer :
+eb deploy
