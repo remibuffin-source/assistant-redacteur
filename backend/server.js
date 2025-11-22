@@ -54,15 +54,15 @@ app.use(helmet({
 
 // Configuration CORS
 const corsOptions = {
-  origin: ['http://localhost:3003', 'https://assistant-redacteur.fr'],
   origin: function (origin, callback) {
-    // Autoriser les requêtes sans origin (comme les apps mobiles)
+    // Autoriser les requêtes sans origin (comme les apps mobiles ou Postman)
     if (!origin) return callback(null, true);
 
     const allowedOrigins = [
       'http://localhost:3003',
       'http://127.0.0.1:3003',
-      'https://your-production-domain.com'
+      'https://assistant-redacteur.fr',
+      'https://www.assistant-redacteur.fr'
     ];
 
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
@@ -72,8 +72,9 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 };
 
 app.use(cors(corsOptions));
