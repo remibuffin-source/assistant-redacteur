@@ -1,0 +1,17 @@
+# Configuration HTTPS pour Elastic Beanstalk
+
+## Étape 1 : Récupérer l'ARN du certificat SSL
+aws acm list-certificates --region eu-west-1
+
+## Étape 2 : Configurer le listener HTTPS
+# Remplace CERTIFICATE_ARN par l'ARN de ton certificat
+
+eb config
+
+# Puis ajoute dans la section aws:elbv2:listener:443 :
+#   ListenerEnabled: true
+#   Protocol: HTTPS
+#   SSLCertificateArns: arn:aws:acm:eu-west-1:ACCOUNT_ID:certificate/CERTIFICATE_ID
+
+## Étape 3 : Sauvegarder et déployer
+# Le fichier de config sera automatiquement appliqué
