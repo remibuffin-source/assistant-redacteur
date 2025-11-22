@@ -9,9 +9,15 @@ import SocialAccount from '../models/SocialAccount.js';
 import { logger } from '../utils/logger.js';
 
 // Configuration JWT Strategy
+const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret-key-change-this-in-production-minimum-32-chars';
+
+if (!process.env.JWT_SECRET) {
+  logger.warn('JWT_SECRET non défini dans .env - utilisation d\'une clé de développement (NON SÉCURISÉ)');
+}
+
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET
+  secretOrKey: jwtSecret
 };
 
 passport.use(new JwtStrategy(jwtOptions, async (payload, done) => {
@@ -27,13 +33,14 @@ passport.use(new JwtStrategy(jwtOptions, async (payload, done) => {
   }
 }));
 
-// Configuration Google OAuth Strategy
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${process.env.FRONTEND_URL}/api/oauth/google/callback`,
-  scope: ['profile', 'email']
-}, async (accessToken, refreshToken, profile, done) => {
+// Configuration Google OAuth Strategy (optionnelle)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.FRONTEND_URL}/api/oauth/google/callback`,
+    scope: ['profile', 'email']
+  }, async (accessToken, refreshToken, profile, done) => {
   try {
     // Vérifier si l'utilisateur existe déjà
     let user = await User.findByOAuthProvider('google', profile.id);
@@ -78,9 +85,13 @@ passport.use(new GoogleStrategy({
     return done(error, null);
   }
 }));
+} else {
+  logger.warn('Google OAuth non configuré - GOOGLE_CLIENT_ID/SECRET manquants');
+}
 
-// Configuration Facebook OAuth Strategy
-passport.use(new FacebookStrategy({
+// Configuration Facebook OAuth Strategy (optionnelle)
+if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
+  passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
   callbackURL: `${process.env.FRONTEND_URL}/api/oauth/facebook/callback`,
@@ -127,9 +138,13 @@ passport.use(new FacebookStrategy({
     return done(error, null);
   }
 }));
+} else {
+  logger.warn('Facebook OAuth non configuré - FACEBOOK_APP_ID/SECRET manquants');
+}
 
-// Configuration Twitter OAuth Strategy
-passport.use(new TwitterStrategy({
+// Configuration Twitter OAuth Strategy (optionnelle)
+if (process.env.TWITTER_API_KEY && process.env.TWITTER_API_SECRET) {
+  passport.use(new TwitterStrategy({
   consumerKey: process.env.TWITTER_API_KEY,
   consumerSecret: process.env.TWITTER_API_SECRET,
   callbackURL: `${process.env.FRONTEND_URL}/api/oauth/twitter/callback`,
@@ -176,9 +191,13 @@ passport.use(new TwitterStrategy({
     return done(error, null);
   }
 }));
+} else {
+  logger.warn('Twitter OAuth non configuré - TWITTER_API_KEY/SECRET manquants');
+}
 
-// Configuration LinkedIn OAuth Strategy
-passport.use(new LinkedInStrategy({
+// Configuration LinkedIn OAuth Strategy (optionnelle)
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+  passport.use(new LinkedInStrategy({
   clientID: process.env.LINKEDIN_CLIENT_ID,
   clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
   callbackURL: `${process.env.FRONTEND_URL}/api/oauth/linkedin/callback`,
@@ -225,6 +244,9 @@ passport.use(new LinkedInStrategy({
     return done(error, null);
   }
 }));
+} else {
+  logger.warn('LinkedIn OAuth non configuré - LINKEDIN_CLIENT_ID/SECRET manquants');
+}
 
 // Middleware pour vérifier l'authentification JWT
 export const authenticateToken = (req, res, next) => {

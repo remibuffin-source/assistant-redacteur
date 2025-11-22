@@ -3,16 +3,16 @@ import { logger } from '../utils/logger.js';
 
 /**
  * Service de publication Twitter/X
+ *
+ * Important : le client Twitter n'est plus instancié au chargement du module
+ * pour éviter de bloquer tout le backend quand les variables d'environnement
+ * Twitter ne sont pas configurées. Les clients sont créés au cas par cas dans
+ * les méthodes qui en ont besoin.
  */
 export class TwitterService {
   constructor() {
-    // Configuration OAuth 1.0a pour Twitter API v2
-    this.client = new TwitterApi({
-      appKey: process.env.TWITTER_API_KEY,
-      appSecret: process.env.TWITTER_API_SECRET,
-      accessToken: process.env.TWITTER_ACCESS_TOKEN,
-      accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-    });
+    // Pas d'initialisation de client global ici pour ne pas faire échouer
+    // le démarrage du serveur si les clés Twitter ne sont pas définies.
   }
 
   /**

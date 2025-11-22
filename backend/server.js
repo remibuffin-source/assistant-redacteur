@@ -15,11 +15,16 @@ import oauthRoutes from './routes/oauth.js';
 import userRoutes from './routes/users.js';
 import analyticsRoutes from './routes/analytics.js';
 import emailRoutes from './routes/email.js';
+import storageRoutes from './routes/storage.js';
+import apiKeysRoutes from './routes/apiKeys.js';
 
 // Import des middlewares
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import { logger } from './utils/logger.js';
+
+// Import de la connexion MongoDB
+import { connectDB } from './config/database.js';
 
 // Configuration ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +53,7 @@ app.use(helmet({
 
 // Configuration CORS
 const corsOptions = {
+  origin: ['http://localhost:3003', 'https://assistant-redacteur.fr'],
   origin: function (origin, callback) {
     // Autoriser les requêtes sans origin (comme les apps mobiles)
     if (!origin) return callback(null, true);
@@ -118,6 +124,8 @@ app.use('/api/oauth', oauthRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/storage', storageRoutes);
+app.use('/api/admin', apiKeysRoutes);
 
 // Middleware pour les routes non trouvées
 app.use(notFound);
@@ -136,9 +144,12 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
+// Connexion à MongoDB avant de démarrer le serveur
+connectDB();
+
 // Démarrage du serveur
 const server = app.listen(PORT, () => {
-  logger.info(`🚀 Assistant Rédacteur Backend Server running on port ${PORT}`);
+  logger.info(`🚀 Assistant Rédactionnel Backend Server running on port ${PORT}`);
   logger.info(`📅 Environment: ${process.env.NODE_ENV}`);
   logger.info(`🔗 Frontend URL: ${process.env.FRONTEND_URL}`);
   logger.info(`📊 Health check: http://localhost:${PORT}/health`);
