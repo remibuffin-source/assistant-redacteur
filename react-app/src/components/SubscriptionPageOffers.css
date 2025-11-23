@@ -1,0 +1,205 @@
+/* Offres de recharge dans la page Subscription */
+.recharge-offers-section {
+  width: 100%;
+  max-width: 1400px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.offers-title {
+  font-size: 2rem;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.offers-subtitle {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.offer-card-client {
+  background: white;
+  border: 3px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.offer-card-client:hover {
+  transform: translateY(-5px);
+  border-color: #ff6b2c;
+  box-shadow: 0 8px 24px rgba(255, 107, 44, 0.2);
+}
+
+.offer-card-client.selected {
+  border-color: #ff6b2c;
+  background: rgba(255, 107, 44, 0.05);
+  box-shadow: 0 8px 24px rgba(255, 107, 44, 0.3);
+}
+
+.offer-card-client.popular {
+  border-color: #667eea;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+}
+
+.popular-badge {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.offer-header-client {
+  text-align: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.offer-header-client h4 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.offer-price {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #ff6b2c;
+  line-height: 1;
+}
+
+.offer-credits {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+}
+
+.credits-amount {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.credits-label {
+  display: block;
+  font-size: 1rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.offer-discount-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8c5a 100%);
+  color: white;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 44, 0.3);
+}
+
+.offer-discount-badge i {
+  font-size: 1.3rem;
+}
+
+.offer-benefits-client {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.offer-benefits-client .benefit {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #34495e;
+  font-size: 0.95rem;
+}
+
+.offer-benefits-client .benefit i {
+  color: #27ae60;
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.select-offer-btn {
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8c5a 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.select-offer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 44, 0.4);
+}
+
+.select-offer-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .offers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .recharge-offers-section {
+    padding: 1.5rem;
+  }
+  
+  .offers-title {
+    font-size: 1.5rem;
+  }
+  
+  .offer-price {
+    font-size: 2.5rem;
+  }
+  
+  .credits-amount {
+    font-size: 2rem;
+  }
+}

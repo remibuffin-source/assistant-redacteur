@@ -6,6 +6,7 @@ import MenuBar from './MenuBar';
 import StripePayment from './StripePayment';
 import { createInvoice } from '../utils/invoiceGenerator';
 import './SubscriptionPage.css';
+import './SubscriptionPageOffers.css';
 
 const SubscriptionPage = () => {
   const { autoSaveData, updateAutoSave } = useAssistantAutoSave();
@@ -18,11 +19,12 @@ const SubscriptionPage = () => {
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getSubscriptionText(userLanguage, path);
 
-  const presetAmounts = [
-    { amount: 10, label: '10€ - Essentiel' },
-    { amount: 25, label: '25€ - Confort' },
-    { amount: 50, label: '50€ - Professionnel' },
-    { amount: 100, label: '100€ - Expert' }
+  // Offres de recharge avec remises
+  const rechargeOffers = [
+    { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
+    { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
+    { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
+    { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
   ];
 
   const handleAmountSelect = (amount) => {
@@ -158,6 +160,55 @@ const SubscriptionPage = () => {
               }}
             />
           )}
+
+          {/* Offres de recharge avec remises */}
+          <div className="recharge-offers-section">
+            <h3 className="offers-title">💳 Offres de Recharge</h3>
+            <p className="offers-subtitle">Profitez de remises avantageuses sur vos recharges</p>
+            
+            <div className="offers-grid">
+              {rechargeOffers.map(offer => (
+                <div 
+                  key={offer.id} 
+                  className={`offer-card-client ${offer.popular ? 'popular' : ''} ${selectedAmount === offer.price ? 'selected' : ''}`}
+                  onClick={() => handleAmountSelect(offer.price)}
+                >
+                  {offer.popular && <div className="popular-badge">⭐ POPULAIRE</div>}
+                  
+                  <div className="offer-header-client">
+                    <h4>{offer.name}</h4>
+                    <div className="offer-price">{offer.price}€</div>
+                  </div>
+                  
+                  <div className="offer-credits">
+                    <span className="credits-amount">{offer.credits.toLocaleString()}</span>
+                    <span className="credits-label">crédits</span>
+                  </div>
+                  
+                  <div className="offer-discount-badge">
+                    <i className="fas fa-tag"></i>
+                    <span>{offer.discount}% de remise</span>
+                  </div>
+                  
+                  <div className="offer-benefits-client">
+                    <div className="benefit">
+                      <i className="fas fa-infinity"></i>
+                      <span>Sans expiration</span>
+                    </div>
+                    <div className="benefit">
+                      <i className="fas fa-check-circle"></i>
+                      <span>Pas d'engagement</span>
+                    </div>
+                  </div>
+                  
+                  <button className="select-offer-btn">
+                    <i className="fas fa-shopping-cart"></i>
+                    Choisir
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <div className="recharge-action-bottom">
             
