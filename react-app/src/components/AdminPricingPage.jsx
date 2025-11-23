@@ -178,7 +178,7 @@ const AdminPricingPage = () => {
                   <h4>{model}</h4>
                   <div className="cost-inputs">
                     <label>
-                      Input ($/1k tokens)
+                      Input ($/1k)
                       <input 
                         type="number"
                         value={costs.input}
@@ -188,7 +188,7 @@ const AdminPricingPage = () => {
                       />
                     </label>
                     <label>
-                      Output ($/1k tokens)
+                      Output ($/1k)
                       <input 
                         type="number"
                         value={costs.output}
