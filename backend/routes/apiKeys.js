@@ -15,8 +15,16 @@ router.post('/api-keys', authenticateToken, async (req, res) => {
     const { apiKeys } = req.body;
     const userId = req.user.id;
 
-    // Vérifier que l'utilisateur est admin
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@studioducapbrun.com') {
+    // Log pour debug
+    logger.info(`Tentative de sauvegarde par user:`, req.user);
+
+    // Vérifier que l'utilisateur est admin (accepter role='admin' OU email admin)
+    const isAdmin = req.user.role === 'admin' || 
+                    req.user.email === 'admin@studioducapbrun.com' ||
+                    req.user.id === 'admin-001';
+    
+    if (!isAdmin) {
+      logger.warn(`Accès refusé pour user: ${JSON.stringify(req.user)}`);
       return res.status(403).json({
         success: false,
         message: 'Accès refusé. Droits administrateur requis.'
