@@ -1,4 +1,4 @@
-import pool from '../config/postgres.js';
+import PricingConfig from '../models/PricingConfig.js';
 
 /**
  * Récupère la marge bénéficiaire depuis la DB
@@ -6,15 +6,8 @@ import pool from '../config/postgres.js';
  */
 async function getProfitMargin() {
   try {
-    const result = await pool.query(
-      'SELECT profit_margin FROM pricing_config ORDER BY id DESC LIMIT 1'
-    );
-    
-    if (result.rows.length === 0) {
-      return 30; // Marge par défaut 30%
-    }
-    
-    return parseFloat(result.rows[0].profit_margin);
+    const config = await PricingConfig.getConfig();
+    return config.profitMargin || 30;
   } catch (error) {
     console.error('Erreur récupération marge:', error);
     return 30; // Fallback
@@ -27,15 +20,8 @@ async function getProfitMargin() {
  */
 async function getServiceCosts() {
   try {
-    const result = await pool.query(
-      'SELECT service_costs FROM pricing_config ORDER BY id DESC LIMIT 1'
-    );
-    
-    if (result.rows.length === 0) {
-      return {};
-    }
-    
-    return result.rows[0].service_costs || {};
+    const config = await PricingConfig.getConfig();
+    return Object.fromEntries(config.serviceCosts) || {};
   } catch (error) {
     console.error('Erreur récupération coûts:', error);
     return {};
