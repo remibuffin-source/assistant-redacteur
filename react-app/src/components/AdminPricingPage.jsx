@@ -61,13 +61,21 @@ const AdminPricingPage = () => {
   const loadPricingConfig = async () => {
     setLoading(true);
     try {
-      // TODO: Charger depuis le backend
-      // const response = await fetch(`${API_BASE_URL}/admin/pricing-config`);
-      // const data = await response.json();
-      // setServiceCosts(data.serviceCosts);
-      // setProfitMargin(data.profitMargin);
-      // setRechargeOffers(data.rechargeOffers);
-      
+      const response = await fetch(`${API_BASE_URL}/pricing/config`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📥 Configuration chargée:', data);
+        
+        if (data.serviceCosts && Object.keys(data.serviceCosts).length > 0) {
+          setServiceCosts(data.serviceCosts);
+        }
+        if (data.profitMargin) {
+          setProfitMargin(data.profitMargin);
+        }
+        if (data.rechargeOffers && data.rechargeOffers.length > 0) {
+          setRechargeOffers(data.rechargeOffers);
+        }
+      }
       setLoading(false);
     } catch (error) {
       console.error('Erreur chargement config:', error);
@@ -77,26 +85,37 @@ const AdminPricingPage = () => {
 
   const handleSavePricing = async () => {
     try {
+      const payload = {
+        serviceCosts,
+        profitMargin,
+        rechargeOffers
+      };
+      
+      console.log('💾 Sauvegarde de la configuration:', payload);
+      
       const response = await fetch(`${API_BASE_URL}/pricing/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          serviceCosts,
-          profitMargin,
-          rechargeOffers
-        })
+        body: JSON.stringify(payload)
       });
       
+      console.log('📡 Réponse serveur:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Erreur lors de la sauvegarde');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Erreur serveur:', errorData);
+        throw new Error(errorData.error || 'Erreur lors de la sauvegarde');
       }
+      
+      const result = await response.json();
+      console.log('✅ Sauvegarde réussie:', result);
       
       setMessage({ type: 'success', text: '✅ Configuration sauvegardée avec succès' });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
-      console.error('Erreur:', error);
-      setMessage({ type: 'error', text: '❌ Erreur lors de la sauvegarde' });
-      setTimeout(() => setMessage(null), 3000);
+      console.error('❌ Erreur complète:', error);
+      setMessage({ type: 'error', text: `❌ Erreur: ${error.message}` });
+      setTimeout(() => setMessage(null), 5000);
     }
   };
 
@@ -140,6 +159,16 @@ const AdminPricingPage = () => {
       else if (field === 'discount') {
         // Remise modifiée → Recalculer les crédits (garder le prix fixe)
         const newCredits = Math.round(offer.price / (CREDIT_BASE_PRICE * (1 - numValue / 100)));
+        
+        // Avertissement si remise > marge bénéficiaire
+        if (numValue > profitMargin) {
+          setMessage({ 
+            type: 'error', 
+            text: `⚠️ ATTENTION: La remise de ${numValue}% est supérieure à votre marge bénéficiaire de ${profitMargin}%. Vous perdez de l'argent sur cette offre !` 
+          });
+          setTimeout(() => setMessage(null), 8000);
+        }
+        
         return { ...offer, discount: numValue, credits: newCredits };
       }
       

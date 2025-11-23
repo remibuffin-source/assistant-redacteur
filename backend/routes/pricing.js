@@ -1,22 +1,56 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs').promises;
-const path = require('path');
+const pool = require('../config/database');
 
-// Fichier de configuration des prix (à créer)
-const PRICING_CONFIG_FILE = path.join(__dirname, '../config/pricing.json');
+/**
+ * GET /api/pricing/config
+ * Récupère toute la configuration de tarification
+ */
+router.get('/config', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM pricing_config ORDER BY id DESC LIMIT 1'
+    );
+    
+    if (result.rows.length === 0) {
+      // Configuration par défaut
+      return res.json({
+        profitMargin: 30,
+        serviceCosts: {},
+        rechargeOffers: [
+          { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
+          { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
+          { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
+          { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
+        ],
+        monthlySubscriptionAmount: 0
+      });
+    }
+
+    const config = result.rows[0];
+    res.json({
+      profitMargin: parseFloat(config.profit_margin),
+      serviceCosts: config.service_costs,
+      rechargeOffers: config.recharge_offers,
+      monthlySubscriptionAmount: parseFloat(config.monthly_subscription_amount || 0)
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la config:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 /**
  * GET /api/pricing/offers
- * Récupère les offres de recharge configurées par l'admin
+ * Récupère uniquement les offres de recharge
  */
 router.get('/offers', async (req, res) => {
   try {
-    // Charger la configuration depuis le fichier
-    const configExists = await fs.access(PRICING_CONFIG_FILE).then(() => true).catch(() => false);
+    const result = await pool.query(
+      'SELECT recharge_offers FROM pricing_config ORDER BY id DESC LIMIT 1'
+    );
     
-    if (!configExists) {
-      // Configuration par défaut si le fichier n'existe pas
+    if (result.rows.length === 0) {
       return res.json({
         offers: [
           { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
@@ -27,11 +61,8 @@ router.get('/offers', async (req, res) => {
       });
     }
 
-    const configData = await fs.readFile(PRICING_CONFIG_FILE, 'utf8');
-    const config = JSON.parse(configData);
-    
     res.json({
-      offers: config.rechargeOffers || []
+      offers: result.rows[0].recharge_offers || []
     });
   } catch (error) {
     console.error('Erreur lors de la récupération des offres:', error);
@@ -45,21 +76,44 @@ router.get('/offers', async (req, res) => {
  */
 router.post('/save', async (req, res) => {
   try {
-    const { profitMargin, serviceCosts, rechargeOffers } = req.body;
+    const { profitMargin, serviceCosts, rechargeOffers, monthlySubscriptionAmount } = req.body;
 
-    // Créer le dossier config s'il n'existe pas
-    const configDir = path.dirname(PRICING_CONFIG_FILE);
-    await fs.mkdir(configDir, { recursive: true });
+    // Vérifier si une config existe
+    const existingConfig = await pool.query(
+      'SELECT id FROM pricing_config ORDER BY id DESC LIMIT 1'
+    );
 
-    // Sauvegarder la configuration
-    const config = {
-      profitMargin,
-      serviceCosts,
-      rechargeOffers,
-      lastUpdated: new Date().toISOString()
-    };
-
-    await fs.writeFile(PRICING_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+    if (existingConfig.rows.length > 0) {
+      // Mettre à jour la config existante
+      await pool.query(
+        `UPDATE pricing_config 
+         SET profit_margin = $1, 
+             service_costs = $2, 
+             recharge_offers = $3,
+             monthly_subscription_amount = $4,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5`,
+        [
+          profitMargin,
+          JSON.stringify(serviceCosts),
+          JSON.stringify(rechargeOffers),
+          monthlySubscriptionAmount || 0,
+          existingConfig.rows[0].id
+        ]
+      );
+    } else {
+      // Créer une nouvelle config
+      await pool.query(
+        `INSERT INTO pricing_config (profit_margin, service_costs, recharge_offers, monthly_subscription_amount)
+         VALUES ($1, $2, $3, $4)`,
+        [
+          profitMargin,
+          JSON.stringify(serviceCosts),
+          JSON.stringify(rechargeOffers),
+          monthlySubscriptionAmount || 0
+        ]
+      );
+    }
 
     res.json({ 
       success: true, 
