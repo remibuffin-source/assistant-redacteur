@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import MenuBar from './MenuBar';
 import './AdminPricingPage.css';
+import './ConfigAPIPage.css'; // Pour utiliser les styles de la sidebar admin
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
@@ -12,8 +15,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
  */
 const AdminPricingPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
+  const [activeTab, setActiveTab] = useState('pricing');
   
   // Configuration des coûts par service (ce que ça nous coûte)
   const [serviceCosts, setServiceCosts] = useState({
@@ -40,13 +45,13 @@ const AdminPricingPage = () => {
   const [profitMargin, setProfitMargin] = useState(30); // 30% de marge par défaut
   
   // Offres de recharge (prix de vente)
-  // Calcul : 50€ = 10% remise, 100€ = 20% remise, 200€ = 30% remise, 400€ = 40% remise
-  // Prix de base : 0.05€ par crédit (20€ = 400 crédits)
+  // Prix de base : 1 crédit = 0.05€ (sans remise)
+  // Avec remise : crédits = prix / (0.05 * (1 - remise%))
   const [rechargeOffers, setRechargeOffers] = useState([
-    { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
-    { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
-    { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
-    { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
+    { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },      // 50 / (0.05 * 0.9) = 1111
+    { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },      // 100 / (0.05 * 0.8) = 2500
+    { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },   // 200 / (0.05 * 0.7) = 5714
+    { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }       // 400 / (0.05 * 0.6) = 13333
   ]);
 
   useEffect(() => {
@@ -129,19 +134,76 @@ const AdminPricingPage = () => {
   };
 
   if (loading) {
-    return <div className="admin-pricing-page"><div className="loading">Chargement...</div></div>;
+    return (
+      <div className="page-container">
+        <MenuBar onHelp={() => {}} />
+        <div className="page-content" style={{paddingTop: '20px', paddingLeft: '5px', paddingRight: '30px'}}>
+          <div className="loading">Chargement...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="admin-pricing-page">
-      <h1>💰 Configuration Tarification</h1>
-      <p className="subtitle">Gérez les coûts des services AI et les prix de vente des crédits</p>
+    <div className="page-container">
+      <MenuBar onHelp={() => {}} />
+      <div className="page-content" style={{paddingTop: '20px', paddingLeft: '5px', paddingRight: '30px'}}>
+        <div className="admin-page-layout">
+          {/* Menu vertical à gauche */}
+          <div className="admin-sidebar">
+            <div className="admin-sidebar-header">
+              <i className="fas fa-shield-alt"></i>
+              <h3>Administration</h3>
+            </div>
+            <nav className="admin-nav">
+              <button 
+                className={`admin-nav-btn ${activeTab === 'api-keys' ? 'active' : ''}`}
+                onClick={() => navigate('/config-api')}
+              >
+                <i className="fas fa-key"></i>
+                <span>Clés API IA</span>
+              </button>
+              <button 
+                className={`admin-nav-btn ${activeTab === 'prompt-builder' ? 'active' : ''}`}
+                onClick={() => navigate('/admin-prompt-builder')}
+              >
+                <i className="fas fa-cogs"></i>
+                <span>Prompt Builder</span>
+              </button>
+              <button 
+                className={`admin-nav-btn ${activeTab === 'pricing' ? 'active' : ''}`}
+                onClick={() => setActiveTab('pricing')}
+              >
+                <i className="fas fa-dollar-sign"></i>
+                <span>Tarification</span>
+              </button>
+              <button 
+                className={`admin-nav-btn ${activeTab === 'credits' ? 'active' : ''}`}
+                onClick={() => navigate('/admin-credits')}
+              >
+                <i className="fas fa-coins"></i>
+                <span>Gestion Crédits</span>
+              </button>
+            </nav>
+          </div>
 
-      {message && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-        </div>
-      )}
+          {/* Contenu principal */}
+          <div className="admin-main-content">
+            <div className="config-header">
+              <div className="header-content">
+                <h1>
+                  <i className="fas fa-dollar-sign" style={{color: '#ff6b2c', marginRight: '12px'}}></i>
+                  Configuration Tarification
+                </h1>
+                <p>Gérez les coûts des services AI et les prix de vente des crédits</p>
+              </div>
+            </div>
+
+            {message && (
+              <div className={`message ${message.type}`}>
+                {message.text}
+              </div>
+            )}
 
       {/* Marge bénéficiaire globale */}
       <div className="pricing-section">
@@ -287,24 +349,20 @@ const AdminPricingPage = () => {
                   <span>Pas d'engagement</span>
                 </div>
               </div>
-              
-              <div className="offer-stats">
-                <div className="stat">
-                  <span className="stat-label">Prix/crédit</span>
-                  <span className="stat-value">{calculatePricePerCredit(offer.price, offer.credits)}€</span>
-                </div>
-              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Bouton de sauvegarde */}
-      <div className="pricing-actions">
-        <button onClick={handleSavePricing} className="btn-save">
-          <i className="fas fa-save"></i>
-          Sauvegarder la Configuration
-        </button>
+            {/* Bouton de sauvegarde */}
+            <div className="pricing-actions">
+              <button onClick={handleSavePricing} className="btn-save">
+                <i className="fas fa-save"></i>
+                Sauvegarder la Configuration
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

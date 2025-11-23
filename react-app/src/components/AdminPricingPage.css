@@ -265,10 +265,10 @@
   padding: 0.75rem;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: bold;
   width: 100%;
-  max-width: 120px; /* Réduire la largeur des champs prix et crédits */
+  max-width: 140px; /* Largeur augmentée pour mieux voir les crédits */
 }
 
 .offer-benefits {
@@ -286,7 +286,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8c5a 100%);
   color: white;
   border-radius: 20px;
   font-weight: bold;
@@ -344,7 +344,7 @@
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8c5a 100%);
   color: white;
   padding: 1rem 3rem;
   border: none;
@@ -360,7 +360,7 @@
 
 .btn-save:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(255, 107, 44, 0.4);
 }
 
 .btn-save:active {
