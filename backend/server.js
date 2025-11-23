@@ -65,9 +65,14 @@ const corsOptions = {
       'https://www.assistant-redacteur.fr'
     ];
 
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+    // Autoriser tous les sous-domaines d'Amplify
+    const isAmplifyDomain = origin && origin.includes('.amplifyapp.com');
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development' || isAmplifyDomain) {
       callback(null, true);
     } else {
+      // Logger l'origine refusée pour debug
+      console.log('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
