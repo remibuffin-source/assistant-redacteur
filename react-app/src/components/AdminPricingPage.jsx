@@ -77,26 +77,26 @@ const AdminPricingPage = () => {
 
   const handleSavePricing = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/pricing/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceCosts,
+          profitMargin,
+          rechargeOffers
+        })
+      });
       
-      // TODO: Sauvegarder sur le backend
-      // const response = await fetch(`${API_BASE_URL}/admin/pricing-config`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({
-      //     serviceCosts,
-      //     profitMargin,
-      //     rechargeOffers
-      //   })
-      // });
+      if (!response.ok) {
+        throw new Error('Erreur lors de la sauvegarde');
+      }
       
-      setMessage({ type: 'success', text: '✅ Configuration sauvegardée' });
+      setMessage({ type: 'success', text: '✅ Configuration sauvegardée avec succès' });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
+      console.error('Erreur:', error);
       setMessage({ type: 'error', text: '❌ Erreur lors de la sauvegarde' });
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 

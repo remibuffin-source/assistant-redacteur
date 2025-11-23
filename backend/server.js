@@ -117,6 +117,7 @@ app.use('/api/storage', storageRoutes);
 app.use('/api/admin', apiKeysRoutes);
 app.use('/api/admin', testApiKeysRoutes);
 app.use('/api/credits', creditsRoutes);
+app.use('/api/pricing', require('./routes/pricing'));
 
 // Middleware pour les routes non trouvées
 app.use(notFound);

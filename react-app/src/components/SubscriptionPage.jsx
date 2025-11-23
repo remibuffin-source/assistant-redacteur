@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getSubscriptionText } from '../i18n/subscriptionTranslations';
@@ -19,13 +19,33 @@ const SubscriptionPage = () => {
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getSubscriptionText(userLanguage, path);
 
-  // Offres de recharge avec remises
-  const rechargeOffers = [
+  // Offres de recharge chargées depuis l'API
+  const [rechargeOffers, setRechargeOffers] = useState([
     { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
     { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
     { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
     { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
-  ];
+  ]);
+
+  // Charger les offres depuis l'API au montage
+  useEffect(() => {
+    const loadOffers = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+        const response = await fetch(`${API_BASE_URL}/pricing/offers`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.offers && data.offers.length > 0) {
+            setRechargeOffers(data.offers);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement offres:', error);
+        // Garder les offres par défaut en cas d'erreur
+      }
+    };
+    loadOffers();
+  }, []);
 
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount);
@@ -201,7 +221,14 @@ const SubscriptionPage = () => {
                     </div>
                   </div>
                   
-                  <button className="select-offer-btn">
+                  <button 
+                    className="select-offer-btn"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Empêcher la propagation au div parent
+                      handleAmountSelect(offer.price);
+                      setTimeout(() => handleRecharge(), 100); // Déclencher le paiement
+                    }}
+                  >
                     <i className="fas fa-shopping-cart"></i>
                     Choisir
                   </button>
