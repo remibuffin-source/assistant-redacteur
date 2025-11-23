@@ -52,34 +52,15 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Configuration CORS
+// Configuration CORS - Temporairement permissive pour debug
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Autoriser les requêtes sans origin (comme les apps mobiles ou Postman)
-    if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      'http://localhost:3003',
-      'http://127.0.0.1:3003',
-      'https://assistant-redacteur.fr',
-      'https://www.assistant-redacteur.fr'
-    ];
-
-    // Autoriser tous les sous-domaines d'Amplify
-    const isAmplifyDomain = origin && origin.includes('.amplifyapp.com');
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development' || isAmplifyDomain) {
-      callback(null, true);
-    } else {
-      // Logger l'origine refusée pour debug
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*', // TEMPORAIRE: Autoriser toutes les origines pour identifier le problème
+  credentials: false, // Doit être false si origin est '*'
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
