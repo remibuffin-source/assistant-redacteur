@@ -1,0 +1,51 @@
+EnvironmentConfigurationMetadata:
+  Description: Configuration created from the EB CLI using "eb config save".
+  DateCreated: '1763897528000'
+  DateModified: '1763897528000'
+Platform:
+  PlatformArn: arn:aws:elasticbeanstalk:eu-west-1::platform/Docker running on 64bit
+    Amazon Linux 2023/4.7.2
+OptionSettings:
+  aws:elasticbeanstalk:command:
+    BatchSize: '30'
+    BatchSizeType: Percentage
+  aws:elb:policies:
+    ConnectionDrainingEnabled: true
+  aws:ec2:instances:
+    InstanceTypes: t3.small
+  aws:elasticbeanstalk:application:environment:
+    SMTP_PORT: '587'
+    SMTP_PASS: ylma gxrm hnto fpqx
+    SMTP_HOST: smtp.gmail.com
+    SMTP_USER: assistant.studioducapbrun@gmail.com
+    MONGODB_URI: mongodb+srv://assistant-redactionnel:y0AwaDUE4vNGB8QX@assistant-redacteur.v6ru523.mongodb.net/assistant-redacteur?retryWrites=true&w=majority&appName=assistant-redacteur
+    ENCRYPTION_KEY: vWxIei1hCpFJaHwkYKjuyzP9dD8N0Lm7
+  aws:elb:loadbalancer:
+    CrossZone: true
+  aws:elasticbeanstalk:environment:
+    ServiceRole: arn:aws:iam::559050224539:role/aws-elasticbeanstalk-service-role
+    LoadBalancerType: application
+  aws:elasticbeanstalk:healthreporting:system:
+    ConfigDocument:
+      Version: 1
+      CloudWatchMetrics:
+        Instance: {}
+        Environment: {}
+      Rules:
+        Environment:
+          ELB:
+            ELBRequests4xx:
+              Enabled: true
+          Application:
+            ApplicationRequests4xx:
+              Enabled: true
+    SystemType: enhanced
+  aws:autoscaling:launchconfiguration:
+    IamInstanceProfile: aws-elasticbeanstalk-ec2-role
+  aws:autoscaling:updatepolicy:rollingupdate:
+    RollingUpdateType: Health
+    RollingUpdateEnabled: true
+EnvironmentTier:
+  Type: Standard
+  Name: WebServer
+AWSConfigurationTemplateVersion: 1.1.0.0

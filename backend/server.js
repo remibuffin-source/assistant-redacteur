@@ -18,6 +18,7 @@ import emailRoutes from './routes/email.js';
 import storageRoutes from './routes/storage.js';
 import apiKeysRoutes from './routes/apiKeys.js';
 import testApiKeysRoutes from './routes/testApiKeys.js';
+import creditsRoutes from './routes/credits.js';
 
 // Import des middlewares
 import { errorHandler } from './middleware/errorHandler.js';
@@ -115,6 +116,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/admin', apiKeysRoutes);
 app.use('/api/admin', testApiKeysRoutes);
+app.use('/api/credits', creditsRoutes);
 
 // Middleware pour les routes non trouvées
 app.use(notFound);

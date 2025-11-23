@@ -124,6 +124,49 @@ const userSchema = new mongoose.Schema({
     }
   },
 
+  // Système de crédits
+  credits: {
+    balance: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    totalPurchased: {
+      type: Number,
+      default: 0
+    },
+    totalUsed: {
+      type: Number,
+      default: 0
+    },
+    lastRecharge: {
+      type: Date,
+      default: null
+    },
+    history: [{
+      type: {
+        type: String,
+        enum: ['purchase', 'usage', 'refund', 'bonus', 'adjustment'],
+        required: true
+      },
+      amount: {
+        type: Number,
+        required: true
+      },
+      balanceAfter: {
+        type: Number,
+        required: true
+      },
+      description: String,
+      relatedTo: String, // ID de l'article, transaction, etc.
+      metadata: mongoose.Schema.Types.Mixed,
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }]
+  },
+
   // Statistiques utilisateur
   stats: {
     totalPublications: {
@@ -220,6 +263,53 @@ userSchema.methods.generateRefreshToken = function() {
       expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d'
     }
   );
+};
+
+// Méthode pour ajouter des crédits
+userSchema.methods.addCredits = function(amount, type = 'purchase', description = '', metadata = {}) {
+  this.credits.balance += amount;
+  this.credits.totalPurchased += amount;
+  
+  if (type === 'purchase') {
+    this.credits.lastRecharge = new Date();
+  }
+  
+  this.credits.history.push({
+    type,
+    amount,
+    balanceAfter: this.credits.balance,
+    description,
+    metadata,
+    createdAt: new Date()
+  });
+  
+  return this.credits.balance;
+};
+
+// Méthode pour déduire des crédits
+userSchema.methods.deductCredits = function(amount, description = '', relatedTo = null) {
+  if (this.credits.balance < amount) {
+    throw new Error('Insufficient credits');
+  }
+  
+  this.credits.balance -= amount;
+  this.credits.totalUsed += amount;
+  
+  this.credits.history.push({
+    type: 'usage',
+    amount: -amount,
+    balanceAfter: this.credits.balance,
+    description,
+    relatedTo,
+    createdAt: new Date()
+  });
+  
+  return this.credits.balance;
+};
+
+// Méthode pour vérifier si l'utilisateur a assez de crédits
+userSchema.methods.hasEnoughCredits = function(amount) {
+  return this.credits.balance >= amount;
 };
 
 // Méthode pour mettre à jour les statistiques
