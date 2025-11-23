@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getConfigApiText } from '../i18n/configApiTranslations';
 import MenuBar from './MenuBar';
-import AdminCreditsPage from './AdminCreditsPage';
 import './ConfigAPIPage.css';
-import './AdminTabs.css';
 
 // Hook pour la sauvegarde locale des clés API IA uniquement
 const useAdminApiKeys = () => {
@@ -59,9 +57,6 @@ const AdminPage = () => {
   // Récupérer la langue depuis les données utilisateur
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getConfigApiText(userLanguage, path);
-  
-  // État pour gérer les onglets
-  const [activeTab, setActiveTab] = useState('api-keys'); // 'api-keys' ou 'credits'
   
   const [testing, setTesting] = useState({});
   const [testResults, setTestResults] = useState({});
@@ -275,45 +270,26 @@ const AdminPage = () => {
             <div className="header-content">
               <h1>
                 <i className="fas fa-user-shield" style={{marginRight: '10px', color: '#ff6b35'}}></i>
-                Administration
+                Configuration IA - Administrateur
               </h1>
-              <p>Gestion des clés API et des crédits (accès administrateur uniquement)</p>
-              
-              {/* Onglets */}
-              <div className="admin-tabs" style={{marginTop: '20px'}}>
-                <button 
-                  className={`tab-button ${activeTab === 'api-keys' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('api-keys')}
-                >
-                  <i className="fas fa-key"></i> Clés API
-                </button>
-                <button 
-                  className={`tab-button ${activeTab === 'credits' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('credits')}
-                >
-                  <i className="fas fa-coins"></i> Gestion Crédits
-                </button>
-              </div>
+              <p>Configuration des clés API des intelligences artificielles (accès administrateur uniquement)</p>
             </div>
           </div>
 
-          {/* Contenu selon l'onglet actif */}
-          {activeTab === 'api-keys' ? (
-            <>
-              <div className="api-content">
-                <div className="ai-services-grid">
-                  {aiServices.map(renderServiceCard)}
-                </div>
-              </div>
+          <div className="api-content">
+            <div className="ai-services-grid">
+              {aiServices.map(renderServiceCard)}
+            </div>
+          </div>
 
-              {saveResult && (
-                <div className={`save-notification ${saveResult.success ? 'success' : 'error'}`}>
-                  <i className={`fas fa-${saveResult.success ? 'check-circle' : 'exclamation-triangle'}`}></i>
-                  {saveResult.message}
-                </div>
-              )}
+          {saveResult && (
+            <div className={`save-notification ${saveResult.success ? 'success' : 'error'}`}>
+              <i className={`fas fa-${saveResult.success ? 'check-circle' : 'exclamation-triangle'}`}></i>
+              {saveResult.message}
+            </div>
+          )}
 
-              <div className="config-footer">
+          <div className="config-footer">
             <div className="security-notice">
               <i className="fas fa-shield-alt"></i>
               <div>
@@ -383,11 +359,7 @@ const AdminPage = () => {
                 Gestion des Comptes
               </button>
             </div>
-              </div>
-            </>
-          ) : (
-            <AdminCreditsPage />
-          )}
+          </div>
         </div>
       </div>
     </div>

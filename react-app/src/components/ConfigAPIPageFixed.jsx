@@ -354,6 +354,20 @@ const ConfigAPIPageFixed = () => {
                 <i className="fas fa-cogs"></i>
                 <span>Prompt Builder</span>
               </button>
+              <button 
+                className={`admin-nav-btn ${activeTab === 'pricing' ? 'active' : ''}`}
+                onClick={() => navigate('/admin-pricing')}
+              >
+                <i className="fas fa-dollar-sign"></i>
+                <span>Tarification</span>
+              </button>
+              <button 
+                className={`admin-nav-btn ${activeTab === 'credits' ? 'active' : ''}`}
+                onClick={() => navigate('/admin-credits')}
+              >
+                <i className="fas fa-coins"></i>
+                <span>Gestion Crédits</span>
+              </button>
             </nav>
           </div>
 

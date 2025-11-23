@@ -20,6 +20,8 @@ import { AuthProvider } from './components/AuthProvider'
 import EmailVerification from './components/EmailVerification'
 import ResetPassword from './components/ResetPassword'
 import AdminPage from './components/AdminPage'
+import AdminPricingPage from './components/AdminPricingPage'
+import AdminCreditsPage from './components/AdminCreditsPage'
 
 // Composant wrapper pour forcer le re-render lors des changements de route
 function AppRoutes() {
@@ -86,6 +88,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute requireAdmin={true}>
               <AdminPage key={getRouteKey('/admin')} />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-pricing" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminPricingPage key={getRouteKey('/admin-pricing')} />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-credits" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminCreditsPage key={getRouteKey('/admin-credits')} />
             </ProtectedRoute>
           } 
         />
