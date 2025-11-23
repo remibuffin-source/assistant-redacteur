@@ -153,7 +153,8 @@ class AuthService {
 
       // Stocker l'utilisateur en localStorage pour la session
       localStorage.setItem('currentUser', JSON.stringify(data.user));
-      localStorage.setItem('authToken', data.user.userId); // Utiliser userId comme token
+      localStorage.setItem('token', data.user.userId); // Utiliser userId comme token (harmonisé avec apiService)
+      localStorage.setItem('authToken', data.user.userId); // Garder pour compatibilité
 
       return {
         success: true,

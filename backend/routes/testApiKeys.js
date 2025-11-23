@@ -9,19 +9,17 @@ const router = express.Router();
  * @desc    Tester une clé API de manière sécurisée côté serveur
  * @access  Private (Admin)
  */
-router.post('/test-api-key', async (req, res) => {
+router.post('/test-api-key', authenticateToken, async (req, res) => {
   try {
     const { service, apiKey } = req.body;
 
-    // TEMPORAIRE: Authentification désactivée pour debug
-    // TODO: Réactiver l'authentification une fois Lambda corrigé
     // Vérifier que l'utilisateur est admin
-    // if (req.user.role !== 'admin' && req.user.email !== 'admin@studioducapbrun.com') {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: 'Accès refusé. Droits administrateur requis.'
-    //   });
-    // }
+    if (req.user.role !== 'admin' && req.user.email !== 'admin@studioducapbrun.com') {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé. Droits administrateur requis.'
+      });
+    }
 
     if (!service || !apiKey) {
       return res.status(400).json({
