@@ -19,6 +19,7 @@ import storageRoutes from './routes/storage.js';
 import apiKeysRoutes from './routes/apiKeys.js';
 import testApiKeysRoutes from './routes/testApiKeys.js';
 import creditsRoutes from './routes/credits.js';
+import pricingRoutes from './routes/pricing.js';
 
 // Import des middlewares
 import { errorHandler } from './middleware/errorHandler.js';
@@ -117,7 +118,7 @@ app.use('/api/storage', storageRoutes);
 app.use('/api/admin', apiKeysRoutes);
 app.use('/api/admin', testApiKeysRoutes);
 app.use('/api/credits', creditsRoutes);
-app.use('/api/pricing', require('./routes/pricing'));
+app.use('/api/pricing', pricingRoutes);
 
 // Middleware pour les routes non trouvées
 app.use(notFound);

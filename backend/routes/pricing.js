@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import pool from '../config/postgres.js';
+
 const router = express.Router();
-const pool = require('../config/database');
 
 /**
  * GET /api/pricing/config

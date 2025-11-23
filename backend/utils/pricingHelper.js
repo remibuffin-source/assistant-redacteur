@@ -1,4 +1,4 @@
-const pool = require('../config/database');
+import pool from '../config/postgres.js';
 
 /**
  * Récupère la marge bénéficiaire depuis la DB
@@ -56,7 +56,7 @@ async function calculateSellingPrice(baseCost, profitMargin = null) {
   return baseCost * (1 + profitMargin / 100);
 }
 
-module.exports = {
+export {
   getProfitMargin,
   getServiceCosts,
   calculateSellingPrice
