@@ -40,11 +40,13 @@ const AdminPricingPage = () => {
   const [profitMargin, setProfitMargin] = useState(30); // 30% de marge par défaut
   
   // Offres de recharge (prix de vente)
+  // Calcul : 50€ = 10% remise, 100€ = 20% remise, 200€ = 30% remise, 400€ = 40% remise
+  // Prix de base : 0.05€ par crédit (20€ = 400 crédits)
   const [rechargeOffers, setRechargeOffers] = useState([
-    { id: 'starter', name: 'Starter', price: 20, credits: 400, popular: false },
-    { id: 'pro', name: 'Pro', price: 50, credits: 1100, popular: true },
-    { id: 'business', name: 'Business', price: 100, credits: 2500, popular: false },
-    { id: 'enterprise', name: 'Enterprise', price: 200, credits: 5500, popular: false }
+    { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
+    { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
+    { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
+    { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
   ]);
 
   useEffect(() => {
@@ -258,6 +260,32 @@ const AdminPricingPage = () => {
                     step="10"
                   />
                 </label>
+                <label>
+                  Remise (%)
+                  <input 
+                    type="number"
+                    value={offer.discount || 0}
+                    onChange={(e) => updateRechargeOffer(offer.id, 'discount', e.target.value)}
+                    min="0"
+                    max="100"
+                    step="5"
+                  />
+                </label>
+              </div>
+              
+              <div className="offer-benefits">
+                <div className="benefit-badge">
+                  <i className="fas fa-tag"></i>
+                  <span>{offer.discount}% de remise</span>
+                </div>
+                <div className="benefit-item">
+                  <i className="fas fa-infinity"></i>
+                  <span>Crédits sans expiration</span>
+                </div>
+                <div className="benefit-item">
+                  <i className="fas fa-check-circle"></i>
+                  <span>Pas d'engagement</span>
+                </div>
               </div>
               
               <div className="offer-stats">
@@ -265,12 +293,6 @@ const AdminPricingPage = () => {
                   <span className="stat-label">Prix/crédit</span>
                   <span className="stat-value">{calculatePricePerCredit(offer.price, offer.credits)}€</span>
                 </div>
-                {calculateSavings(offer) > 0 && (
-                  <div className="stat savings">
-                    <span className="stat-label">Économie</span>
-                    <span className="stat-value">{calculateSavings(offer)}%</span>
-                  </div>
-                )}
               </div>
             </div>
           ))}
