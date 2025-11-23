@@ -120,11 +120,19 @@ export async function syncApiKeys(apiKeys, userId) {
  * Récupère le token d'authentification
  */
 function getAuthToken() {
+  // Essayer d'abord le token direct (authService)
+  const directToken = localStorage.getItem('token');
+  if (directToken) {
+    return directToken;
+  }
+  
+  // Sinon essayer auth_user (ancien format)
   const authData = localStorage.getItem('auth_user');
   if (authData) {
     const { token } = JSON.parse(authData);
     return token;
   }
+  
   return null;
 }
 
