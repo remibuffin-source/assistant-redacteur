@@ -114,11 +114,37 @@ const AdminPricingPage = () => {
   };
 
   const updateRechargeOffer = (id, field, value) => {
-    setRechargeOffers(prev => prev.map(offer => 
-      offer.id === id 
-        ? { ...offer, [field]: field === 'popular' ? value : (parseFloat(value) || offer[field]) }
-        : offer
-    ));
+    const CREDIT_BASE_PRICE = 0.05; // 1 crédit = 0.05€ sans remise
+    
+    setRechargeOffers(prev => prev.map(offer => {
+      if (offer.id !== id) return offer;
+      
+      // Si c'est le champ "popular", pas de calcul
+      if (field === 'popular') {
+        return { ...offer, popular: value };
+      }
+      
+      const numValue = parseFloat(value) || 0;
+      
+      // Calculer automatiquement selon le champ modifié
+      if (field === 'price') {
+        // Prix modifié → Recalculer les crédits
+        const newCredits = Math.round(numValue / (CREDIT_BASE_PRICE * (1 - offer.discount / 100)));
+        return { ...offer, price: numValue, credits: newCredits };
+      } 
+      else if (field === 'credits') {
+        // Crédits modifiés → Recalculer le prix
+        const newPrice = Math.round(numValue * CREDIT_BASE_PRICE * (1 - offer.discount / 100));
+        return { ...offer, credits: numValue, price: newPrice };
+      } 
+      else if (field === 'discount') {
+        // Remise modifiée → Recalculer les crédits (garder le prix fixe)
+        const newCredits = Math.round(offer.price / (CREDIT_BASE_PRICE * (1 - numValue / 100)));
+        return { ...offer, discount: numValue, credits: newCredits };
+      }
+      
+      return offer;
+    }));
   };
 
   const calculatePricePerCredit = (price, credits) => {
@@ -280,6 +306,14 @@ const AdminPricingPage = () => {
       <div className="pricing-section">
         <h2>💳 Offres de Recharge</h2>
         <p className="section-description">Configurez les packs de crédits proposés aux clients</p>
+        <div className="pricing-info-box">
+          <i className="fas fa-info-circle"></i>
+          <div>
+            <strong>Calcul automatique :</strong> Modifiez le Prix, les Crédits ou la Remise, les autres valeurs s'ajustent automatiquement.
+            <br />
+            <strong>Base :</strong> 1 crédit = 0,05€ (sans remise)
+          </div>
+        </div>
         
         <div className="recharge-offers-grid">
           {rechargeOffers.map(offer => (
