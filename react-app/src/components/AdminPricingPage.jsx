@@ -61,7 +61,10 @@ const AdminPricingPage = () => {
   const loadPricingConfig = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/pricing/config`);
+      const url = `${API_BASE_URL}/pricing/config`;
+      console.log('🔍 URL appelée:', url);
+      console.log('🔍 API_BASE_URL:', API_BASE_URL);
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         console.log('📥 Configuration chargée:', data);
