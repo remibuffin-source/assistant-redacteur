@@ -1,5 +1,5 @@
 import express from 'express';
-import pool from '../config/postgres.js';
+import PricingConfig from '../models/PricingConfig.js';
 
 const router = express.Router();
 
@@ -9,31 +9,13 @@ const router = express.Router();
  */
 router.get('/config', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM pricing_config ORDER BY id DESC LIMIT 1'
-    );
+    const config = await PricingConfig.getConfig();
     
-    if (result.rows.length === 0) {
-      // Configuration par défaut
-      return res.json({
-        profitMargin: 30,
-        serviceCosts: {},
-        rechargeOffers: [
-          { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
-          { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
-          { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
-          { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
-        ],
-        monthlySubscriptionAmount: 0
-      });
-    }
-
-    const config = result.rows[0];
     res.json({
-      profitMargin: parseFloat(config.profit_margin),
-      serviceCosts: config.service_costs,
-      rechargeOffers: config.recharge_offers,
-      monthlySubscriptionAmount: parseFloat(config.monthly_subscription_amount || 0)
+      profitMargin: config.profitMargin,
+      serviceCosts: Object.fromEntries(config.serviceCosts),
+      rechargeOffers: config.rechargeOffers,
+      monthlySubscriptionAmount: config.monthlySubscriptionAmount
     });
   } catch (error) {
     console.error('Erreur lors de la récupération de la config:', error);
@@ -47,23 +29,10 @@ router.get('/config', async (req, res) => {
  */
 router.get('/offers', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT recharge_offers FROM pricing_config ORDER BY id DESC LIMIT 1'
-    );
+    const config = await PricingConfig.getConfig();
     
-    if (result.rows.length === 0) {
-      return res.json({
-        offers: [
-          { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
-          { id: 'comfort', name: 'Confort', price: 100, credits: 2500, discount: 20, popular: true },
-          { id: 'pro', name: 'Professionnel', price: 200, credits: 5714, discount: 30, popular: false },
-          { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
-        ]
-      });
-    }
-
     res.json({
-      offers: result.rows[0].recharge_offers || []
+      offers: config.rechargeOffers || []
     });
   } catch (error) {
     console.error('Erreur lors de la récupération des offres:', error);
@@ -79,42 +48,12 @@ router.post('/save', async (req, res) => {
   try {
     const { profitMargin, serviceCosts, rechargeOffers, monthlySubscriptionAmount } = req.body;
 
-    // Vérifier si une config existe
-    const existingConfig = await pool.query(
-      'SELECT id FROM pricing_config ORDER BY id DESC LIMIT 1'
-    );
-
-    if (existingConfig.rows.length > 0) {
-      // Mettre à jour la config existante
-      await pool.query(
-        `UPDATE pricing_config 
-         SET profit_margin = $1, 
-             service_costs = $2, 
-             recharge_offers = $3,
-             monthly_subscription_amount = $4,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = $5`,
-        [
-          profitMargin,
-          JSON.stringify(serviceCosts),
-          JSON.stringify(rechargeOffers),
-          monthlySubscriptionAmount || 0,
-          existingConfig.rows[0].id
-        ]
-      );
-    } else {
-      // Créer une nouvelle config
-      await pool.query(
-        `INSERT INTO pricing_config (profit_margin, service_costs, recharge_offers, monthly_subscription_amount)
-         VALUES ($1, $2, $3, $4)`,
-        [
-          profitMargin,
-          JSON.stringify(serviceCosts),
-          JSON.stringify(rechargeOffers),
-          monthlySubscriptionAmount || 0
-        ]
-      );
-    }
+    await PricingConfig.updateConfig({
+      profitMargin,
+      serviceCosts,
+      rechargeOffers,
+      monthlySubscriptionAmount: monthlySubscriptionAmount || 0
+    });
 
     res.json({ 
       success: true, 
@@ -126,4 +65,4 @@ router.post('/save', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
