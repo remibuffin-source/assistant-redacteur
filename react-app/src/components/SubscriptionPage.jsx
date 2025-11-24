@@ -31,7 +31,8 @@ const SubscriptionPage = () => {
   useEffect(() => {
     const loadOffers = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+        // TEMPORAIRE : Hardcoder l'URL car Vite ne charge pas la variable d'environnement
+        const API_BASE_URL = 'http://localhost:4000/api';
         const response = await fetch(`${API_BASE_URL}/pricing/offers`);
         if (response.ok) {
           const data = await response.json();

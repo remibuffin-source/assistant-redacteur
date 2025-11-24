@@ -5,7 +5,8 @@ import MenuBar from './MenuBar';
 import './AdminPricingPage.css';
 import './ConfigAPIPage.css'; // Pour utiliser les styles de la sidebar admin
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+// TEMPORAIRE : Hardcoder l'URL car Vite ne charge pas la variable d'environnement
+const API_BASE_URL = 'http://localhost:4000/api';
 
 /**
  * Page Admin pour configurer :
