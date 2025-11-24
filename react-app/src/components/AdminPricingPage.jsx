@@ -5,8 +5,13 @@ import MenuBar from './MenuBar';
 import './AdminPricingPage.css';
 import './ConfigAPIPage.css'; // Pour utiliser les styles de la sidebar admin
 
-// TEMPORAIRE : Hardcoder l'URL car Vite ne charge pas la variable d'environnement
-const API_BASE_URL = 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+
+// Debug : Afficher les variables d'environnement au chargement
+console.log('🔍 Variables d\'environnement Vite:');
+console.log('  - VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('  - API_BASE_URL utilisée:', API_BASE_URL);
+console.log('  - Toutes les vars VITE:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
 
 /**
  * Page Admin pour configurer :
