@@ -333,4 +333,71 @@ router.get('/admin/stats', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/credits/admin/monthly-sales
+ * @desc    Obtenir les ventes de crédits par mois (admin)
+ * @access  Private (Admin)
+ */
+router.get('/admin/monthly-sales', authenticateToken, async (req, res) => {
+  try {
+    // Vérifier les permissions admin
+    const isAdmin = req.user.role === 'admin' || req.user.id === 'admin-001';
+    
+    if (!isAdmin) {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+    
+    // Agrégation des ventes par mois (12 derniers mois)
+    const monthlySales = await User.aggregate([
+      {
+        $unwind: '$credits.history'
+      },
+      {
+        $match: {
+          'credits.history.type': { $in: ['purchase', 'recharge'] },
+          'credits.history.date': {
+            $gte: new Date(new Date().setMonth(new Date().getMonth() - 12))
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$credits.history.date' },
+            month: { $month: '$credits.history.date' }
+          },
+          totalCredits: { $sum: '$credits.history.amount' },
+          totalTransactions: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+    
+    // Formater les données pour le graphique
+    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const formattedData = monthlySales.map(item => ({
+      month: `${monthNames[item._id.month - 1]} ${item._id.year}`,
+      credits: item.totalCredits,
+      transactions: item.totalTransactions
+    }));
+    
+    res.json({
+      success: true,
+      sales: formattedData
+    });
+  } catch (error) {
+    logger.error('Error fetching monthly sales:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error fetching monthly sales',
+      message: error.message
+    });
+  }
+});
+
 export default router;

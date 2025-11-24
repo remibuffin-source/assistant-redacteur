@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getConfigApiText } from '../i18n/configApiTranslations';
 import { useAuth } from '../hooks/useAuth';
@@ -93,8 +93,9 @@ const ConfigAPIPageFixed = () => {
   // Récupérer la langue depuis les données utilisateur
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getConfigApiText(userLanguage, path);
+  const [searchParams] = useSearchParams();
   
-  const [activeTab, setActiveTab] = useState('api-keys');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'api-keys');
   const [testing, setTesting] = useState({});
   const [testResults, setTestResults] = useState({});
   const { apiKeys, updateApiKey, saveToVPS } = useApiKeys();
@@ -365,8 +366,8 @@ const ConfigAPIPageFixed = () => {
                 className={`admin-nav-btn ${activeTab === 'credits' ? 'active' : ''}`}
                 onClick={() => navigate('/admin-credits')}
               >
-                <i className="fas fa-coins"></i>
-                <span>Gestion Crédits</span>
+                <i className="fas fa-credit-card"></i>
+                <span>Souscriptions</span>
               </button>
             </nav>
           </div>

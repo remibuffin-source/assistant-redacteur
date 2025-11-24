@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import MenuBar from './MenuBar';
 import './AdminCreditsPage.css';
+import './ConfigAPIPage.css'; // Pour utiliser les styles de la sidebar admin
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
 const AdminCreditsPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [monthlySales, setMonthlySales] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [addCreditsAmount, setAddCreditsAmount] = useState('');
   const [addCreditsDescription, setAddCreditsDescription] = useState('');
@@ -45,6 +50,18 @@ const AdminCreditsPage = () => {
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
         setUsers(usersData.users);
+      }
+      
+      // Récupérer les ventes mensuelles
+      const salesResponse = await fetch(`${API_BASE_URL}/credits/admin/monthly-sales`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (salesResponse.ok) {
+        const salesData = await salesResponse.json();
+        setMonthlySales(salesData.sales || []);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -104,8 +121,51 @@ const AdminCreditsPage = () => {
   }
 
   return (
-    <div className="admin-credits-page">
-      <h1>🎯 Gestion des Crédits</h1>
+    <div className="page-container">
+      <MenuBar onHelp={() => {}} />
+      <div className="page-content" style={{paddingTop: '20px', paddingLeft: '5px', paddingRight: '30px'}}>
+        <div className="admin-page-layout">
+        {/* Sidebar de navigation */}
+        <div className="admin-sidebar">
+          <div className="admin-sidebar-header">
+            <h2>⚙️ Administration</h2>
+          </div>
+          <nav className="admin-nav">
+            <button 
+              className="admin-nav-btn"
+              onClick={() => navigate('/config-api')}
+            >
+              <i className="fas fa-key"></i>
+              <span>Clés API</span>
+            </button>
+            <button 
+              className="admin-nav-btn"
+              onClick={() => navigate('/config-api?tab=prompt-builder')}
+            >
+              <i className="fas fa-cogs"></i>
+              <span>Prompt Builder</span>
+            </button>
+            <button 
+              className="admin-nav-btn"
+              onClick={() => navigate('/admin-pricing')}
+            >
+              <i className="fas fa-dollar-sign"></i>
+              <span>Tarification</span>
+            </button>
+            <button 
+              className="admin-nav-btn active"
+              onClick={() => navigate('/admin-credits')}
+            >
+              <i className="fas fa-credit-card"></i>
+              <span>Souscriptions</span>
+            </button>
+          </nav>
+        </div>
+
+        {/* Contenu principal */}
+        <div className="admin-main-content">
+          <div className="admin-credits-page">
+            <h1>💳 Souscriptions</h1>
       
       {message && (
         <div className={`message ${message.type}`}>
@@ -161,53 +221,68 @@ const AdminCreditsPage = () => {
         </div>
       )}
 
-      {/* Ajouter des crédits */}
-      <div className="add-credits-section">
-        <h2>➕ Ajouter des Crédits</h2>
-        <form onSubmit={handleAddCredits}>
-          <div className="form-group">
-            <label>Utilisateur</label>
-            <select 
-              value={selectedUser?.email || ''} 
-              onChange={(e) => setSelectedUser(users.find(u => u.email === e.target.value))}
-              required
-            >
-              <option value="">Sélectionner un utilisateur</option>
-              {users.map(u => (
-                <option key={u.id} value={u.email}>
-                  {u.email} - {u.balance.toFixed(0)} crédits
-                </option>
-              ))}
-            </select>
+      {/* Ventes mensuelles */}
+      <div className="monthly-sales-section">
+        <h2>📈 Ventes de Crédits par Mois</h2>
+        {monthlySales.length > 0 && (
+          <div className="sales-summary">
+            <div className="summary-card">
+              <i className="fas fa-coins"></i>
+              <div>
+                <span className="summary-label">Total Crédits Vendus</span>
+                <span className="summary-value">
+                  {monthlySales.reduce((sum, sale) => sum + sale.credits, 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <i className="fas fa-shopping-cart"></i>
+              <div>
+                <span className="summary-label">Total Transactions</span>
+                <span className="summary-value">
+                  {monthlySales.reduce((sum, sale) => sum + sale.transactions, 0)}
+                </span>
+              </div>
+            </div>
+            <div className="summary-card">
+              <i className="fas fa-chart-line"></i>
+              <div>
+                <span className="summary-label">Mois Actifs</span>
+                <span className="summary-value">{monthlySales.length}</span>
+              </div>
+            </div>
           </div>
-          
-          <div className="form-group">
-            <label>Montant (crédits)</label>
-            <input 
-              type="number" 
-              value={addCreditsAmount}
-              onChange={(e) => setAddCreditsAmount(e.target.value)}
-              placeholder="400"
-              min="1"
-              step="1"
-              required
-            />
+        )}
+        {monthlySales.length > 0 ? (
+          <div className="sales-chart">
+            <div className="chart-bars">
+              {monthlySales.map((sale, index) => {
+                const maxCredits = Math.max(...monthlySales.map(s => s.credits));
+                const heightPercent = (sale.credits / maxCredits) * 100;
+                
+                return (
+                  <div key={index} className="chart-bar-container">
+                    <div className="chart-bar-wrapper">
+                      <div 
+                        className="chart-bar" 
+                        style={{ height: `${heightPercent}%` }}
+                        title={`${sale.credits.toLocaleString()} crédits`}
+                      >
+                        <span className="bar-value">{sale.credits.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <div className="chart-label">{sale.month}</div>
+                    <div className="chart-sublabel">{sale.transactions} ventes</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          
-          <div className="form-group">
-            <label>Description (optionnel)</label>
-            <input 
-              type="text" 
-              value={addCreditsDescription}
-              onChange={(e) => setAddCreditsDescription(e.target.value)}
-              placeholder="Bonus de bienvenue, compensation, etc."
-            />
+        ) : (
+          <div className="sales-chart">
+            <p>Aucune vente enregistrée pour le moment</p>
           </div>
-          
-          <button type="submit" className="btn-primary">
-            Ajouter les crédits
-          </button>
-        </form>
+        )}
       </div>
 
       {/* Liste des utilisateurs */}
@@ -219,6 +294,7 @@ const AdminCreditsPage = () => {
               <tr>
                 <th>Email</th>
                 <th>Nom</th>
+                <th>Langue</th>
                 <th>Solde</th>
                 <th>Total Acheté</th>
                 <th>Total Utilisé</th>
@@ -231,6 +307,11 @@ const AdminCreditsPage = () => {
                 <tr key={u.id}>
                   <td>{u.email}</td>
                   <td>{u.name}</td>
+                  <td>
+                    <span className="language-badge">
+                      {u.language ? u.language.toUpperCase() : 'FR'}
+                    </span>
+                  </td>
                   <td className="credit-balance">{u.balance.toFixed(0)}</td>
                   <td>{u.totalPurchased.toFixed(0)}</td>
                   <td>{u.totalUsed.toFixed(0)}</td>
@@ -240,6 +321,10 @@ const AdminCreditsPage = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+          </div>
+        </div>
         </div>
       </div>
     </div>

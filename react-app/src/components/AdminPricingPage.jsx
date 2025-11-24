@@ -23,6 +23,7 @@ const AdminPricingPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [activeTab, setActiveTab] = useState('pricing');
   
@@ -93,6 +94,7 @@ const AdminPricingPage = () => {
   };
 
   const handleSavePricing = async () => {
+    setSaving(true);
     try {
       const payload = {
         serviceCosts,
@@ -119,12 +121,14 @@ const AdminPricingPage = () => {
       const result = await response.json();
       console.log('✅ Sauvegarde réussie:', result);
       
-      setMessage({ type: 'success', text: '✅ Configuration sauvegardée avec succès' });
+      setMessage({ type: 'success', text: '✅ Configuration sauvegardée avec succès !' });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('❌ Erreur complète:', error);
       setMessage({ type: 'error', text: `❌ Erreur: ${error.message}` });
       setTimeout(() => setMessage(null), 5000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -229,7 +233,7 @@ const AdminPricingPage = () => {
               </button>
               <button 
                 className={`admin-nav-btn ${activeTab === 'prompt-builder' ? 'active' : ''}`}
-                onClick={() => navigate('/admin-prompt-builder')}
+                onClick={() => navigate('/config-api?tab=prompt-builder')}
               >
                 <i className="fas fa-cogs"></i>
                 <span>Prompt Builder</span>
@@ -245,8 +249,8 @@ const AdminPricingPage = () => {
                 className={`admin-nav-btn ${activeTab === 'credits' ? 'active' : ''}`}
                 onClick={() => navigate('/admin-credits')}
               >
-                <i className="fas fa-coins"></i>
-                <span>Gestion Crédits</span>
+                <i className="fas fa-credit-card"></i>
+                <span>Souscriptions</span>
               </button>
             </nav>
           </div>
@@ -428,9 +432,22 @@ const AdminPricingPage = () => {
 
             {/* Bouton de sauvegarde */}
             <div className="pricing-actions">
-              <button onClick={handleSavePricing} className="btn-save">
-                <i className="fas fa-save"></i>
-                Sauvegarder la Configuration
+              <button 
+                onClick={handleSavePricing} 
+                className="btn-save"
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Sauvegarde en cours...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save"></i>
+                    Sauvegarder la Configuration
+                  </>
+                )}
               </button>
             </div>
           </div>
