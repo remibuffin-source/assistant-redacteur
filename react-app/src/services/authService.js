@@ -1,7 +1,9 @@
 import { emailService } from './emailService';
 
-// URL de la Lambda d'authentification
-const AUTH_API_URL = 'https://2si3fl5hx65k7i6pwaia352zya0izdxg.lambda-url.eu-west-1.on.aws';
+// URL de l'API d'authentification
+const AUTH_API_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/auth`
+  : 'http://localhost:4000/auth';
 
 // Service d'authentification avec DynamoDB
 class AuthService {
@@ -78,11 +80,16 @@ class AuthService {
     }
 
     try {
-      // Appeler la Lambda pour créer l'utilisateur
-      const response = await fetch(`${AUTH_API_URL}/signup`, {
+      // Appeler l'API pour créer l'utilisateur
+      const response = await fetch(`${AUTH_API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, firstName, lastName })
+        credentials: 'include',
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name: `${firstName} ${lastName}` 
+        })
       });
 
       const data = await response.json();
@@ -91,19 +98,12 @@ class AuthService {
         throw new Error(data.error || 'Erreur lors de l\'inscription');
       }
 
-      // Envoyer l'email de vérification
-      await emailService.sendVerificationEmail(
-        email,
-        data.verificationCode,
-        `${firstName} ${lastName}`
-      );
-
+      // L'email de vérification est envoyé automatiquement par le backend
       return {
         success: true,
-        message: 'Compte créé avec succès. Vérifiez votre email pour confirmer votre inscription.',
+        message: data.message || 'Compte créé avec succès. Vérifiez votre email pour confirmer votre inscription.',
         userId: data.userId,
-        requiresVerification: true,
-        verificationCode: data.verificationCode
+        requiresVerification: true
       };
     } catch (error) {
       console.error('Erreur register:', error);
@@ -114,7 +114,7 @@ class AuthService {
   // Vérifier le code de confirmation par email
   async verifyEmailCode(email, code) {
     try {
-      const response = await fetch(`${AUTH_API_URL}/verify-code`, {
+      const response = await fetch(`${AUTH_API_URL}/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code })
@@ -126,10 +126,7 @@ class AuthService {
         throw new Error(data.error || 'Code incorrect');
       }
 
-      return {
-        success: true,
-        message: 'Email vérifié avec succès. Vous pouvez maintenant vous connecter.'
-      };
+      return data;
     } catch (error) {
       console.error('Erreur verifyEmailCode:', error);
       throw error;
@@ -142,6 +139,7 @@ class AuthService {
       const response = await fetch(`${AUTH_API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       });
 
@@ -151,15 +149,15 @@ class AuthService {
         throw new Error(data.error || 'Erreur de connexion');
       }
 
-      // Stocker l'utilisateur en localStorage pour la session
+      // Stocker l'utilisateur et le token en localStorage
       localStorage.setItem('currentUser', JSON.stringify(data.user));
-      localStorage.setItem('token', data.user.userId); // Utiliser userId comme token (harmonisé avec apiService)
-      localStorage.setItem('authToken', data.user.userId); // Garder pour compatibilité
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('authToken', data.token);
 
       return {
         success: true,
         user: data.user,
-        token: data.user.userId
+        token: data.token
       };
     } catch (error) {
       console.error('Erreur login:', error);
@@ -204,18 +202,8 @@ class AuthService {
         throw new Error(data.error || 'Erreur lors de la réinitialisation');
       }
 
-      // Envoyer l'email de réinitialisation
-      await emailService.sendPasswordResetEmail(
-        email,
-        data.resetCode,
-        email.split('@')[0]
-      );
-
-      return {
-        success: true,
-        message: 'Un code de réinitialisation a été envoyé à votre adresse email.',
-        code: data.resetCode
-      };
+      // Le backend envoie déjà l'email, pas besoin de le faire côté frontend
+      return data;
     } catch (error) {
       console.error('Erreur requestPasswordReset:', error);
       throw error;
@@ -239,7 +227,7 @@ class AuthService {
       const response = await fetch(`${AUTH_API_URL}/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code, newPassword })
+        body: JSON.stringify({ token: code, password: newPassword })
       });
 
       const data = await response.json();
@@ -248,10 +236,7 @@ class AuthService {
         throw new Error(data.error || 'Erreur lors de la réinitialisation');
       }
 
-      return {
-        success: true,
-        message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.'
-      };
+      return data;
     } catch (error) {
       console.error('Erreur resetPassword:', error);
       throw error;

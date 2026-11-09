@@ -1,38 +1,26 @@
 /**
  * Générateur de factures automatique
  * Crée une facture à chaque recharge
+ * Sauvegarde en double : localStorage (client) + serveur (base de données)
+ *
+ * IMPORTANT : Le numéro de facture est désormais attribué CÔTÉ SERVEUR
+ * (compteur partagé entre tous les appareils). Le client ne fait que
+ * récupérer le numéro attribué dans la réponse de l'API.
  */
 
-/**
- * Génère un numéro de facture unique
- * Format: FACT-YYYYMMDD-XXXX
- */
-export const generateInvoiceNumber = () => {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  
-  // Récupérer le compteur du jour
-  const counterKey = `invoice_counter_${year}${month}${day}`;
-  let counter = parseInt(localStorage.getItem(counterKey) || '0', 10) + 1;
-  localStorage.setItem(counterKey, counter.toString());
-  
-  const counterStr = String(counter).padStart(4, '0');
-  return `FACT-${year}${month}${day}-${counterStr}`;
-};
+import { saveInvoiceToServer } from '../services/invoiceApi.js';
 
 /**
  * Crée une nouvelle facture et la sauvegarde
  * @param {number} amount - Montant de la recharge (HT)
  * @param {string} userEmail - Email de l'utilisateur
  * @param {string} paymentMethod - Méthode de paiement (ex: 'stripe', 'card')
- * @returns {object} - La facture créée
+ * @returns {Promise<object>} - La facture créée (avec numéro attribué par le serveur)
  */
-export const createInvoice = (amount, userEmail, paymentMethod = 'stripe') => {
+export const createInvoice = async (amount, userEmail, paymentMethod = 'stripe') => {
   const invoice = {
     id: `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    number: generateInvoiceNumber(),
+    number: null, // Attribué par le serveur
     date: new Date().toISOString(),
     amount: parseFloat(amount),
     amountTTC: parseFloat(amount), // TVA 0% - Association exonérée
@@ -51,20 +39,37 @@ export const createInvoice = (amount, userEmail, paymentMethod = 'stripe') => {
     ]
   };
 
-  // Sauvegarder la facture
-  saveInvoice(invoice);
-  
+  // Sauvegarder la facture (le numéro est attribué par le serveur)
+  await saveInvoice(invoice);
+
   return invoice;
 };
 
 /**
- * Sauvegarde une facture dans localStorage
- * @param {object} invoice - La facture à sauvegarder
+ * Sauvegarde une facture sur le serveur, puis en localStorage
+ * @param {object} invoice - La facture à sauvegarder (son `number` sera mis à jour)
+ * @param {string} htmlContent - Le contenu HTML de la facture (optionnel)
+ * @returns {Promise<object>} - Le résultat de l'API
  */
-export const saveInvoice = (invoice) => {
+export const saveInvoice = async (invoice, htmlContent = null) => {
+  // 1. Sauvegarder sur le serveur (base de données) — le numéro y est attribué
+  let result = { success: false };
+  try {
+    result = await saveInvoiceToServer(invoice, htmlContent);
+    // Récupérer le numéro attribué par le serveur et mettre à jour la facture
+    if (result.success && result.invoice && result.invoice.invoiceNumber) {
+      invoice.number = result.invoice.invoiceNumber;
+    }
+  } catch (error) {
+    console.warn('⚠️ Erreur sauvegarde facture sur le serveur:', error);
+  }
+
+  // 2. Sauvegarder en local (localStorage) — avec le numéro serveur si disponible
   const invoices = getInvoices();
   invoices.unshift(invoice); // Ajouter au début (plus récent en premier)
   localStorage.setItem('user_invoices', JSON.stringify(invoices));
+
+  return result;
 };
 
 /**

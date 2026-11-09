@@ -8,6 +8,8 @@ import { createInvoice } from '../utils/invoiceGenerator';
 import './SubscriptionPage.css';
 import './SubscriptionPageOffers.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+
 const SubscriptionPage = () => {
   const { autoSaveData, updateAutoSave } = useAssistantAutoSave();
   const navigate = useNavigate();
@@ -19,6 +21,10 @@ const SubscriptionPage = () => {
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getSubscriptionText(userLanguage, path);
 
+  // Solde réel depuis la BDD
+  const [realBalance, setRealBalance] = useState(null);
+  const [loadingBalance, setLoadingBalance] = useState(true);
+
   // Offres de recharge chargées depuis l'API
   const [rechargeOffers, setRechargeOffers] = useState([
     { id: 'basic', name: 'Essentiel', price: 50, credits: 1111, discount: 10, popular: false },
@@ -27,11 +33,35 @@ const SubscriptionPage = () => {
     { id: 'expert', name: 'Expert', price: 400, credits: 13333, discount: 40, popular: false }
   ]);
 
+  // Charger le solde réel depuis la BDD
+  useEffect(() => {
+    const loadBalance = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoadingBalance(false);
+          return;
+        }
+        const response = await fetch(`${API_BASE_URL}/credits/balance`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRealBalance(data.credits?.balance ?? data.balance ?? 0);
+        }
+      } catch (error) {
+        console.error('Erreur chargement solde:', error);
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+    loadBalance();
+  }, []);
+
   // Charger les offres depuis l'API au montage
   useEffect(() => {
     const loadOffers = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
         const response = await fetch(`${API_BASE_URL}/pricing/offers`);
         if (response.ok) {
           const data = await response.json();
@@ -41,7 +71,6 @@ const SubscriptionPage = () => {
         }
       } catch (error) {
         console.error('Erreur chargement offres:', error);
-        // Garder les offres par défaut en cas d'erreur
       }
     };
     loadOffers();
@@ -72,12 +101,12 @@ const SubscriptionPage = () => {
     setShowStripePayment(true);
   };
 
-  const handlePaymentSuccess = (amount) => {
+  const handlePaymentSuccess = async (amount) => {
     const newBalance = (autoSaveData.balance || 0) + parseFloat(amount);
     updateAutoSave({ ...autoSaveData, balance: newBalance });
     
-    // Générer automatiquement une facture
-    const invoice = createInvoice(
+    // Générer automatiquement une facture (numéro attribué par le serveur)
+    const invoice = await createInvoice(
       parseFloat(amount),
       autoSaveData.email || 'contact@studioducapbrun.com',
       'stripe'
@@ -87,7 +116,7 @@ const SubscriptionPage = () => {
     
     setIsProcessing(false);
     setShowStripePayment(false);
-    alert(t('recharge.successMessage').replace('{amount}', amount) + `\n\nFacture ${invoice.number} générée avec succès !`);
+    alert(t('recharge.successMessage').replace('{amount}', amount) + `\n\nFacture ${invoice.number || ''} générée avec succès !`);
     navigate('/');
   };
 
@@ -98,7 +127,8 @@ const SubscriptionPage = () => {
     alert(t('recharge.errorMessage'));
   };
 
-  const currentBalance = autoSaveData.balance || 0;
+  // Utiliser le solde réel de la BDD, sinon fallback sur localStorage
+  const currentBalance = realBalance !== null ? realBalance : (autoSaveData.balance || 0);
 
   return (
     <div className="page-container">
@@ -108,27 +138,46 @@ const SubscriptionPage = () => {
 
           {/* Solde actuel intégré dans le message de liberté */}
           <div className="freedom-message-top">
-            <div className="freedom-icon">
-              <i className="fas fa-dove"></i>
-            </div>
-            <div className="freedom-content">
-              <h4>{t('freedom.title')}</h4>
-              <p>
-                {t('freedom.description')}
-              </p>
-              <ul>
-                <li><i className="fas fa-check"></i> {t('freedom.noCommitment')}</li>
-                <li><i className="fas fa-check"></i> {t('freedom.noExpiration')}</li>
-                <li><i className="fas fa-check"></i> {t('freedom.yourPace')}</li>
-                <li><i className="fas fa-check"></i> {t('freedom.totalControl')}</li>
-              </ul>
-            </div>
-            {/* Solde actuel en bas à droite */}
-            <div className="balance-card-integrated">
-              <i className="fas fa-wallet"></i>
-              <div className="balance-info">
-                <h3>{t('balance.title')}</h3>
-                <span className="balance-amount">{currentBalance.toFixed(2)}{t('balance.currency')}</span>
+            <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+              <div className="freedom-icon">
+                <i className="fas fa-dove"></i>
+              </div>
+              <div className="freedom-content" style={{ flex: 1 }}>
+                <h4>{t('freedom.title')}</h4>
+                <p>
+                  {t('freedom.description')}
+                </p>
+                <ul>
+                  <li><i className="fas fa-check"></i> {t('freedom.noCommitment')}</li>
+                  <li><i className="fas fa-check"></i> {t('freedom.noExpiration')}</li>
+                  <li><i className="fas fa-check"></i> {t('freedom.yourPace')}</li>
+                  <li><i className="fas fa-check"></i> {t('freedom.totalControl')}</li>
+                </ul>
+              </div>
+              {/* Solde actuel à droite, encadré orange */}
+              <div style={{ 
+                background: 'linear-gradient(135deg, #ff6b2c 0%, #ff8f5a 100%)',
+                borderRadius: '12px',
+                padding: '20px 30px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '180px',
+                boxShadow: '0 4px 15px rgba(255, 107, 44, 0.3)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <i className="fas fa-wallet" style={{ color: 'white', fontSize: '1rem' }}></i>
+                  <span style={{ color: 'white', fontSize: '0.9rem', fontWeight: '500' }}>{t('balance.title')}</span>
+                </div>
+                <span style={{ 
+                  color: 'white', 
+                  fontSize: '1.8rem', 
+                  fontWeight: '700',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}>
+                  {loadingBalance ? '...' : currentBalance.toFixed(2)}{t('balance.currency')}
+                </span>
               </div>
             </div>
           </div>

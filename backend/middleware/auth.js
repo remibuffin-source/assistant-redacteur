@@ -5,8 +5,8 @@ export function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    // Pour les routes qui tolèrent l'anonyme (ex: Dropbox token), on laisse passer sans user
-    req.user = { id: 'anonymous' };
+    // Pour les routes qui tolèrent l'anonyme (ex: mode gratuit), on laisse passer sans user
+    req.user = null; // Pas d'utilisateur connecté
     return next();
   }
 
@@ -15,7 +15,7 @@ export function authenticateToken(req, res, next) {
     // Token Lambda : créer un objet user basique
     req.user = {
       id: token,
-      email: token === 'admin-001' ? 'admin@studioducapbrun.com' : 'user@example.com',
+      email: token === 'admin-001' ? 'admin@assistant-redacteur.fr' : 'user@example.com',
       role: token.startsWith('admin-') ? 'admin' : 'user'
     };
     return next();
@@ -29,11 +29,17 @@ export function authenticateToken(req, res, next) {
     return next();
   }
 
-  jwt.verify(token, secret, (err, user) => {
+  jwt.verify(token, secret, (err, decoded) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid token' });
     }
-    req.user = user;
+    // Normaliser l'objet user : userId → id
+    req.user = {
+      id: decoded.userId || decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+      ...decoded
+    };
     next();
   });
 }

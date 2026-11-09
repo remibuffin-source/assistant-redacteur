@@ -4,66 +4,76 @@ import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getConfigApiText } from '../i18n/configApiTranslations';
 import { useAuth } from '../hooks/useAuth';
 import { validateApiKey } from '../services/apiKeyValidator';
-import { saveApiKeysToServer, loadApiKeysLocally, syncApiKeys } from '../services/apiKeyStorage';
+import { saveApiKeysToServer, loadApiKeysLocally, syncApiKeys, loadApiKeysFromServer } from '../services/apiKeyStorage';
 import MenuBar from './MenuBar';
 import './ConfigAPIPage.css';
 
-// Hook pour la sauvegarde locale des clés API
-const useApiKeys = () => {
+const DEFAULT_API_KEYS = {
+  openai: '',
+  'openai-mini': '',
+  anthropic: '',
+  'anthropic-haiku': '',
+  'gemini-3-pro': '',
+  'gemini-2.5-flash': '',
+  deepseek: '',
+  'deepseek-v3': '',
+  grok: '',
+  'grok-2': '',
+  deepl: '',
+  kimi: '',
+  mistral: '',
+  whisper: '',
+  'gpt-vision': '',
+  'fal-tti': '',
+  'fal-edit': '',
+  'wan': '',
+  'veo': '',
+  elevenlabs: '',
+  twitter: '',
+  facebook: '',
+  linkedin: '',
+  instagram: '',
+  blog: '',
+  website: ''
+};
+
+// Hook pour la sauvegarde locale des clés API avec chargement depuis le serveur
+const useApiKeys = (userId) => {
   const [apiKeys, setApiKeys] = useState(() => {
     try {
       const stored = localStorage.getItem('config_api_keys');
-      return stored ? JSON.parse(stored) : {
-        openai: '',
-        'openai-mini': '',
-        anthropic: '',
-        'anthropic-haiku': '',
-        gemini: '',
-        'gemini-pro': '',
-        deepseek: '',
-        'deepseek-v3': '',
-        grok: '',
-        'grok-2': '',
-        deepl: '',
-        kimi: '',
-        mistral: '',
-        whisper: '',
-        'gpt-vision': '',
-        elevenlabs: '',
-        twitter: '',
-        facebook: '',
-        linkedin: '',
-        instagram: '',
-        blog: '',
-        website: ''
-      };
+      return stored ? JSON.parse(stored) : { ...DEFAULT_API_KEYS };
     } catch {
-      return {
-        openai: '',
-        'openai-mini': '',
-        anthropic: '',
-        'anthropic-haiku': '',
-        gemini: '',
-        'gemini-pro': '',
-        deepseek: '',
-        'deepseek-v3': '',
-        grok: '',
-        'grok-2': '',
-        deepl: '',
-        kimi: '',
-        mistral: '',
-        whisper: '',
-        'gpt-vision': '',
-        elevenlabs: '',
-        twitter: '',
-        facebook: '',
-        linkedin: '',
-        instagram: '',
-        blog: '',
-        website: ''
-      };
+      return { ...DEFAULT_API_KEYS };
     }
   });
+  const [loading, setLoading] = useState(false);
+
+  // Charger les clés depuis le serveur au montage
+  useEffect(() => {
+    const loadFromServer = async () => {
+      if (!userId) return;
+      
+      setLoading(true);
+      try {
+        const serverKeys = await loadApiKeysFromServer(userId);
+        if (serverKeys && Object.keys(serverKeys).length > 0) {
+          // Fusionner avec les clés par défaut pour avoir toutes les clés
+          const mergedKeys = { ...DEFAULT_API_KEYS, ...serverKeys };
+          setApiKeys(mergedKeys);
+          // Sauvegarder aussi en local pour le cache
+          localStorage.setItem('config_api_keys', JSON.stringify(mergedKeys));
+          console.log('✅ Clés API chargées depuis le serveur:', Object.keys(serverKeys).filter(k => serverKeys[k]).length, 'clés');
+        }
+      } catch (error) {
+        console.error('❌ Erreur chargement clés serveur:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadFromServer();
+  }, [userId]);
 
   const updateApiKey = (service, key) => {
     const newKeys = { ...apiKeys, [service]: key };
@@ -73,16 +83,36 @@ const useApiKeys = () => {
 
   const saveToVPS = async (apiKeys) => {
     try {
-      // Simulation d'envoi vers VPS - à remplacer par vraie API
-      console.log('Sauvegarde VPS simulée:', apiKeys);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true, message: 'Clés sauvegardées sur le serveur' };
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Non authentifié');
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/admin/api-keys`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ apiKeys })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Erreur lors de la sauvegarde');
+      }
+      
+      return { success: true, message: result.message || 'Clés sauvegardées sur le serveur' };
     } catch (error) {
-      return { success: false, message: 'Erreur lors de la sauvegarde serveur' };
+      console.error('Erreur sauvegarde VPS:', error);
+      return { success: false, message: error.message || 'Erreur lors de la sauvegarde serveur' };
     }
   };
 
-  return { apiKeys, updateApiKey, saveToVPS };
+  return { apiKeys, updateApiKey, saveToVPS, loading };
 };
 
 const ConfigAPIPageFixed = () => {
@@ -98,23 +128,29 @@ const ConfigAPIPageFixed = () => {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'api-keys');
   const [testing, setTesting] = useState({});
   const [testResults, setTestResults] = useState({});
-  const { apiKeys, updateApiKey, saveToVPS } = useApiKeys();
+  const { apiKeys, updateApiKey, saveToVPS, loading: loadingKeys } = useApiKeys(user?.id);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState(null);
+  const [falBalance, setFalBalance] = useState({});
 
   // Vérifier si l'utilisateur est admin
   const isAdmin = user?.role === 'admin' || user?.email === 'admin@studioducapbrun.com';
 
   const aiServices = [
-    { id: 'anthropic', name: 'Claude 4.5 Sonnet', description: 'Claude 4.5 Sonnet - Excellence', iconPath: '/icons/claude.ico', docs: 'https://docs.anthropic.com/claude/reference/getting-started-with-the-api' },
+    { id: 'anthropic', name: 'Claude Sonnet 5.5', description: 'Claude Sonnet 5.5 - Rapide et performant', iconPath: '/icons/claude.ico', docs: 'https://docs.anthropic.com/claude/reference/getting-started-with-the-api' },
     { id: 'deepl', name: 'DeepL API', description: 'DeepL - Traduction professionnelle', iconPath: '/icons/Deepl.ico', docs: 'https://www.deepl.com/docs-api' },
     { id: 'deepseek', name: 'DeepSeek Chat', description: 'DeepSeek Chat - IA conversationnelle', iconPath: '/icons/deepseek.ico', docs: 'https://platform.deepseek.com/api-docs/' },
-    { id: 'gemini', name: 'Gemini 2.5 Pro', description: 'Gemini 2.5 Pro - Multimodal avancé', iconPath: '/icons/gemini.ico', docs: 'https://ai.google.dev/gemini-api/docs' },
+    { id: 'gemini-3-pro', name: 'Gemini 3 Pro', description: 'Gemini 3 Pro - Flagship multimodal (OpenRouter)', iconPath: '/icons/gemini-new.ico', docs: 'https://openrouter.ai/google/gemini-3-pro-preview/api' },
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Nano Banana)', description: 'Gemini 2.5 Flash - Génération d\'images (OpenRouter)', iconPath: '/icons/nano-banana.svg', docs: 'https://openrouter.ai/google/gemini-2.5-flash-image/api' },
     { id: 'grok', name: 'Grok', description: 'Grok - xAI', iconPath: '/icons/grok.ico', docs: 'https://docs.x.ai/api' },
     { id: 'kimi', name: 'Kimi (OpenRouter)', description: 'Kimi - LLM via OpenRouter', iconPath: '/icons/kimi2.ico', docs: 'https://openrouter.ai/docs' },
-    { id: 'openai', name: 'GPT-5', description: 'GPT-5 - Modèle le plus puissant d\'OpenAI', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/api-reference' },
+    { id: 'openai', name: 'GPT-5.6', description: 'GPT-5.6 Terra - Modèle équilibré d\'OpenAI', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/api-reference' },
     { id: 'qwen3', name: 'Qwen3', description: 'Qwen3 - IA multimodale avancée', iconPath: '/icons/qwen3.ico', docs: 'https://qwenlm.github.io/' },
-    { id: 'whisper', name: 'Whisper Large V3', description: 'Whisper - Transcription audio', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/guides/speech-to-text' }
+    { id: 'whisper', name: 'Whisper Large V3', description: 'Whisper - Transcription audio', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/guides/speech-to-text' },
+    { id: 'fal-tti', name: 'SeedDream 5.0 TTI', description: 'SeedDream 5.0 Lite - Text-to-Image via Fal.ai', iconPath: '/icons/fal.svg', docs: 'https://fal.ai/models/fal-ai/bytedance/seedream/v5/lite/text-to-image/api' },
+    { id: 'fal-edit', name: 'SeedDream Edit', description: 'SeedDream 5.0 Lite - Édition d\'images via Fal.ai', iconPath: '/icons/fal.svg', docs: 'https://fal.ai/models/fal-ai/bytedance/seedream/v5/lite/edit/api' },
+    { id: 'wan', name: 'WAN 2.6 (Kie.ai)', description: 'WAN 2.6 - Génération vidéo Text/Image/Video-to-Video', iconPath: '/icons/wan.ico', icon: 'fas fa-video', docs: 'https://docs.kie.ai' },
+    { id: 'veo', name: 'Veo 3.1 (Kie.ai)', description: 'Google Veo 3.1 - Génération vidéo haute qualité', iconPath: '/icons/veo 3.ico', icon: 'fas fa-film', docs: 'https://docs.kie.ai/veo3-api/generate-veo-3-video' }
   ];
 
   const networkServices = [
@@ -135,6 +171,37 @@ const ConfigAPIPageFixed = () => {
         delete newResults[service];
         return newResults;
       });
+    }
+  };
+
+  const handleCheckFalBalance = async (service) => {
+    setFalBalance(prev => ({ ...prev, [service]: { loading: true } }));
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/ai/image/fal-balance`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setFalBalance(prev => ({
+          ...prev,
+          [service]: {
+            success: true,
+            message: `Solde Fal.ai : ${result.balance ?? 'inconnu'} ${result.currency || 'USD'}`
+          }
+        }));
+      } else {
+        setFalBalance(prev => ({
+          ...prev,
+          [service]: { success: false, message: result.error || 'Impossible de lire le solde Fal.ai.' }
+        }));
+      }
+    } catch (error) {
+      setFalBalance(prev => ({
+        ...prev,
+        [service]: { success: false, message: `Erreur : ${error.message}` }
+      }));
     }
   };
 
@@ -282,6 +349,27 @@ const ConfigAPIPageFixed = () => {
               )}
             </button>
 
+            {(service.id === 'fal-tti' || service.id === 'fal-edit') && (
+              <button
+                onClick={() => handleCheckFalBalance(service.id)}
+                disabled={!currentKey || falBalance[service.id]?.loading}
+                className="test-btn"
+                title="Vérifier le solde réel du compte Fal.ai"
+              >
+                {falBalance[service.id]?.loading ? (
+                  <>
+                    <div className="loader-small"></div>
+                    Vérification...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-wallet"></i>
+                    Vérifier le solde
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               onClick={() => handleSaveToVPS()}
               disabled={!currentKey || saving}
@@ -306,6 +394,13 @@ const ConfigAPIPageFixed = () => {
             <div className={`test-result error`}>
               <i className="fas fa-exclamation-circle"></i>
               {testResult.message}
+            </div>
+          )}
+
+          {falBalance[service.id] && !falBalance[service.id].loading && (
+            <div className={`test-result ${falBalance[service.id].success ? 'success' : 'error'}`}>
+              <i className={`fas ${falBalance[service.id].success ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+              {falBalance[service.id].message}
             </div>
           )}
         </div>

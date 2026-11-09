@@ -22,10 +22,15 @@ export const useAuth = () => {
 
         if (userData) {
           setUser(userData);
+          // Restaurer le statut admin dans localStorage
+          if (userData.role === 'admin') {
+            localStorage.setItem('isAdmin', 'true');
+          }
         } else {
           // Token invalide ou expiré
           setUser(null);
           setAuthData({ user: null, token: null });
+          localStorage.removeItem('isAdmin');
         }
       }
 
@@ -47,6 +52,13 @@ export const useAuth = () => {
           user: result.user,
           token: result.token
         });
+
+        // Stocker le statut admin dans localStorage
+        if (result.user?.role === 'admin') {
+          localStorage.setItem('isAdmin', 'true');
+        } else {
+          localStorage.removeItem('isAdmin');
+        }
 
         return { success: true, user: result.user };
       } else {
@@ -97,6 +109,7 @@ export const useAuth = () => {
 
     // Nettoyer les données temporaires
     localStorage.removeItem('temp_registration_data');
+    localStorage.removeItem('isAdmin');
 
     setUser(null);
     setAuthData({

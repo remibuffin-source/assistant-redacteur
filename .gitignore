@@ -1,3 +1,6 @@
+# Backups (sauvegardes locales avant modification)
+.backup/
+
 # Dependencies
 node_modules/
 npm-debug.log*

@@ -6,7 +6,10 @@ import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getMenuText } from '../i18n/menuTranslations';
 import { getHelpText } from '../i18n/helpTranslations';
 import { getHomeText } from '../i18n/homeTranslations';
+import { getEditorText } from '../i18n/editorTranslations';
 import StorageManager from '../utils/StorageManager';
+import StorageManagerAPI from '../utils/StorageManagerAPI';
+import { savePresetFiles, loadPresetFiles, deletePresetFiles } from '../utils/referenceImageStore';
 
 const MenuBar = ({ onHelp }) => {
   const { toggleTheme, currentTheme } = useTheme();
@@ -19,6 +22,7 @@ const MenuBar = ({ onHelp }) => {
   const t = (path) => getMenuText(userLanguage, path);
   const h = (path) => getHelpText(userLanguage, path);
   const home = (path) => getHomeText(userLanguage, path);
+  const e = (path) => getEditorText(userLanguage, path);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [menuTimeout, setMenuTimeout] = useState(null);
   const [showSaveChoiceModal, setShowSaveChoiceModal] = useState(false);
@@ -31,6 +35,30 @@ const MenuBar = ({ onHelp }) => {
   const [savedConfigs, setSavedConfigs] = useState([]);
   const [saveType, setSaveType] = useState('config'); // 'config' ou 'model'
   const [loadType, setLoadType] = useState('config'); // 'config' ou 'model'
+  const [isSaving, setIsSaving] = useState(false); // État de sauvegarde
+  const [isLoading, setIsLoading] = useState(false); // État de chargement
+  const [loadingItemId, setLoadingItemId] = useState(null); // ID de l'item en cours de chargement
+  const [selectedItems, setSelectedItems] = useState([]); // Sélection multiple
+  const [editingItem, setEditingItem] = useState(null); // Item en cours de renommage
+  const [editingName, setEditingName] = useState(''); // Nouveau nom
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Menu hamburger mobile
+
+  // Fermer le menu mobile quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobileMenuOpen && !event.target.closest('.menu-container') && !event.target.closest('.hamburger-btn')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isMobileMenuOpen]);
+
+  // Fermer le menu mobile après une action
+  const handleMobileMenuClick = (action) => {
+    setIsMobileMenuOpen(false);
+    handleMenuClick(action);
+  };
 
   const showMenu = () => {
     clearTimeout(menuTimeout);
@@ -80,7 +108,7 @@ const MenuBar = ({ onHelp }) => {
         if (!isAuthenticated) {
           navigate('/login');
         } else {
-          navigate('/network-api');
+          navigate('/social-onboarding');
         }
         break;
       case 'calendar':
@@ -135,18 +163,26 @@ const MenuBar = ({ onHelp }) => {
     setShowSaveModal(true);
   };
 
-  const handleLoadChoice = (type) => {
+  const handleLoadChoice = async (type) => {
     setLoadType(type);
     setShowLoadChoiceModal(false);
-    // Charger la liste appropriée
-    if (type === 'config') {
-      const configs = StorageManager.getSavedConfigs();
-      setSavedConfigs(configs);
-    } else {
-      const models = StorageManager.getSavedModels();
-      setSavedConfigs(models);
+    
+    try {
+      // Charger la liste appropriée
+      if (type === 'config') {
+        // Les configs restent en localStorage
+        const configs = StorageManager.getSavedConfigs();
+        setSavedConfigs(configs);
+      } else {
+        // Les modèles complets viennent de l'API
+        const models = await StorageManagerAPI.getSavedModels();
+        setSavedConfigs(models);
+      }
+      setShowLoadModal(true);
+    } catch (error) {
+      console.error('Erreur chargement:', error);
+      alert('Erreur lors du chargement');
     }
-    setShowLoadModal(true);
   };
 
   const handleSaveConfig = async () => {
@@ -188,37 +224,57 @@ const MenuBar = ({ onHelp }) => {
       }
     };
 
-    // Si c'est un modèle complet, ajouter le contenu ET les résultats
+    // Pièces jointes : toujours sauvegardées (les préréglages doivent restituer
+    // les images de référence avec leurs rôles et leur force)
+    config.attachedFiles = appState.attachedFiles || [];
+
+    // Si c'est un modèle complet, ajouter le contenu et les résultats
     if (saveType === 'model') {
       config.content = appState.content || '';
       config.results = appState.results || [];
     }
 
-    const result = saveType === 'config' 
-      ? await StorageManager.saveInterfaceConfig(presetName, config)
-      : await StorageManager.saveModel(presetName, config);
+    try {
+      const result = saveType === 'config' 
+        ? await StorageManager.saveInterfaceConfig(presetName, config)
+        : await StorageManagerAPI.saveModel(presetName, config);
+      
+      if (result.success) {
+        // Identifiant du préréglage : timestamp pour une config, id BDD pour un modèle
+        const presetId = saveType === 'config' ? result.timestamp : result.data?.id;
+
+        // Conserver les données riches (base64, rôles, force) dans IndexedDB :
+        // les métadonnées serveur ne suffisent pas à restaurer les vignettes
+        if (presetId && config.attachedFiles?.length > 0) {
+          await savePresetFiles(presetId, config.attachedFiles);
+        }
+
+        // Si c'est un modèle complet avec fichiers, les uploader
+        if (saveType === 'model' && config.attachedFiles?.length > 0 && result.data?.id) {
+          for (const fileData of config.attachedFiles) {
+            if (fileData.file) {
+              await StorageManagerAPI.uploadFileToCompleteModel(result.data.id, fileData.file);
+            }
+          }
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Erreur sauvegarde:', error);
+      return { success: false, message: error.message };
+    }
+  };
+
+  const handleSaveConfigWrapper = async () => {
+    setIsSaving(true); // Activer l'état de chargement
+    const result = await handleSaveConfig();
+    setIsSaving(false); // Désactiver l'état de chargement
     
     if (result.success) {
       const successMessage = saveType === 'config' 
-        ? `✅ Configuration "${presetName}" sauvegardée avec succès !\n\n` +
-          `📊 Contenu sauvegardé :\n` +
-          `- Informations du projet : ✓\n` +
-          `- IA sélectionnée : ${config.selectedAI || 'Aucune'}\n` +
-          `- Tâches : ${config.selectedTasks.length}\n` +
-          `- Formats de sortie : ${config.selectedFormats.length}\n` +
-          `- Options avancées : ✓\n` +
-          `- Thème : ${config.theme === 'dark' ? 'Nuit' : 'Jour'}`
-        : `✅ Modèle Complet "${presetName}" sauvegardé avec succès !\n\n` +
-          `📊 TOUT a été sauvegardé :\n` +
-          `- Informations du projet : ✓\n` +
-          `- IA sélectionnée : ${config.selectedAI || 'Aucune'}\n` +
-          `- Tâches : ${config.selectedTasks.length}\n` +
-          `- Formats de sortie : ${config.selectedFormats.length}\n` +
-          `- Options avancées : ✓\n` +
-          `- Contenu zone de collecte : ${config.content ? '✓ (' + config.content.length + ' caractères)' : 'Vide'}\n` +
-          `- Résultats générés : ${config.results.length} vignette(s)\n` +
-          `- Thème : ${config.theme === 'dark' ? 'Nuit' : 'Jour'}\n\n` +
-          `🎯 Vous pourrez tout recharger en 1 clic !`;
+        ? `✅ Configuration "${presetName}" sauvegardée avec succès !`
+        : `✅ Modèle Complet "${presetName}" sauvegardé avec succès !`;
       
       alert(successMessage);
       setShowSaveModal(false);
@@ -229,81 +285,137 @@ const MenuBar = ({ onHelp }) => {
   };
 
   const handleLoadConfig = async (configId) => {
-    const result = loadType === 'config'
-      ? await StorageManager.loadInterfaceConfig(configId)
-      : await StorageManager.loadModel(configId);
+    setIsLoading(true);
+    setLoadingItemId(configId);
     
-    if (result.success) {
-      const config = result.config;
+    try {
+      const result = loadType === 'config'
+        ? await StorageManager.loadInterfaceConfig(configId)
+        : await StorageManagerAPI.loadModel(configId);
       
-      // Utiliser la fonction de chargement exposée par HomeFixed
-      if (window.assistantRedacteurLoadState) {
-        window.assistantRedacteurLoadState({
-          projectData: config.projectData,
-          selectedAI: config.selectedAI,
-          content: config.content || '',
-          selectedTasks: config.selectedTasks || [],
-          selectedFormats: config.selectedFormats || [],
-          advancedOptions: config.advancedOptions || {
-            style: 'professionnel',
-            length: 3,
-            creativity: 3,
-            adaptation: 'web'
-          },
-          results: config.results || []
-        });
+      if (result.success) {
+        const config = result.config;
+
+        // Récupérer les pièces jointes riches depuis IndexedDB (base64 + rôles + force).
+        // Si absentes, se rabattre sur la config du préréglage.
+        const storedPresetFiles = await loadPresetFiles(configId);
+        const attachedFiles = storedPresetFiles.length > 0
+          ? storedPresetFiles
+          : (config.attachedFiles || []);
+
+        // Utiliser la fonction de chargement exposée par HomeFixed
+        if (window.assistantRedacteurLoadState) {
+          window.assistantRedacteurLoadState({
+            projectData: config.projectData,
+            selectedAI: config.selectedAI,
+            content: config.content || '',
+            attachedFiles,
+            selectedTasks: config.selectedTasks || [],
+            selectedFormats: config.selectedFormats || [],
+            advancedOptions: config.advancedOptions || {
+              style: 'professionnel',
+              length: 3,
+              creativity: 3,
+              adaptation: 'web'
+            },
+            results: config.results || []
+          });
+        }
+        
+        // Appliquer le thème si différent
+        if (config.theme && config.theme !== currentTheme) {
+          toggleTheme();
+        }
+        
+        const loadMessage = loadType === 'config'
+          ? `✅ Configuration "${result.name}" chargée avec succès !\n\n` +
+            `📊 Contenu restauré :\n` +
+            `- Informations du projet : ✓\n` +
+            `- IA sélectionnée : ${config.selectedAI || 'Aucune'}\n` +
+            `- Tâches : ${config.selectedTasks?.length || 0}\n` +
+            `- Formats de sortie : ${config.selectedFormats?.length || 0}\n` +
+            `- Options avancées : ✓\n` +
+            `- Thème : ${config.theme === 'dark' ? 'Nuit' : 'Jour'}`
+          : `✅ Modèle Complet "${result.name}" chargé avec succès !\n\n` +
+            `📊 TOUT a été restauré :\n` +
+            `- Informations du projet : ✓\n` +
+            `- IA sélectionnée : ${config.selectedAI || 'Aucune'}\n` +
+            `- Tâches : ${config.selectedTasks?.length || 0}\n` +
+            `- Formats de sortie : ${config.selectedFormats?.length || 0}\n` +
+            `- Options avancées : ✓\n` +
+            `- Contenu zone de collecte : ${config.content ? '✓ (' + config.content.length + ' caractères)' : 'Vide'}\n` +
+            `- Pièces jointes : ${config.attachedFiles?.length || 0} fichier(s)\n` +
+            `- Résultats générés : ${config.results?.length || 0} vignette(s)\n` +
+            `- Thème : ${config.theme === 'dark' ? 'Nuit' : 'Jour'}\n\n` +
+            `🎉 Tous vos posts sont de retour !`;
+        
+        alert(loadMessage);
+        setShowLoadModal(false);
+      } else {
+        alert('❌ ' + result.message);
       }
-      
-      // Appliquer le thème si différent
-      if (config.theme && config.theme !== currentTheme) {
-        toggleTheme();
-      }
-      
-      const loadMessage = loadType === 'config'
-        ? `✅ Configuration "${result.name}" chargée avec succès !\n\n` +
-          `📊 Contenu restauré :\n` +
-          `- Informations du projet : ✓\n` +
-          `- IA sélectionnée : ${config.selectedAI || 'Aucune'}\n` +
-          `- Tâches : ${config.selectedTasks?.length || 0}\n` +
-          `- Formats de sortie : ${config.selectedFormats?.length || 0}\n` +
-          `- Options avancées : ✓\n` +
-          `- Thème : ${config.theme === 'dark' ? 'Nuit' : 'Jour'}`
-        : `✅ Modèle Complet "${result.name}" chargé avec succès !\n\n` +
-          `📊 TOUT a été restauré :\n` +
-          `- Informations du projet : ✓\n` +
-          `- IA sélectionnée : ${config.selectedAI || 'Aucune'}\n` +
-          `- Tâches : ${config.selectedTasks?.length || 0}\n` +
-          `- Formats de sortie : ${config.selectedFormats?.length || 0}\n` +
-          `- Options avancées : ✓\n` +
-          `- Contenu zone de collecte : ${config.content ? '✓ (' + config.content.length + ' caractères)' : 'Vide'}\n` +
-          `- Résultats générés : ${config.results?.length || 0} vignette(s)\n` +
-          `- Thème : ${config.theme === 'dark' ? 'Nuit' : 'Jour'}\n\n` +
-          `🎉 Tous vos posts sont de retour !`;
-      
-      alert(loadMessage);
-      setShowLoadModal(false);
-    } else {
-      alert('❌ ' + result.message);
+    } catch (error) {
+      console.error('Erreur chargement:', error);
+      alert('Erreur lors du chargement');
+    } finally {
+      setIsLoading(false);
+      setLoadingItemId(null);
     }
   };
 
   const handleDeleteConfig = async (configId) => {
     const typeLabel = loadType === 'config' ? 'configuration' : 'modèle';
     if (confirm(`Êtes-vous sûr de vouloir supprimer ce ${typeLabel} ?`)) {
-      const result = loadType === 'config'
-        ? await StorageManager.deleteInterfaceConfig(configId)
-        : await StorageManager.deleteModel(configId);
-      
-      if (result.success) {
-        // Recharger la liste appropriée
-        const configs = loadType === 'config'
-          ? StorageManager.getSavedConfigs()
-          : StorageManager.getSavedModels();
-        setSavedConfigs(configs);
-        alert('✅ ' + result.message);
-      } else {
-        alert('❌ ' + result.message);
+      try {
+        const result = loadType === 'config'
+          ? await StorageManager.deleteInterfaceConfig(configId)
+          : await StorageManagerAPI.deleteModel(configId);
+        
+        if (result.success) {
+          // Recharger la liste appropriée
+          if (loadType === 'config') {
+            const configs = StorageManager.getSavedConfigs();
+            setSavedConfigs(configs);
+          } else {
+            const models = await StorageManagerAPI.getSavedModels();
+            setSavedConfigs(models);
+          }
+          alert('✅ ' + result.message);
+        } else {
+          alert('❌ ' + result.message);
+        }
+      } catch (error) {
+        console.error('Erreur suppression:', error);
+        alert('Erreur lors de la suppression');
       }
+    }
+  };
+
+  const handleRenameConfig = async (configId, newName) => {
+    if (!newName.trim()) {
+      alert('Le nom ne peut pas être vide');
+      return;
+    }
+    try {
+      if (loadType === 'config') {
+        // Renommer en localStorage
+        const configs = StorageManager.getSavedConfigs();
+        const configIndex = configs.findIndex(c => c.timestamp === configId);
+        if (configIndex !== -1) {
+          configs[configIndex].name = newName.trim();
+          localStorage.setItem('assistantRedacteur_savedConfigs', JSON.stringify(configs));
+          setSavedConfigs([...configs]);
+        }
+      } else {
+        // Renommer via API
+        await StorageManagerAPI.renameModel(configId, newName.trim());
+        const models = await StorageManagerAPI.getSavedModels();
+        setSavedConfigs(models);
+      }
+      setEditingItem(null);
+    } catch (error) {
+      console.error('Erreur renommage:', error);
+      alert('Erreur lors du renommage');
     }
   };
 
@@ -397,11 +509,13 @@ const MenuBar = ({ onHelp }) => {
       <div
         className="menu-trigger-area"
         onMouseEnter={showMenu}
+        onClick={showMenu}
+        onTouchStart={showMenu}
       ></div>
 
       {/* Menu amovible */}
       <div
-        className={`menu-container ${isMenuVisible ? 'show' : ''}`}
+        className={`menu-container ${isMenuVisible ? 'show' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}
         onMouseEnter={keepMenuOpen}
         onMouseLeave={hideMenuDelayed}
       >
@@ -410,7 +524,20 @@ const MenuBar = ({ onHelp }) => {
             <img src="/Studio du Cap Brun.png" alt="Studio du Cap Brun" />
             <h1 className="main-title" onClick={() => navigate('/')} style={{cursor: 'pointer'}}>{home('appTitle')}</h1>
           </div>
-          <div className="menu-buttons">
+          
+          {/* Bouton hamburger pour mobile */}
+          <button 
+            className="hamburger-btn"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Menu"
+          >
+            <span className={`hamburger-line ${isMobileMenuOpen ? 'open' : ''}`}></span>
+            <span className={`hamburger-line ${isMobileMenuOpen ? 'open' : ''}`}></span>
+            <span className={`hamburger-line ${isMobileMenuOpen ? 'open' : ''}`}></span>
+          </button>
+          
+          {/* Boutons desktop (cachés sur mobile) */}
+          <div className="menu-buttons menu-buttons-desktop">
             <button className="menu-btn" onClick={() => handleMenuClick('open')}>
               <i className="fas fa-folder-open"></i>
               <span>{t('buttons.open')}</span>
@@ -512,19 +639,133 @@ const MenuBar = ({ onHelp }) => {
                 </div>
               )}
             </div>
-            
             <button className="help-btn" onClick={() => setShowHelpModal(true)}>?</button>
           </div>
         </div>
+        
+        {/* Menu mobile déroulant */}
+        {isMobileMenuOpen && (
+          <div className="mobile-menu-dropdown">
+            <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('open')}>
+              <i className="fas fa-folder-open"></i>
+              <span>{t('buttons.open')}</span>
+            </button>
+            <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('save')}>
+              <i className="fas fa-save"></i>
+              <span>{t('buttons.save')}</span>
+            </button>
+            <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('analyze')}>
+              <i className="fas fa-chart-bar"></i>
+              <span>{t('buttons.analyze')}</span>
+            </button>
+            
+            {isAuthenticated ? (
+              <>
+                <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('account')}>
+                  <i className="fas fa-user"></i>
+                  <span>{t('buttons.account')}</span>
+                </button>
+                <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('network')}>
+                  <i className="fas fa-share-alt"></i>
+                  <span>{t('buttons.network')}</span>
+                </button>
+                <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('calendar')}>
+                  <i className="fas fa-calendar-alt"></i>
+                  <span>{t('buttons.calendar')}</span>
+                </button>
+                <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('editor')}>
+                  <i className="fas fa-edit"></i>
+                  <span>{t('buttons.editor')}</span>
+                </button>
+                <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('subscription')}>
+                  <i className="fas fa-crown"></i>
+                  <span>{t('buttons.subscription')}</span>
+                </button>
+                {(user?.role === 'admin' || user?.email === 'admin@studioducapbrun.com') && (
+                  <button className="mobile-menu-item" onClick={() => handleMobileMenuClick('config')}>
+                    <i className="fas fa-shield-alt"></i>
+                    <span>Admin</span>
+                  </button>
+                )}
+                <button className="mobile-menu-item logout" onClick={() => handleMobileMenuClick('logout')}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>{t('buttons.logout')}</span>
+                </button>
+              </>
+            ) : (
+              <button className="mobile-menu-item login" onClick={() => handleMobileMenuClick('login')}>
+                <i className="fas fa-sign-in-alt"></i>
+                <span>{t('buttons.login')}</span>
+              </button>
+            )}
+            
+            <div className="mobile-menu-footer">
+              {/* Thème avec dropdown */}
+              <div className="mobile-dropdown-container">
+                <button className="mobile-menu-icon-btn" onClick={(e) => {
+                  e.stopPropagation();
+                  const dropdown = e.currentTarget.nextElementSibling;
+                  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }}>
+                  <i className={`fas fa-${currentTheme === 'dark' ? 'moon' : 'sun'}`}></i>
+                </button>
+                <div className="mobile-dropdown-menu" style={{display: 'none'}}>
+                  <button onClick={() => { 
+                    if (currentTheme === 'light') toggleTheme(); 
+                    setIsMobileMenuOpen(false); 
+                  }}>
+                    <i className="fas fa-moon"></i> Nuit
+                  </button>
+                  <button onClick={() => { 
+                    if (currentTheme === 'dark') toggleTheme(); 
+                    setIsMobileMenuOpen(false); 
+                  }}>
+                    <i className="fas fa-sun"></i> Jour
+                  </button>
+                </div>
+              </div>
+              
+              {/* Langue avec dropdown */}
+              <div className="mobile-dropdown-container">
+                <button className="mobile-menu-icon-btn" onClick={(e) => {
+                  e.stopPropagation();
+                  const dropdown = e.currentTarget.nextElementSibling;
+                  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                }}>
+                  <i className="fas fa-globe"></i>
+                  <span>{userLanguage.toUpperCase()}</span>
+                </button>
+                <div className="mobile-dropdown-menu" style={{display: 'none'}}>
+                  <button onClick={() => { changeLanguage('fr'); setIsMobileMenuOpen(false); }}>
+                    <span className="flag">🇫🇷</span> Français
+                  </button>
+                  <button onClick={() => { changeLanguage('en'); setIsMobileMenuOpen(false); }}>
+                    <span className="flag">🇬🇧</span> English
+                  </button>
+                  <button onClick={() => { changeLanguage('es'); setIsMobileMenuOpen(false); }}>
+                    <span className="flag">🇪🇸</span> Español
+                  </button>
+                  <button onClick={() => { changeLanguage('de'); setIsMobileMenuOpen(false); }}>
+                    <span className="flag">🇩🇪</span> Deutsch
+                  </button>
+                </div>
+              </div>
+              
+              <button className="mobile-menu-icon-btn" onClick={() => { setIsMobileMenuOpen(false); setShowHelpModal(true); }}>
+                <span>?</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modale de choix - Enregistrer */}
       {showSaveChoiceModal && (
         <div className="modal-overlay" onClick={() => setShowSaveChoiceModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Que souhaitez-vous enregistrer ?</h3>
+            <h3>{t('modals.saveChoice.title')}</h3>
             <p style={{fontSize: '0.9rem', color: '#666', marginBottom: '20px'}}>
-              Choisissez le type de sauvegarde
+              {t('modals.saveChoice.subtitle')}
             </p>
             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
               <button 
@@ -550,9 +791,9 @@ const MenuBar = ({ onHelp }) => {
                 }}
               >
                 <i className="fas fa-cog" style={{marginRight: '10px'}}></i>
-                Configuration
+                {t('modals.saveChoice.config')}
                 <div style={{fontSize: '0.85rem', fontWeight: '400', marginTop: '5px', opacity: '0.9'}}>
-                  Réglages uniquement (sans contenu)
+                  {t('modals.saveChoice.configDesc')}
                 </div>
               </button>
               <button 
@@ -578,14 +819,14 @@ const MenuBar = ({ onHelp }) => {
                 }}
               >
                 <i className="fas fa-save" style={{marginRight: '10px'}}></i>
-                Modèle Complet
+                {t('modals.saveChoice.completeModel')}
                 <div style={{fontSize: '0.85rem', fontWeight: '400', marginTop: '5px', opacity: '0.9'}}>
-                  Réglages + contenu complet
+                  {t('modals.saveChoice.completeModelDesc')}
                 </div>
               </button>
             </div>
             <div className="modal-buttons" style={{marginTop: '20px'}}>
-              <button onClick={() => setShowSaveChoiceModal(false)}>Annuler</button>
+              <button onClick={() => setShowSaveChoiceModal(false)}>{t('modals.saveChoice.cancel')}</button>
             </div>
           </div>
         </div>
@@ -595,9 +836,9 @@ const MenuBar = ({ onHelp }) => {
       {showLoadChoiceModal && (
         <div className="modal-overlay" onClick={() => setShowLoadChoiceModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Que souhaitez-vous ouvrir ?</h3>
+            <h3>{t('modals.loadChoice.title')}</h3>
             <p style={{fontSize: '0.9rem', color: '#666', marginBottom: '20px'}}>
-              Choisissez le type de fichier à charger
+              {t('modals.loadChoice.subtitle')}
             </p>
             <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
               <button 
@@ -623,9 +864,9 @@ const MenuBar = ({ onHelp }) => {
                 }}
               >
                 <i className="fas fa-cog" style={{marginRight: '10px'}}></i>
-                Configuration
+                {t('modals.loadChoice.config')}
                 <div style={{fontSize: '0.85rem', fontWeight: '400', marginTop: '5px', opacity: '0.9'}}>
-                  Charger un préréglage
+                  {t('modals.loadChoice.configDesc')}
                 </div>
               </button>
               <button 
@@ -651,14 +892,45 @@ const MenuBar = ({ onHelp }) => {
                 }}
               >
                 <i className="fas fa-folder-open" style={{marginRight: '10px'}}></i>
-                Modèle Complet
+                {t('modals.loadChoice.completeModel')}
                 <div style={{fontSize: '0.85rem', fontWeight: '400', marginTop: '5px', opacity: '0.9'}}>
-                  Charger modèle avec contenu
+                  {t('modals.loadChoice.completeModelDesc')}
+                </div>
+              </button>
+              <button 
+                onClick={() => {
+                  setShowLoadChoiceModal(false);
+                  navigate('/stockage');
+                }}
+                style={{
+                  padding: '15px 20px',
+                  background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(56, 239, 125, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <i className="fas fa-database" style={{marginRight: '10px'}}></i>
+                {t('modals.loadChoice.storage')}
+                <div style={{fontSize: '0.85rem', fontWeight: '400', marginTop: '5px', opacity: '0.9'}}>
+                  {t('modals.loadChoice.storageDesc')}
                 </div>
               </button>
             </div>
             <div className="modal-buttons" style={{marginTop: '20px'}}>
-              <button onClick={() => setShowLoadChoiceModal(false)}>Annuler</button>
+              <button onClick={() => setShowLoadChoiceModal(false)}>{t('modals.loadChoice.cancel')}</button>
             </div>
           </div>
         </div>
@@ -682,8 +954,17 @@ const MenuBar = ({ onHelp }) => {
               onKeyPress={(e) => e.key === 'Enter' && handleSaveConfig()}
             />
             <div className="modal-buttons">
-              <button onClick={handleSaveConfig}>Sauvegarder</button>
-              <button onClick={() => setShowSaveModal(false)}>Annuler</button>
+              <button onClick={handleSaveConfigWrapper} disabled={isSaving} style={{opacity: isSaving ? 0.7 : 1}}>
+                {isSaving ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin" style={{marginRight: '8px'}}></i>
+                    Enregistrement...
+                  </>
+                ) : (
+                  'Sauvegarder'
+                )}
+              </button>
+              <button onClick={() => setShowSaveModal(false)} disabled={isSaving}>Annuler</button>
             </div>
           </div>
         </div>
@@ -691,46 +972,179 @@ const MenuBar = ({ onHelp }) => {
 
       {/* Modale de chargement */}
       {showLoadModal && (
-        <div className="modal-overlay" onClick={() => setShowLoadModal(false)}>
-          <div className="modal-content modal-content-large" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => { setShowLoadModal(false); setSelectedItems([]); setEditingItem(null); }}>
+          <div className="modal-content modal-content-xlarge" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px', maxHeight: '80vh' }}>
             <h3>{loadType === 'config' ? 'Charger une Configuration' : 'Charger un Modèle Complet'}</h3>
             <p style={{fontSize: '0.9rem', color: '#666', marginBottom: '15px'}}>
               {loadType === 'config' 
                 ? 'Sélectionnez un préréglage à charger'
                 : 'Sélectionnez un modèle complet (avec contenu et résultats)'}
             </p>
-            <div className="config-list">
+            
+            {/* Barre d'actions pour sélection multiple */}
+            {savedConfigs.length > 0 && (
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.length === savedConfigs.length && savedConfigs.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedItems(savedConfigs.map(c => loadType === 'config' ? c.timestamp : c.id));
+                      } else {
+                        setSelectedItems([]);
+                      }
+                    }}
+                    style={{ width: '18px', height: '18px', borderRadius: '50%', accentColor: '#ff6b2c', cursor: 'pointer' }}
+                  />
+                  Tout sélectionner
+                </label>
+                {selectedItems.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      // Suppression en lot sans confirmation individuelle
+                      for (const id of selectedItems) {
+                        try {
+                          if (loadType === 'config') {
+                            await StorageManager.deleteInterfaceConfig(id);
+                          } else {
+                            await StorageManagerAPI.deleteModel(id);
+                          }
+                          // Nettoyer les pièces jointes associées dans IndexedDB
+                          await deletePresetFiles(id);
+                        } catch (error) {
+                          console.error('Erreur suppression:', error);
+                        }
+                      }
+                      // Recharger la liste
+                      if (loadType === 'config') {
+                        const configs = StorageManager.getSavedConfigs();
+                        setSavedConfigs(configs);
+                      } else {
+                        const models = await StorageManagerAPI.getSavedModels();
+                        setSavedConfigs(models);
+                      }
+                      setSelectedItems([]);
+                      alert(`✅ ${selectedItems.length} élément(s) supprimé(s)`);
+                    }}
+                    className="delete-btn"
+                    style={{ padding: '6px 12px' }}
+                  >
+                    <i className="fas fa-trash"></i> Supprimer ({selectedItems.length})
+                  </button>
+                )}
+              </div>
+            )}
+            
+            <div className="config-list" style={{ maxHeight: '50vh', overflowY: 'auto' }}>
               {savedConfigs.length === 0 ? (
                 <p style={{textAlign: 'center', color: '#999', padding: '20px'}}>
                   {loadType === 'config' ? 'Aucune configuration sauvegardée' : 'Aucun modèle sauvegardé'}
                 </p>
               ) : (
-                savedConfigs.map((config) => (
-                  <div key={config.timestamp} className="config-item">
-                    <div className="config-info">
-                      <strong>{config.name}</strong>
-                      <small>{new Date(config.timestamp).toLocaleString('fr-FR')}</small>
+                savedConfigs.map((config) => {
+                  const itemId = loadType === 'config' ? config.timestamp : config.id;
+                  const isSelected = selectedItems.includes(itemId);
+                  const isEditing = editingItem === itemId;
+                  const dateStr = config.timestamp || config.createdAt || config.created_at;
+                  const displayDate = dateStr ? new Date(dateStr).toLocaleString('fr-FR') : 'Date inconnue';
+                  
+                  return (
+                    <div key={itemId} className={`config-item ${isSelected ? 'selected' : ''}`} style={{ background: isSelected ? 'rgba(255, 107, 44, 0.1)' : undefined, padding: '6px 10px', minHeight: 'auto' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedItems([...selectedItems, itemId]);
+                            } else {
+                              setSelectedItems(selectedItems.filter(id => id !== itemId));
+                            }
+                          }}
+                          style={{ 
+                            width: '20px', 
+                            height: '20px', 
+                            borderRadius: '50%', 
+                            accentColor: '#ff6b2c',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
+                        />
+                        <div className="config-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleRenameConfig(itemId, editingName);
+                                } else if (e.key === 'Escape') {
+                                  setEditingItem(null);
+                                }
+                              }}
+                              autoFocus
+                              style={{ padding: '4px 8px', fontSize: '14px', width: '100%' }}
+                            />
+                          ) : (
+                            <strong style={{ fontSize: '13px' }}>{config.name}</strong>
+                          )}
+                          <small style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{displayDate}</small>
+                        </div>
+                      </div>
+                      <div className="config-actions">
+                        {isEditing ? (
+                          <>
+                            <button onClick={() => handleRenameConfig(itemId, editingName)} className="load-btn" style={{ padding: '4px 8px' }}>
+                              <i className="fas fa-check"></i>
+                            </button>
+                            <button onClick={() => setEditingItem(null)} className="delete-btn" style={{ padding: '4px 8px' }}>
+                              <i className="fas fa-times"></i>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => { setEditingItem(itemId); setEditingName(config.name); }}
+                              className="edit-btn"
+                              title="Renommer"
+                              style={{ padding: '4px 8px' }}
+                            >
+                              <i className="fas fa-pen"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleLoadConfig(itemId)}
+                              className="load-btn"
+                              disabled={isLoading}
+                              style={{ opacity: loadingItemId === itemId ? 0.7 : 1 }}
+                            >
+                              {loadingItemId === itemId ? (
+                                <>
+                                  <i className="fas fa-spinner fa-spin"></i> Chargement...
+                                </>
+                              ) : (
+                                <>
+                                  <i className="fas fa-folder-open"></i> Charger
+                                </>
+                              )}
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteConfig(itemId)}
+                              className="delete-btn"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="config-actions">
-                      <button 
-                        onClick={() => handleLoadConfig(config.timestamp)}
-                        className="load-btn"
-                      >
-                        <i className="fas fa-folder-open"></i> Charger
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteConfig(config.timestamp)}
-                        className="delete-btn"
-                      >
-                        <i className="fas fa-trash"></i> Supprimer
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
             <div className="modal-buttons">
-              <button onClick={() => setShowLoadModal(false)}>Fermer</button>
+              <button onClick={() => { setShowLoadModal(false); setSelectedItems([]); setEditingItem(null); }}>Fermer</button>
             </div>
           </div>
         </div>

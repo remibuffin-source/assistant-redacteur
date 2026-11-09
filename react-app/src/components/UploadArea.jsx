@@ -3,18 +3,30 @@ import MediaAISelector from './MediaAISelector';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getHomeText } from '../i18n/homeTranslations';
 
-const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange, onRecordingToggle, onDictationToggle }) => {
+const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange, onRecordingToggle, onDictationToggle, attachedFiles = [], isImageMode = false, selectedAI = '', imageStrength = 0.7, onStrengthChange, onFileRoleChange }) => {
+  // Les trois IA d'image (SeedDream TTI, SeedDream Edit, Nano Banana) acceptent
+  // des images de référence. Pour SeedDream TTI, la présence de références
+  // bascule automatiquement sur l'endpoint v5/lite/edit côté backend.
+  const supportsReferenceImages = isImageMode;
+  // SeedDream edit et Nano Banana supportent le slider de force
+  const supportsStrength = supportsReferenceImages;
+  // WAN 2.6 mode vidéo
+  const isWanVideoMode = selectedAI === 'wan-2.6';
   const { autoSaveData } = useAssistantAutoSave();
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getHomeText(userLanguage, path);
   
   const [isRecording, setIsRecording] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState([]);
   const [aiConfig, setAiConfig] = useState(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const recognitionRef = useRef(null);
+  // État de dictée persistant entre les instances de SpeechRecognition
+  const dictationActiveRef = useRef(false);
+  const dictationBaseRef = useRef('');
+  const dictationFinalRef = useRef('');
+  const dictationRestartCountRef = useRef(0);
 
   // Callback pour recevoir la configuration IA et la transmettre au parent
   const handleAIConfigChange = (config) => {
@@ -33,16 +45,28 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
     onContentChange(value);
   };
 
+  // Mapper la langue de l'interface vers le code de langue pour la reconnaissance vocale
+  const getSpeechLanguageCode = () => {
+    const langMap = {
+      'fr': 'fr-FR',
+      'en': 'en-US',
+      'es': 'es-ES',
+      'de': 'de-DE'
+    };
+    return langMap[userLanguage] || 'fr-FR';
+  };
+
   // Dictée vocale avec Wispr Flow ou Web Speech API
   const handleDictationToggle = async () => {
     if (!isDictating) {
+      const speechLang = getSpeechLanguageCode();
       // Démarrer Wispr Flow
       try {
         // Vérifier si Wispr Flow est disponible
         if (window.wisprFlow) {
-          console.log('🎤 Démarrage Wispr Flow...');
+          console.log(`🎤 Démarrage Wispr Flow en ${speechLang}...`);
           const result = await window.wisprFlow.startDictation({
-            language: 'fr-FR',
+            language: speechLang,
             continuous: true,
             interimResults: true
           });
@@ -74,9 +98,15 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
       if (window.wisprFlow && window.wisprFlow.stopDictation) {
         window.wisprFlow.stopDictation();
       }
-      
+
+      dictationActiveRef.current = false;
+
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.warn('Arrêt dictée:', e.message);
+        }
         recognitionRef.current = null;
       }
       
@@ -86,52 +116,125 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
   };
   
   // Fallback sur Web Speech API native
+  // ⚠️ COMPORTEMENT VALIDÉ — NE PAS MODIFIER SANS VALIDATION (voir AGENTS.md §1)
+  // - redémarrage automatique dans onend tant que dictationActiveRef est vrai
+  // - no-speech / aborted ne doivent jamais arrêter la dictée
+  // - AUCUN timeout de silence ne doit arrêter la reconnaissance
   const startNativeSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.lang = 'fr-FR';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    
-    let finalTranscript = '';
-    
-    recognition.onresult = (event) => {
-      let interimTranscript = '';
-      
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' ';
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-      
-      const existingContent = content ? content + ' ' : '';
-      handleContentChange(existingContent + finalTranscript + interimTranscript);
-    };
-    
-    recognition.onerror = (event) => {
-      console.error('Erreur de reconnaissance vocale:', event.error);
+
+    if (!SpeechRecognition) {
+      alert('La reconnaissance vocale n\'est pas supportée par ce navigateur. Utilisez Chrome, Edge ou Safari.');
+      return;
+    }
+
+    const speechLang = getSpeechLanguageCode();
+    console.log(`🎤 Reconnaissance vocale en ${speechLang}`);
+
+    // Mémoriser le texte déjà présent : la dictée s'ajoute à la suite
+    dictationBaseRef.current = content ? content + ' ' : '';
+    dictationFinalRef.current = '';
+    dictationRestartCountRef.current = 0;
+    dictationActiveRef.current = true;
+
+    const stopDictationUI = () => {
+      dictationActiveRef.current = false;
       setIsDictating(false);
       onDictationToggle();
     };
-    
-    recognition.onend = () => {
-      if (isDictating) {
-        // Redémarrer si toujours actif
-        recognition.start();
-      } else {
-        setIsDictating(false);
-        onDictationToggle();
-      }
+
+    const createRecognition = () => {
+      const recognition = new SpeechRecognition();
+      recognition.lang = speechLang;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        // Du son est arrivé : le moteur fonctionne, on réarme le compteur
+        dictationRestartCountRef.current = 0;
+
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            dictationFinalRef.current += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        handleContentChange(
+          dictationBaseRef.current + dictationFinalRef.current + interimTranscript
+        );
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Erreur de reconnaissance vocale:', event.error);
+
+        // Silences et interruptions normales : onend relancera automatiquement
+        if (event.error === 'no-speech' || event.error === 'aborted') {
+          return;
+        }
+
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          alert('❌ Permission micro refusée. Autorisez l\'accès au microphone dans les paramètres du navigateur.');
+          stopDictationUI();
+        } else if (event.error === 'audio-capture') {
+          alert('❌ Aucun microphone détecté. Vérifiez votre matériel puis réessayez.');
+          stopDictationUI();
+        } else if (event.error === 'network') {
+          alert('❌ La reconnaissance vocale du navigateur nécessite une connexion Internet. Vérifiez votre réseau puis réessayez.');
+          stopDictationUI();
+        }
+      };
+
+      recognition.onend = () => {
+        // Arrêt volontaire : on ne relance pas
+        if (!dictationActiveRef.current) {
+          return;
+        }
+
+        // Chrome coupe après un silence ou au bout d'environ 60 s : on relance
+        dictationRestartCountRef.current += 1;
+        if (dictationRestartCountRef.current > 60) {
+          stopDictationUI();
+          alert('⚠️ La dictée s\'est interrompue plusieurs fois. Cliquez à nouveau sur le micro pour reprendre.');
+          return;
+        }
+
+        setTimeout(() => {
+          if (!dictationActiveRef.current) return;
+          try {
+            recognition.start();
+          } catch {
+            // L'instance est peut-être dans un état invalide : on en recrée une
+            try {
+              const next = createRecognition();
+              recognitionRef.current = next;
+              next.start();
+            } catch (err) {
+              console.error('Redémarrage de la dictée impossible:', err);
+              stopDictationUI();
+            }
+          }
+        }, 250);
+      };
+
+      recognitionRef.current = recognition;
+      return recognition;
     };
-    
-    recognition.start();
-    recognitionRef.current = recognition;
-    setIsDictating(true);
-    onDictationToggle();
+
+    try {
+      const recognition = createRecognition();
+      recognition.start();
+      setIsDictating(true);
+      onDictationToggle();
+    } catch (error) {
+      console.error('Erreur démarrage reconnaissance:', error);
+      dictationActiveRef.current = false;
+      alert('❌ Impossible de démarrer la reconnaissance vocale. Vérifiez les permissions micro.');
+    }
   };
 
   const handleRecordingToggle = () => {
@@ -145,21 +248,40 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
     }
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      // Ajouter les fichiers à la liste des pièces jointes
-      const newFiles = files.map(file => ({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        file: file,
-        addedAt: new Date().toISOString()
+      // Convertir les fichiers en base64 pour les images (nécessaire pour les IA)
+      const newFiles = await Promise.all(files.map(async (file) => {
+        const fileData = {
+          id: Date.now() + Math.random(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          file: file,
+          addedAt: new Date().toISOString()
+        };
+        
+        // Si c'est une image, la convertir en base64 pour l'envoi à l'IA
+        if (file.type?.startsWith('image/')) {
+          try {
+            const base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            fileData.base64 = base64;
+            fileData.dataUrl = base64;
+          } catch (err) {
+            console.error('Erreur conversion image en base64:', err);
+          }
+        }
+        
+        return fileData;
       }));
       
       const updatedFiles = [...attachedFiles, ...newFiles];
-      setAttachedFiles(updatedFiles);
       
       // Notifier le parent du changement de fichiers
       if (onFilesChange) {
@@ -178,7 +300,6 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
   
   const handleRemoveFile = (fileId) => {
     const updatedFiles = attachedFiles.filter(f => f.id !== fileId);
-    setAttachedFiles(updatedFiles);
     
     // Notifier le parent du changement de fichiers
     if (onFilesChange) {
@@ -256,8 +377,8 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
           {t('sections.uploadArea.title')}
         </h3>
         
-        {/* Sélecteur d'IA par type de média */}
-        <MediaAISelector onAIConfigChange={handleAIConfigChange} />
+        {/* Sélecteur d'IA par type de média - masqué en mode image */}
+        {!isImageMode && <MediaAISelector onAIConfigChange={handleAIConfigChange} />}
       </div>
       
       <div className="upload-area-large" id="uploadArea" style={{ 
@@ -308,43 +429,120 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
       </div>
       
       <div className="upload-buttons-grid" style={{ marginTop: '10px' }}>
+        {/* Dictée vocale - toujours visible (utile pour dicter le prompt en mode image/vidéo) */}
         <button 
           className={`upload-btn-large ${isDictating ? 'active' : ''}`}
           onClick={handleDictationToggle}
-          title={t('sections.uploadArea.buttons.dictationTooltip')}
+          title={isImageMode ? 'Dicter le prompt' : t('sections.uploadArea.buttons.dictationTooltip')}
         >
           <i className="fas fa-microphone"></i>
-          <div className="tooltip-text">{t('sections.uploadArea.buttons.dictation')}</div>
+          <div className="tooltip-text">{isImageMode ? 'Dicter le prompt' : t('sections.uploadArea.buttons.dictation')}</div>
         </button>
         
-        <button 
-          className={`upload-btn-large ${isRecording ? 'active' : ''}`}
-          onClick={handleRecordingToggle}
-          title={t('sections.uploadArea.buttons.recordingTooltip')}
-        >
-          <i className="fas fa-wave-square"></i>
-          <div className="tooltip-text">{t('sections.uploadArea.buttons.recording')}</div>
-        </button>
+        {/* Enregistrement audio - masqué en mode image sauf WAN */}
+        {(!isImageMode || isWanVideoMode) && (
+          <button 
+            className={`upload-btn-large ${isRecording ? 'active' : ''}`}
+            onClick={handleRecordingToggle}
+            title={isWanVideoMode ? 'Enregistrer audio de référence' : t('sections.uploadArea.buttons.recordingTooltip')}
+          >
+            <i className="fas fa-wave-square"></i>
+            <div className="tooltip-text">{isWanVideoMode ? 'Audio référence' : t('sections.uploadArea.buttons.recording')}</div>
+          </button>
+        )}
         
-        <button className="upload-btn-large" onClick={handleFileUpload} title={t('sections.uploadArea.buttons.attachTooltip')}>
-          <i className="fas fa-paperclip"></i>
-          <div className="tooltip-text">{t('sections.uploadArea.buttons.attach')}</div>
-        </button>
+        {/* BOUTONS SPÉCIFIQUES WAN 2.6 */}
+        {isWanVideoMode && (
+          <>
+            {/* Upload vidéo de référence */}
+            <button 
+              className="upload-btn-large upload-btn-video" 
+              onClick={() => document.getElementById('videoFileInput').click()}
+              title="Ajouter une vidéo de référence (pour Video-to-Video)"
+              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)' }}
+            >
+              <i className="fas fa-video"></i>
+              <div className="tooltip-text">Vidéo référence</div>
+            </button>
+            
+            {/* Upload image de référence */}
+            <button 
+              className="upload-btn-large upload-btn-image" 
+              onClick={() => document.getElementById('imageFileInput').click()}
+              title="Ajouter une image de référence (pour Image-to-Video)"
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)' }}
+            >
+              <i className="fas fa-image"></i>
+              <div className="tooltip-text">Image référence</div>
+            </button>
+            
+            {/* Upload audio de référence */}
+            <button 
+              className="upload-btn-large upload-btn-audio" 
+              onClick={() => document.getElementById('audioFileInput').click()}
+              title="Ajouter un audio de référence"
+              style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)' }}
+            >
+              <i className="fas fa-music"></i>
+              <div className="tooltip-text">Audio référence</div>
+            </button>
+          </>
+        )}
         
-        <button className="upload-btn-large" onClick={handleExtractFromWeb} title={t('sections.uploadArea.buttons.extractTooltip')}>
-          <i className="fas fa-globe"></i>
-          <div className="tooltip-text">{t('sections.uploadArea.buttons.extract')}</div>
-        </button>
+        {/* Pièces jointes - en mode image avec support référence, devient "Images de référence" */}
+        {/* Masqué pour SeedDream text-to-image et WAN (qui a ses propres boutons) */}
+        {!isWanVideoMode && (supportsReferenceImages || !isImageMode) && (
+          <button className="upload-btn-large" onClick={handleFileUpload} title={supportsReferenceImages ? 'Ajouter des images de référence' : t('sections.uploadArea.buttons.attachTooltip')}>
+            <i className={supportsReferenceImages ? 'fas fa-images' : 'fas fa-paperclip'}></i>
+            <div className="tooltip-text">{supportsReferenceImages ? 'Images de référence' : t('sections.uploadArea.buttons.attach')}</div>
+          </button>
+        )}
+        
+        {/* Extraire du web - masqué en mode image */}
+        {!isImageMode && (
+          <button className="upload-btn-large" onClick={handleExtractFromWeb} title={t('sections.uploadArea.buttons.extractTooltip')}>
+            <i className="fas fa-globe"></i>
+            <div className="tooltip-text">{t('sections.uploadArea.buttons.extract')}</div>
+          </button>
+        )}
       </div>
 
+      {/* Input fichier standard */}
       <input
         type="file"
         ref={fileInputRef}
         style={{ display: 'none' }}
-        accept=".txt,.pdf,.docx,.pptx,.xlsx,.html,.htm,.xlf,.xliff,.md,.jpg,.jpeg,.png,.gif,.wav,.mp3,.aac,.aiff,.flac,.epub"
+        accept={isImageMode && !isWanVideoMode ? ".jpg,.jpeg,.png,.gif,.webp,.bmp" : ".txt,.pdf,.docx,.pptx,.xlsx,.html,.htm,.xlf,.xliff,.md,.jpg,.jpeg,.png,.gif,.wav,.mp3,.aac,.aiff,.flac,.epub,.mp4,.mov,.webm,.avi"}
         multiple
         onChange={handleFileSelect}
       />
+      
+      {/* Inputs fichiers spécifiques WAN 2.6 */}
+      {isWanVideoMode && (
+        <>
+          <input
+            type="file"
+            id="videoFileInput"
+            style={{ display: 'none' }}
+            accept=".mp4,.mov,.webm,.avi,.mkv"
+            onChange={handleFileSelect}
+          />
+          <input
+            type="file"
+            id="imageFileInput"
+            style={{ display: 'none' }}
+            accept=".jpg,.jpeg,.png,.gif,.webp,.bmp"
+            onChange={handleFileSelect}
+          />
+          <input
+            type="file"
+            id="audioFileInput"
+            style={{ display: 'none' }}
+            accept=".mp3,.wav,.aac,.flac,.ogg,.m4a"
+            onChange={handleFileSelect}
+          />
+        </>
+      )}
       
       {/* Liste des fichiers joints */}
       {attachedFiles.length > 0 && (
@@ -362,56 +560,145 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
             color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            justifyContent: 'space-between',
+            gap: '8px',
+            flexWrap: 'wrap'
           }}>
-            <i className="fas fa-paperclip"></i>
-            {t('sections.uploadArea.attachedFiles')} ({attachedFiles.length})
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className={supportsReferenceImages ? 'fas fa-images' : 'fas fa-paperclip'}></i>
+              {supportsReferenceImages ? 'Images de référence' : t('sections.uploadArea.attachedFiles')} ({attachedFiles.length})
+            </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {attachedFiles.map(file => (
+          {/* En mode images de référence : grille 2 colonnes (1ʳᵉ à gauche, 2ᵉ à droite) */}
+          <style>{`
+            .reference-files-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 8px;
+            }
+            @media (max-width: 720px) {
+              .reference-files-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+          `}</style>
+          <div
+            className={supportsReferenceImages ? 'reference-files-grid' : undefined}
+            style={supportsReferenceImages ? undefined : { display: 'flex', flexDirection: 'column', gap: '8px' }}
+          >
+            {attachedFiles.map((file, index) => {
+              const isImage = file.type?.startsWith('image/');
+              return (
               <div key={file.id} style={{
                 display: 'flex',
+                flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
+                padding: supportsReferenceImages ? '8px' : '8px 12px',
                 background: 'rgba(255, 255, 255, 0.03)',
                 borderRadius: '6px',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                gap: supportsReferenceImages ? '10px' : '12px',
+                minWidth: 0
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                  <i className={`fas fa-file${
-                    file.type.includes('pdf') ? '-pdf' : 
-                    file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx') || file.name.endsWith('.odt') ? '-word' : 
-                    file.type.includes('image') ? '-image' : 
-                    file.type.includes('excel') || file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls') ? '-excel' : 
-                    file.type.includes('powerpoint') || file.type.includes('presentation') || file.name.endsWith('.ppt') || file.name.endsWith('.pptx') ? '-powerpoint' : 
-                    file.type.includes('audio') || file.name.endsWith('.wav') || file.name.endsWith('.mp3') || file.name.endsWith('.aac') || file.name.endsWith('.aiff') || file.name.endsWith('.flac') ? '-audio' :
-                    file.name.endsWith('.md') ? '-code' :
-                    file.name.endsWith('.epub') ? '-alt' :
-                    ''
-                  }`} 
-                     style={{ color: '#ff6b35', fontSize: '18px' }}></i>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Vignette + numéro à gauche (84px = 120px - 30%) */}
+                <div style={{ position: 'relative', flexShrink: 0, width: '84px' }}>
+                  {isImage && (file.dataUrl || file.base64 || file.url) ? (
+                    <img
+                      src={file.dataUrl || file.base64 || file.url}
+                      alt={file.name}
+                      style={{ width: '84px', height: '84px', objectFit: 'cover', borderRadius: '8px', display: 'block' }}
+                    />
+                  ) : (
                     <div style={{
-                      fontSize: '14px',
-                      color: 'var(--text-primary)',
-                      whiteSpace: 'nowrap',
+                      width: '84px',
+                      height: '84px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px'
+                    }}>
+                      <i className={`fas fa-file${file.type?.includes('pdf') ? '-pdf' : file.type?.includes('image') ? '-image' : ''}`}
+                         style={{ color: '#ff6b35', fontSize: '24px' }}></i>
+                    </div>
+                  )}
+                  {supportsReferenceImages && isImage && (
+                    <span style={{ position: 'absolute', top: '-5px', left: '-5px', background: '#ff6b2c', color: 'white', borderRadius: '50%', width: '20px', height: '20px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                      {index + 1}
+                    </span>
+                  )}
+                  <div
+                    title={file.name}
+                    style={{
+                      width: '84px',
+                      marginTop: '4px',
+                      fontSize: '10px',
+                      color: 'rgba(255, 255, 255, 0.65)',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {file.name}
-                    </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      marginTop: '2px'
-                    }}>
-                      {formatFileSize(file.size)}
-                    </div>
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      textAlign: 'center'
+                    }}
+                  >
+                    {file.name}
                   </div>
                 </div>
+                
+                {/* Options à droite : coches rondes au-dessus, slider en dessous */}
+                {supportsReferenceImages && isImage ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                    {/* Coches rondes Style, Décor, Sujet */}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {['style', 'decor', 'sujet'].map(role => (
+                        <label key={role} style={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px', 
+                          color: file.roles?.includes(role) ? '#ff6b2c' : 'rgba(255,255,255,0.7)',
+                          cursor: 'pointer'
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={file.roles?.includes(role) || false}
+                            onChange={(e) => {
+                              const newRoles = file.roles ? [...file.roles] : [];
+                              if (e.target.checked) newRoles.push(role);
+                              else { const idx = newRoles.indexOf(role); if (idx > -1) newRoles.splice(idx, 1); }
+                              onFileRoleChange && onFileRoleChange(file.id, newRoles);
+                            }}
+                            style={{ width: '16px', height: '16px', borderRadius: '50%', accentColor: '#ff6b2c', cursor: 'pointer' }}
+                          />
+                          {role === 'style' ? 'Style' : role === 'decor' ? 'Décor' : 'Sujet'}
+                        </label>
+                      ))}
+                    </div>
+                    {/* Slider force */}
+                    {supportsStrength && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)' }}>Force:</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={Math.round((file.strength ?? 0.7) * 100)}
+                          onChange={(e) => {
+                            const newStrength = parseInt(e.target.value) / 100;
+                            onFileRoleChange && onFileRoleChange(file.id, file.roles || [], newStrength);
+                          }}
+                          style={{ flex: 1, cursor: 'pointer', maxWidth: supportsReferenceImages ? '110px' : '150px', minWidth: 0 }}
+                        />
+                        <span style={{ fontSize: '11px', color: '#ff6b2c', fontWeight: 'bold', minWidth: '35px' }}>{Math.round((file.strength ?? 0.7) * 100)}%</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {file.name}
+                  </div>
+                )}
                 
                 <button
                   onClick={() => handleRemoveFile(file.id)}
@@ -437,7 +724,7 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       )}

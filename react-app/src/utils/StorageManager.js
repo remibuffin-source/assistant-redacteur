@@ -1,6 +1,18 @@
 // Gestionnaire de stockage pour l'Assistant Rédactionnel
 // Gestion des 5GB de stockage avec 4 dossiers organisés
 
+// Retire les données binaires (conservées dans IndexedDB) pour éviter
+// de saturer le quota localStorage
+function stripBinaryData(files = []) {
+  return files.map(f => {
+    const copy = { ...f };
+    delete copy.base64;
+    delete copy.dataUrl;
+    delete copy.file;
+    return copy;
+  });
+}
+
 class StorageManager {
   constructor() {
     this.storageLimit = 5 * 1024 * 1024 * 1024; // 5GB en bytes
@@ -63,7 +75,10 @@ class StorageManager {
           selectedAI: config.selectedAI,
           selectedTasks: config.selectedTasks,
           selectedFormats: config.selectedFormats,
-          advancedOptions: config.advancedOptions
+          advancedOptions: config.advancedOptions,
+          // Métadonnées uniquement : les données binaires sont conservées
+          // dans IndexedDB (referenceImageStore) pour éviter le quota localStorage
+          attachedFiles: stripBinaryData(config.attachedFiles || [])
         }
       };
 
@@ -144,7 +159,7 @@ class StorageManager {
     }
   }
 
-  // Sauvegarder un modèle de contenu
+  // Sauvegarder un modèle de contenu (éditeur)
   async saveContentModel(modelName, content, type) {
     try {
       const timestamp = new Date().toISOString();
@@ -155,7 +170,7 @@ class StorageManager {
         timestamp: timestamp
       };
 
-      const savedModels = this.getSavedModels();
+      const savedModels = this.getSavedContentModels();
       savedModels.push(modelData);
       localStorage.setItem('savedContentModels', JSON.stringify(savedModels));
       
@@ -172,13 +187,24 @@ class StorageManager {
     }
   }
 
-  // Récupérer les modèles sauvegardés
+  // Récupérer les modèles de contenu (éditeur)
+  getSavedContentModels() {
+    try {
+      const saved = localStorage.getItem('savedContentModels');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des modèles de contenu:', error);
+      return [];
+    }
+  }
+
+  // Récupérer les modèles complets (Home)
   getSavedModels() {
     try {
       const saved = localStorage.getItem('savedCompleteModels');
       return saved ? JSON.parse(saved) : [];
     } catch (error) {
-      console.error('Erreur lors de la récupération des modèles:', error);
+      console.error('Erreur lors de la récupération des modèles complets:', error);
       return [];
     }
   }
@@ -247,7 +273,8 @@ class StorageManager {
           selectedAI: configWithContent.selectedAI,
           selectedTasks: configWithContent.selectedTasks,
           selectedFormats: configWithContent.selectedFormats,
-          advancedOptions: configWithContent.advancedOptions
+          advancedOptions: configWithContent.advancedOptions,
+          attachedFiles: stripBinaryData(configWithContent.attachedFiles || [])
         },
         content: configWithContent.content || '', // Zone de collecte
         results: configWithContent.results || [] // Résultats générés

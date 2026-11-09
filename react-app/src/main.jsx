@@ -22,45 +22,29 @@ import ResetPassword from './components/ResetPassword'
 import AdminPage from './components/AdminPage'
 import AdminPricingPage from './components/AdminPricingPage'
 import AdminCreditsPage from './components/AdminCreditsPage'
+import PolitiqueCGV from './pages/PolitiqueCGV'
+import DataDeletionStatus from './pages/DataDeletionStatus'
+import SocialOnboardingPage from './pages/SocialOnboardingPage'
+import InvoiceGenerator from './components/InvoiceGenerator'
+import DevisGenerator from './components/DevisGenerator'
+import WanVideoGenerator from './components/WanVideoGenerator'
+import StockagePage from './components/StockagePage'
 
 // Composant wrapper pour forcer le re-render lors des changements de route
 function AppRoutes() {
   const location = useLocation();
-  const [displayLocation, setDisplayLocation] = React.useState(location);
-  const [transitionStage, setTransitionStage] = React.useState("fadeIn");
-  const [renderKey, setRenderKey] = React.useState(0);
-
-  // Effet pour gérer la transition entre les pages
-  React.useEffect(() => {
-    if (location.pathname !== displayLocation.pathname || 
-        location.key !== displayLocation.key) {
-      setTransitionStage("fadeOut");
-    }
-  }, [location]);
-
-  // Effet pour finaliser la transition
-  React.useEffect(() => {
-    if (transitionStage === "fadeOut") {
-      const timer = setTimeout(() => {
-        setDisplayLocation(location);
-        setRenderKey(prev => prev + 1); // Incrémenter pour forcer le re-render
-        setTransitionStage("fadeIn");
-      }, 50); // Très court délai pour forcer le démontage/remontage
-      return () => clearTimeout(timer);
-    }
-  }, [transitionStage, location]);
 
   // Scroll en haut à chaque changement de route
   React.useEffect(() => {
     window.scrollTo(0, 0);
-  }, [displayLocation.pathname]);
+  }, [location.pathname]);
   
-  // Générer une clé unique pour chaque route
-  const getRouteKey = (path) => `${path}-${renderKey}-${displayLocation.key}`;
+  // Générer une clé unique pour chaque route basée uniquement sur le pathname
+  const getRouteKey = (path) => `${path}-${location.key || 'default'}`;
   
   return (
-    <div className={`route-transition ${transitionStage}`}>
-      <Routes location={displayLocation}>
+    <div className="route-transition fadeIn">
+      <Routes location={location}>
         {/* Route publique - Page de connexion */}
         <Route path="/login" element={<LoginPage key={getRouteKey('/login')} />} />
 
@@ -118,6 +102,14 @@ function AppRoutes() {
           } 
         />
         <Route 
+          path="/social-onboarding" 
+          element={
+            <ProtectedRoute>
+              <SocialOnboardingPage key={getRouteKey('/social-onboarding')} />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/calendar" 
           element={<CalendarPage key={getRouteKey('/calendar')} />} 
         />
@@ -145,6 +137,52 @@ function AppRoutes() {
         {/* Route publique pour les tests */}
         <Route path="/test-textarea" element={<TextareaTest key={getRouteKey('/test-textarea')} />} />
 
+        {/* Route publique - Politique & CGV */}
+        <Route path="/politique-cgv" element={<PolitiqueCGV key={getRouteKey('/politique-cgv')} />} />
+
+        {/* Route publique - Statut suppression données Meta */}
+        <Route path="/data-deletion-status" element={<DataDeletionStatus key={getRouteKey('/data-deletion-status')} />} />
+
+        {/* Route protégée - Facturier Studio du Cap Brun (Admin uniquement) */}
+        <Route 
+          path="/facturier" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <InvoiceGenerator key={getRouteKey('/facturier')} />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Route protégée - Devis Studio du Cap Brun (Admin uniquement) */}
+        <Route 
+          path="/devis" 
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <DevisGenerator key={getRouteKey('/devis')} />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Route protégée - Générateur de vidéos WAN 2.6 */}
+        <Route 
+          path="/wan-video" 
+          element={
+            <ProtectedRoute>
+              <WanVideoGenerator key={getRouteKey('/wan-video')} />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Route protégée - Stockage Serveur */}
+        <Route 
+          path="/stockage" 
+          element={
+            <ProtectedRoute>
+              <StockagePage key={getRouteKey('/stockage')} />
+            </ProtectedRoute>
+          } 
+        />
+
         {/* Route par défaut - Page d'accueil (publique TEMPORAIREMENT) */}
         <Route path="/" element={<HomeFixed key={getRouteKey('/')} />} />
 
@@ -155,14 +193,20 @@ function AppRoutes() {
   );
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <AuthProvider>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
-    </ErrorBoundary>
-  </StrictMode>,
-)
+const rootElement = document.getElementById('root');
+const app = (
+  <ErrorBoundary>
+    <AuthProvider>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  </ErrorBoundary>
+);
+
+// StrictMode uniquement en développement pour éviter les erreurs DOM sur Safari
+if (import.meta.env.DEV) {
+  createRoot(rootElement).render(<StrictMode>{app}</StrictMode>);
+} else {
+  createRoot(rootElement).render(app);
+}
