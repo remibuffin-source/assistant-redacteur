@@ -444,7 +444,9 @@ async function referenceImageToBuffer(image) {
     return { buffer: Buffer.from(match[2], 'base64'), mime: match[1] };
   }
 
-  const response = await fetch(image);
+  // Les fichiers restaurés depuis le serveur peuvent avoir un chemin relatif
+  const url = image.startsWith('/') ? `https://api.assistant-redacteur.fr${image}` : image;
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Impossible de télécharger l'image de référence (${response.status})`);
   }
@@ -477,9 +479,20 @@ router.post('/openai', authenticateToken, async (req, res) => {
     return res.status(400).json({ success: false, error: 'Le prompt est obligatoire.' });
   }
 
-  if (!String(model).startsWith('gpt-image')) {
-    return res.status(400).json({ success: false, error: 'Modèle GPT Image invalide.' });
+  // Assainissement : une option inconnue ou une combinaison incompatible
+  // ne doit jamais bloquer la génération (repli sur une valeur valide).
+  const allowedModels = ['gpt-image-2.6-flare', 'gpt-image-2.6-sunburst'];
+  const safeModel = allowedModels.includes(model) ? model : 'gpt-image-2.6-flare';
+  const safeQuality = ['low', 'medium', 'high', 'xhigh', 'max', 'auto'].includes(quality) ? quality : 'medium';
+  const safeComplexity = ['low', 'medium', 'high'].includes(complexity) ? complexity : 'high';
+  const safeBackground = ['auto', 'opaque', 'transparent'].includes(background) ? background : 'auto';
+  let safeFormat = ['png', 'jpeg', 'webp'].includes(outputFormat) ? outputFormat : 'png';
+  // Un fond transparent exige PNG ou WebP : on corrige au lieu de renvoyer une erreur
+  if (safeBackground === 'transparent' && !['png', 'webp'].includes(safeFormat)) {
+    safeFormat = 'png';
   }
+  const safeSize = (size === 'auto' || /^\d{3,4}x\d{3,4}$/.test(String(size))) ? size : '1024x1024';
+  const safeCount = Math.min(Math.max(parseInt(numImages) || 1, 1), 10);
 
   try {
     const apiKey = await ApiKey.getServiceKey(userId, 'openai');
@@ -490,9 +503,8 @@ router.post('/openai', authenticateToken, async (req, res) => {
       });
     }
 
-    const count = parseInt(numImages) || 1;
-    const costPerImage = GPT_IMAGE_COST_PER_IMAGE[quality] ?? GPT_IMAGE_COST_PER_IMAGE.medium;
-    const creditsNeeded = await calculateImageCredits('gpt-image', model, count, costPerImage, true);
+    const costPerImage = GPT_IMAGE_COST_PER_IMAGE[safeQuality] ?? GPT_IMAGE_COST_PER_IMAGE.medium;
+    const creditsNeeded = await calculateImageCredits('gpt-image', safeModel, safeCount, costPerImage, true);
 
     const user = await User.findByPk(userId);
     if (!user) {
@@ -516,16 +528,16 @@ router.post('/openai', authenticateToken, async (req, res) => {
 
     if (isEdit) {
       const form = new FormData();
-      form.append('model', model);
+      form.append('model', safeModel);
       form.append('safety_identifier', safetyIdentifier);
       form.append('prompt', prompt);
-      form.append('size', size);
-      form.append('quality', quality);
-      form.append('complexity', complexity);
-      form.append('background', background);
-      form.append('output_format', outputFormat);
-      form.append('n', String(count));
-      if (outputCompression && ['jpeg', 'webp'].includes(outputFormat)) {
+      form.append('size', safeSize);
+      form.append('quality', safeQuality);
+      form.append('complexity', safeComplexity);
+      form.append('background', safeBackground);
+      form.append('output_format', safeFormat);
+      form.append('n', String(safeCount));
+      if (outputCompression && ['jpeg', 'webp'].includes(safeFormat)) {
         form.append('output_compression', String(outputCompression));
       }
 
@@ -534,7 +546,7 @@ router.post('/openai', authenticateToken, async (req, res) => {
         form.append('image[]', buffer, { filename: `reference-${i + 1}.png`, contentType: mime });
       }
 
-      logger.info(`🎨 GPT Image edit: ${model}, ${referenceImages.length} référence(s)`);
+      logger.info(`🎨 GPT Image edit: ${safeModel}, ${referenceImages.length} référence(s)`);
       response = await fetch('https://api.openai.com/v1/images/edits', {
         method: 'POST',
         headers: {
@@ -545,22 +557,22 @@ router.post('/openai', authenticateToken, async (req, res) => {
       });
     } else {
       const payload = {
-        model,
+        model: safeModel,
         prompt,
-        size,
-        quality,
-        complexity,
-        background,
-        output_format: outputFormat,
-        n: count,
+        size: safeSize,
+        quality: safeQuality,
+        complexity: safeComplexity,
+        background: safeBackground,
+        output_format: safeFormat,
+        n: safeCount,
         safety_identifier: safetyIdentifier
       };
 
-      if (outputCompression && ['jpeg', 'webp'].includes(outputFormat)) {
+      if (outputCompression && ['jpeg', 'webp'].includes(safeFormat)) {
         payload.output_compression = parseInt(outputCompression);
       }
 
-      logger.info(`🎨 GPT Image génération: ${model}, qualité=${quality}, taille=${size}`);
+      logger.info(`🎨 GPT Image génération: ${safeModel}, qualité=${safeQuality}, taille=${safeSize}`);
       response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -575,7 +587,7 @@ router.post('/openai', authenticateToken, async (req, res) => {
 
     if (!response.ok) {
       logger.error(`OpenAI image error: ${response.status} ${response.statusText}`, { errorBody: bodyText });
-      const classified = classifyProviderError('OpenAI', response.status, bodyText, model);
+      const classified = classifyProviderError('OpenAI', response.status, bodyText, safeModel);
       return res.status(response.status).json({
         success: false,
         error: classified.message,
@@ -591,8 +603,8 @@ router.post('/openai', authenticateToken, async (req, res) => {
       logger.warn('Réponse OpenAI non JSON', { bodyText: bodyText?.substring(0, 200) });
     }
 
-    const mime = outputFormat === 'jpeg' ? 'image/jpeg'
-      : outputFormat === 'webp' ? 'image/webp'
+    const mime = safeFormat === 'jpeg' ? 'image/jpeg'
+      : safeFormat === 'webp' ? 'image/webp'
       : 'image/png';
 
     const images = (data.data || [])

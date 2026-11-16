@@ -4,6 +4,26 @@ import { getHomeText } from '../i18n/homeTranslations';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.assistant-redacteur.fr';
 
+// Prix indicatifs par image (affichés en infobulle au survol)
+const IMAGE_PRICE_HINTS = {
+  'seedream-text-to-image': {
+    short: '≈ 0,035 $/img',
+    detail: 'Seedream 5.0 Lite TTI (fal.ai) : environ 0,035 $ par image générée.'
+  },
+  'seedream-edit': {
+    short: '≈ 0,035 $/img',
+    detail: 'Seedream 5.0 Lite Edit (fal.ai) : environ 0,035 $ par image éditée.'
+  },
+  'nano-banana': {
+    short: '≈ 0,04 $/img',
+    detail: 'Nano Banana (Gemini 2.5 Flash Image via OpenRouter) : environ 0,04 $ par image.'
+  },
+  'gpt-image-2.6': {
+    short: 'dès 0,006 $/img',
+    detail: 'GPT Image 2.6 (OpenAI) : low ≈ 0,006 $ · medium ≈ 0,053 $ · high ≈ 0,211 $ · xhigh/max au-delà. Tarifs indicatifs.'
+  }
+};
+
 const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, image: false, video: false } }) => {
   const [freeMode, setFreeMode] = useState(false);
   const [freeModeLoading, setFreeModeLoading] = useState(true);
@@ -267,7 +287,9 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
             onClick={() => handleAISelect(ai.id)}
             data-ai={ai.id}
             style={isDisabled ? { opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' } : {}}
-            title={isDisabled ? 'Disponible en mode Premium' : ai.description}
+            title={isDisabled
+              ? 'Disponible en mode Premium'
+              : `${ai.description}${IMAGE_PRICE_HINTS[ai.id] ? ' — ' + IMAGE_PRICE_HINTS[ai.id].detail : ''}`}
           >
             <div className="ai-icon">
               {ai.icon === 'nano-banana' ? (
@@ -298,6 +320,23 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
             </div>
             <div className="ai-check"></div>
             <div className="ai-label">{ai.name}</div>
+            {IMAGE_PRICE_HINTS[ai.id] && (
+              <div
+                className="ai-price-hint"
+                title={IMAGE_PRICE_HINTS[ai.id].detail}
+                style={{
+                  fontSize: '10px',
+                  color: 'var(--text-secondary, #8a8a8a)',
+                  marginTop: '2px',
+                  textAlign: 'center',
+                  cursor: 'help',
+                  lineHeight: 1.2
+                }}
+              >
+                <i className="fas fa-circle-info" style={{ marginRight: '3px' }}></i>
+                {IMAGE_PRICE_HINTS[ai.id].short}
+              </div>
+            )}
             {isDisabled && (
               <div style={{
                 position: 'absolute',

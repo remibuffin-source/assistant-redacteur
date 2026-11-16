@@ -1,6 +1,15 @@
 import React from 'react';
 import './ImagePersonalization.css';
 
+// Tarifs indicatifs GPT Image 2.6 par image (base 1024×1024)
+const GPT_QUALITY_PRICES = {
+  low: '≈ 0,006 $/image (1024×1024)',
+  medium: '≈ 0,053 $/image (1024×1024)',
+  high: '≈ 0,211 $/image (1024×1024)',
+  xhigh: '≈ 0,32 $/image (estimation)',
+  max: '≈ 0,45 $/image (estimation)'
+};
+
 /**
  * Composant de personnalisation avancée pour la génération d'images et vidéos
  * Permet de modifier automatiquement le prompt avec des options prédéfinies
@@ -345,13 +354,19 @@ const ImagePersonalization = ({ options, onOptionsChange, imageOptions, onImageO
                     </div>
                   </div>
                   <div className="option-group" style={{ flex: 1 }}>
-                    <label>Qualité</label>
+                    <label>
+                      Qualité
+                      <span className="info-icon" title="Tarifs indicatifs par image : low ≈ 0,006 $ · medium ≈ 0,053 $ · high ≈ 0,211 $ · xhigh/max au-delà.">
+                        <i className="fas fa-info-circle"></i>
+                      </span>
+                    </label>
                     <div className="option-controls">
                       {['low', 'medium', 'high', 'xhigh', 'max'].map(q => (
                         <button
                           key={q}
                           className={`option-btn ${(imageOptions.gptQuality || 'medium') === q ? 'active' : ''}`}
                           onClick={() => handleImageOptionChange('gptQuality', q)}
+                          title={GPT_QUALITY_PRICES[q]}
                         >
                           {q}
                         </button>
@@ -409,6 +424,7 @@ const ImagePersonalization = ({ options, onOptionsChange, imageOptions, onImageO
                           key={b.v}
                           className={`option-btn ${(imageOptions.gptBackground || 'auto') === b.v ? 'active' : ''}`}
                           onClick={() => handleImageOptionChange('gptBackground', b.v)}
+                          title={b.v === 'transparent' ? 'Fond transparent : force automatiquement le format PNG' : undefined}
                         >
                           {b.l}
                         </button>
