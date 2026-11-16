@@ -18,3 +18,6 @@
 - [x] Nettoyage des fichiers Elastic Beanstalk / AWS obsolètes
 - [x] Intégration GPT Image 2.6 (Sunburst + Flare) : génération, édition, options, crédits
 - [ ] Vérifier la vérification d'organisation OpenAI pour GPT Image
+- [x] Rôles (sujet/décor/style) et force des références traduits en prompt
+- [x] Tarifs affichés uniquement en infobulles (tous les modèles)
+- [ ] Vérifier/mettre à jour les IDs OpenRouter absents : gemini-3-pro-preview, grok-4.1-fast, qwen3-30b-a3b-thinking-2507, mistral-large-2411

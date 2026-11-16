@@ -4,24 +4,28 @@ import { getHomeText } from '../i18n/homeTranslations';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.assistant-redacteur.fr';
 
-// Prix indicatifs par image (affichés en infobulle au survol)
-const IMAGE_PRICE_HINTS = {
-  'seedream-text-to-image': {
-    short: '≈ 0,035 $/img',
-    detail: 'Seedream 5.0 Lite TTI (fal.ai) : environ 0,035 $ par image générée.'
-  },
-  'seedream-edit': {
-    short: '≈ 0,035 $/img',
-    detail: 'Seedream 5.0 Lite Edit (fal.ai) : environ 0,035 $ par image éditée.'
-  },
-  'nano-banana': {
-    short: '≈ 0,04 $/img',
-    detail: 'Nano Banana (Gemini 2.5 Flash Image via OpenRouter) : environ 0,04 $ par image.'
-  },
-  'gpt-image-2.6': {
-    short: 'dès 0,006 $/img',
-    detail: 'GPT Image 2.6 (OpenAI) : low ≈ 0,006 $ · medium ≈ 0,053 $ · high ≈ 0,211 $ · xhigh/max au-delà. Tarifs indicatifs.'
-  }
+// Tarifs indicatifs (affichés uniquement en infobulle au survol, jamais dans le libellé)
+const AI_PRICE_HINTS = {
+  // Texte
+  claude: 'Claude Sonnet 5.5 : ≈ 2 $/M tokens entrée · 10 $/M tokens sortie.',
+  gpt4: 'GPT-5.6 Terra : ≈ 2 $/M tokens entrée · 12 $/M tokens sortie.',
+  gemini: 'Gemini 3 Pro : modèle non listé actuellement sur OpenRouter. Tarif indicatif ≈ 2 $/M entrée · 12 $/M sortie.',
+  deepseek: 'DeepSeek Chat : ≈ 0,15–0,30 $/M entrée · 0,60–1,20 $/M sortie (heures creuses / pleines).',
+  grok: 'Grok 4.1 Fast : modèle non listé actuellement. Tarif indicatif ≈ 1,25–2 $/M entrée · 2,50–6 $/M sortie selon version.',
+  kimi: 'Kimi K2 Thinking : ≈ 0,60 $/M entrée · 2,50 $/M sortie.',
+  qwen3: 'Qwen3 30B A3B : ≈ 0,10–0,12 $/M entrée · 0,30–0,50 $/M sortie.',
+  deepl: 'DeepL API : ≈ 20 € / million de caractères (selon offre).',
+  elevenlabs: 'ElevenLabs : ≈ 0,30 $ / 1 000 caractères (indicatif).',
+
+  // Images
+  'seedream-text-to-image': 'Seedream 5.0 Lite TTI (fal.ai) : ≈ 0,035 $ par image générée.',
+  'seedream-edit': 'Seedream 5.0 Lite Edit (fal.ai) : ≈ 0,035 $ par image éditée.',
+  'nano-banana': 'Nano Banana (Gemini 2.5 Flash Image via OpenRouter) : ≈ 0,04 $ par image.',
+  'gpt-image-2.6': 'GPT Image 2.6 (OpenAI) : low ≈ 0,006 $ · medium ≈ 0,053 $ · high ≈ 0,211 $ · xhigh/max au-delà. Tarifs indicatifs.',
+
+  // Vidéo
+  'wan-2.6': 'WAN 2.6 (Kie.ai) : ≈ 0,35 $ pour une vidéo 720p de 5 s.',
+  'veo-3.1': 'Veo 3.1 (Kie.ai) : ≈ 0,40–0,80 $ par vidéo selon durée et modèle. Tarif indicatif.'
 };
 
 const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, image: false, video: false } }) => {
@@ -289,7 +293,7 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
             style={isDisabled ? { opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' } : {}}
             title={isDisabled
               ? 'Disponible en mode Premium'
-              : `${ai.description}${IMAGE_PRICE_HINTS[ai.id] ? ' — ' + IMAGE_PRICE_HINTS[ai.id].detail : ''}`}
+              : `${ai.description}${AI_PRICE_HINTS[ai.id] ? ' — ' + AI_PRICE_HINTS[ai.id] : ''}`}
           >
             <div className="ai-icon">
               {ai.icon === 'nano-banana' ? (
@@ -320,23 +324,6 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
             </div>
             <div className="ai-check"></div>
             <div className="ai-label">{ai.name}</div>
-            {IMAGE_PRICE_HINTS[ai.id] && (
-              <div
-                className="ai-price-hint"
-                title={IMAGE_PRICE_HINTS[ai.id].detail}
-                style={{
-                  fontSize: '10px',
-                  color: 'var(--text-secondary, #8a8a8a)',
-                  marginTop: '2px',
-                  textAlign: 'center',
-                  cursor: 'help',
-                  lineHeight: 1.2
-                }}
-              >
-                <i className="fas fa-circle-info" style={{ marginRight: '3px' }}></i>
-                {IMAGE_PRICE_HINTS[ai.id].short}
-              </div>
-            )}
             {isDisabled && (
               <div style={{
                 position: 'absolute',
