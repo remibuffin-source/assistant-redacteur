@@ -46,6 +46,10 @@ Comportement validé :
   pour les données binaires, les rôles (style/décor/sujet) et la force.
 - Ne jamais remplacer les pièces jointes riches par les seules métadonnées serveur.
 - `localStorage` ne doit pas contenir de base64 (quota ~5 Mo).
+- Les rôles (sujet/décor/style) et la force par image sont **traduits en consignes de prompt**
+  via `react-app/src/utils/referencePromptBuilder.js` — ne pas les ignorer dans le flux image.
+- Le backend `/generate` et `/openai` acceptent les références en chaînes (legacy) ou en
+  objets `{ data, roles, strength }`.
 
 ### 6. Erreurs fournisseurs — `backend/utils/providerErrors.js`
 - Messages utilisateur en français + code machine (`credits`, `payment`, `model`,

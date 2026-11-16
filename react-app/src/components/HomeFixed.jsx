@@ -22,6 +22,7 @@ import {
   clearAttachedFiles as clearAttachedFilesFromDb,
   normalizeAttachedFiles
 } from '../utils/referenceImageStore'
+import { buildReferencePrompt } from '../utils/referencePromptBuilder'
 
 // Pop-up ciblé selon la cause de l'erreur fournisseur (anti-spam : plusieurs
 // formats sont générés en parallèle et partagent la même erreur)
@@ -857,11 +858,23 @@ export default function HomeFixed() {
           enrichedPrompt = `${content}, ${mods.join(', ')}`;
         }
         
-        // Extraire les images de référence des pièces jointes
+        // Extraire les images de référence avec leurs rôles et leur force
         const referenceImages = attachedFiles
           .filter(file => file.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name))
-          .map(file => file.base64 || file.dataUrl || file.url)
-          .filter(Boolean);
+          .map(file => ({
+            data: file.base64 || file.dataUrl || file.url,
+            roles: file.roles || [],
+            strength: typeof file.strength === 'number'
+              ? file.strength
+              : (imagePersonalization.strength || 0.7),
+            name: file.name
+          }))
+          .filter(reference => reference.data);
+
+        // Traduire les rôles (sujet/décor/style) et l'influence en consignes de prompt
+        if (referenceImages.length > 0) {
+          enrichedPrompt += buildReferencePrompt(referenceImages);
+        }
         
         const result = await AIService.generateImage(selectedAI, {
           content: enrichedPrompt,

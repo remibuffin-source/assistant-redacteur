@@ -45,7 +45,15 @@ router.post('/generate', authenticateToken, async (req, res, next) => {
   const { prompt, model = 'seedream-v5-lite', numImages = 1, maxImages = 1, imageSize = 'auto_2K', referenceImages = [], strength = 0.7, seed, enhancePromptMode = 'standard' } = req.body;
   const userId = req.user.id;
 
-  logger.info(`🎨 Demande de génération d'image: model=${model}, prompt=${prompt?.substring(0, 50)}..., referenceImages=${referenceImages.length}, enhancePromptMode=${enhancePromptMode}`);
+  // Les références peuvent être des chaînes (legacy) ou des objets { data, roles, strength }
+  const referenceImagesData = (Array.isArray(referenceImages) ? referenceImages : [])
+    .map(ref => typeof ref === 'string' ? ref : (ref?.data || ref?.url || ref?.dataUrl || ref?.base64))
+    .filter(Boolean);
+  const hasPerImageMeta = (Array.isArray(referenceImages) ? referenceImages : [])
+    .some(ref => ref && typeof ref === 'object'
+      && ((Array.isArray(ref.roles) && ref.roles.length > 0) || typeof ref.strength === 'number'));
+
+  logger.info(`🎨 Demande de génération d'image: model=${model}, prompt=${prompt?.substring(0, 50)}..., referenceImages=${referenceImagesData.length}, enhancePromptMode=${enhancePromptMode}`);
 
   if (!prompt) {
     return res.status(400).json({ success: false, error: 'Le prompt est obligatoire.' });
@@ -104,13 +112,13 @@ router.post('/generate', authenticateToken, async (req, res, next) => {
       
       // Construire le contenu du message avec les images de référence si présentes
       let messageContent;
-      if (referenceImages && referenceImages.length > 0) {
+      if (referenceImagesData.length > 0) {
         // Format multimodal avec images de référence
         messageContent = [
           { type: 'text', text: prompt }
         ];
         // Ajouter les images de référence
-        for (const img of referenceImages) {
+        for (const img of referenceImagesData) {
           let imageUrl = img;
           if (!img.startsWith('http://') && !img.startsWith('https://') && !img.startsWith('data:')) {
             imageUrl = `data:image/png;base64,${img}`;
@@ -120,7 +128,7 @@ router.post('/generate', authenticateToken, async (req, res, next) => {
             image_url: { url: imageUrl }
           });
         }
-        logger.info(`🖼️ ${referenceImages.length} image(s) de référence ajoutée(s) pour Nano Banana`);
+        logger.info(`🖼️ ${referenceImagesData.length} image(s) de référence ajoutée(s) pour Nano Banana`);
       } else {
         messageContent = prompt;
       }
@@ -150,7 +158,7 @@ router.post('/generate', authenticateToken, async (req, res, next) => {
       });
     } else {
       // Fal.ai pour SeedDream 5.0 Lite
-      const hasReferenceImages = referenceImages && referenceImages.length > 0;
+      const hasReferenceImages = referenceImagesData.length > 0;
       
       // SeedDream 5.0 Lite - text-to-image ou edit (multi-références) en v5
       const falEndpoint = hasReferenceImages 
@@ -186,7 +194,7 @@ router.post('/generate', authenticateToken, async (req, res, next) => {
       
       if (hasReferenceImages) {
         // Endpoint v5 /edit avec image_urls (jusqu'à 10 images utilisées)
-        const imageUrls = referenceImages.map(img => {
+        const imageUrls = referenceImagesData.map(img => {
           if (img.startsWith('http://') || img.startsWith('https://')) {
             return img;
           }
@@ -206,7 +214,9 @@ router.post('/generate', authenticateToken, async (req, res, next) => {
 
         falPayload = {
           image_urls: imageUrls,
-          prompt: `${prompt}. ${influenceHint}`,
+          // Si les rôles/forces par image sont fournis, le frontend a déjà ajouté
+          // des consignes détaillées au prompt : on n'ajoute pas l'indice générique.
+          prompt: hasPerImageMeta ? prompt : `${prompt}. ${influenceHint}`,
           image_size: falImageSize,
           num_images: numImages,
           max_images: maxImages > 1 ? maxImages : undefined,
@@ -434,18 +444,23 @@ const GPT_IMAGE_COST_PER_IMAGE = {
 };
 
 async function referenceImageToBuffer(image) {
-  if (typeof image !== 'string' || !image) {
+  // Accepte une chaîne (data URL / URL) ou un objet { data, url, dataUrl, base64 }
+  const source = typeof image === 'string'
+    ? image
+    : (image?.data || image?.url || image?.dataUrl || image?.base64);
+
+  if (typeof source !== 'string' || !source) {
     throw new Error('Image de référence invalide');
   }
 
-  if (image.startsWith('data:')) {
-    const match = /^data:([^;]+);base64,(.*)$/s.exec(image);
+  if (source.startsWith('data:')) {
+    const match = /^data:([^;]+);base64,(.*)$/s.exec(source);
     if (!match) throw new Error('Format de référence non reconnu');
     return { buffer: Buffer.from(match[2], 'base64'), mime: match[1] };
   }
 
   // Les fichiers restaurés depuis le serveur peuvent avoir un chemin relatif
-  const url = image.startsWith('/') ? `https://api.assistant-redacteur.fr${image}` : image;
+  const url = source.startsWith('/') ? `https://api.assistant-redacteur.fr${source}` : source;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Impossible de télécharger l'image de référence (${response.status})`);

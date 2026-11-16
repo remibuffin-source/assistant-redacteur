@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import MediaAISelector from './MediaAISelector';
 import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getHomeText } from '../i18n/homeTranslations';
+import { buildReferencePrompt } from '../utils/referencePromptBuilder';
 
 const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange, onRecordingToggle, onDictationToggle, attachedFiles = [], isImageMode = false, selectedAI = '', imageStrength = 0.7, onStrengthChange, onFileRoleChange }) => {
   // Les trois IA d'image (SeedDream TTI, SeedDream Edit, Nano Banana) acceptent
@@ -726,6 +727,36 @@ const UploadArea = ({ content, onContentChange, onFilesChange, onAIConfigChange,
               </div>
             )})}
           </div>
+
+          {/* Aperçu des consignes générées à partir des rôles et de la force */}
+          {['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'].includes(selectedAI)
+            && attachedFiles.some(f => f.type?.startsWith('image/')) && (
+            <details style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-secondary, #8a8a8a)' }}>
+              <summary style={{ cursor: 'pointer', userSelect: 'none' }}>
+                <i className="fas fa-wand-magic-sparkles" style={{ marginRight: '4px' }}></i>
+                Consignes ajoutées au prompt (rôles + influence)
+              </summary>
+              <pre style={{
+                whiteSpace: 'pre-wrap',
+                margin: '6px 0 0',
+                padding: '8px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderRadius: '6px',
+                fontSize: '10px',
+                lineHeight: 1.4,
+                color: 'var(--text-primary, #ddd)'
+              }}>
+                {buildReferencePrompt(
+                  attachedFiles
+                    .filter(f => f.type?.startsWith('image/'))
+                    .map(f => ({
+                      roles: f.roles || [],
+                      strength: typeof f.strength === 'number' ? f.strength : (imageStrength || 0.7)
+                    }))
+                )}
+              </pre>
+            </details>
+          )}
         </div>
       )}
     </div>
