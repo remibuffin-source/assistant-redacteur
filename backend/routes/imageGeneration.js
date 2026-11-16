@@ -6,6 +6,8 @@ import { ApiKey } from '../models/index.sequelize.js';
 import { logger } from '../utils/logger.js';
 import { classifyProviderError } from '../utils/providerErrors.js';
 import fetch from 'node-fetch';
+import FormData from 'form-data';
+import crypto from 'crypto';
 
 // Sharp sera chargé dynamiquement à la première utilisation
 let sharp = null;
@@ -421,6 +423,208 @@ router.post('/edit', authenticateToken, async (req, res, next) => {
  * POST /api/ai/image/gemini
  * Génération d'image avec Gemini 2.5 Flash (Nano Banana)
  */
+// Coûts indicatifs par image GPT Image (tarifs OpenAI : sortie image 30 $/1M tokens)
+const GPT_IMAGE_COST_PER_IMAGE = {
+  low: 0.006,
+  medium: 0.053,
+  high: 0.211,
+  xhigh: 0.32,
+  max: 0.45,
+  auto: 0.053
+};
+
+async function referenceImageToBuffer(image) {
+  if (typeof image !== 'string' || !image) {
+    throw new Error('Image de référence invalide');
+  }
+
+  if (image.startsWith('data:')) {
+    const match = /^data:([^;]+);base64,(.*)$/s.exec(image);
+    if (!match) throw new Error('Format de référence non reconnu');
+    return { buffer: Buffer.from(match[2], 'base64'), mime: match[1] };
+  }
+
+  const response = await fetch(image);
+  if (!response.ok) {
+    throw new Error(`Impossible de télécharger l'image de référence (${response.status})`);
+  }
+  return {
+    buffer: Buffer.from(await response.arrayBuffer()),
+    mime: response.headers.get('content-type') || 'image/png'
+  };
+}
+
+/**
+ * POST /api/ai/image/openai
+ * Génération / édition d'images avec GPT Image 2.6 (Sunburst ou Flare).
+ */
+router.post('/openai', authenticateToken, async (req, res) => {
+  const {
+    prompt,
+    model = 'gpt-image-2.6-flare',
+    size = '1024x1024',
+    quality = 'medium',
+    complexity = 'high',
+    background = 'auto',
+    outputFormat = 'png',
+    outputCompression,
+    numImages = 1,
+    referenceImages = []
+  } = req.body;
+  const userId = req.user.id;
+
+  if (!prompt) {
+    return res.status(400).json({ success: false, error: 'Le prompt est obligatoire.' });
+  }
+
+  if (!String(model).startsWith('gpt-image')) {
+    return res.status(400).json({ success: false, error: 'Modèle GPT Image invalide.' });
+  }
+
+  try {
+    const apiKey = await ApiKey.getServiceKey(userId, 'openai');
+    if (!apiKey) {
+      return res.status(500).json({
+        success: false,
+        error: 'La clé API OpenAI n\'est pas configurée. Configurez-la dans Config API.'
+      });
+    }
+
+    const count = parseInt(numImages) || 1;
+    const costPerImage = GPT_IMAGE_COST_PER_IMAGE[quality] ?? GPT_IMAGE_COST_PER_IMAGE.medium;
+    const creditsNeeded = await calculateImageCredits('gpt-image', model, count, costPerImage, true);
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Utilisateur non trouvé.' });
+    }
+
+    if (parseFloat(user.creditsBalance) < creditsNeeded) {
+      return res.status(402).json({
+        success: false,
+        error: 'Crédits insuffisants.',
+        creditsNeeded,
+        creditsAvailable: parseFloat(user.creditsBalance)
+      });
+    }
+
+    // Identifiant de sécurité stable et anonymisé (recommandé par OpenAI)
+    const safetyIdentifier = crypto.createHash('sha256').update(String(userId)).digest('hex');
+
+    const isEdit = Array.isArray(referenceImages) && referenceImages.length > 0;
+    let response;
+
+    if (isEdit) {
+      const form = new FormData();
+      form.append('model', model);
+      form.append('safety_identifier', safetyIdentifier);
+      form.append('prompt', prompt);
+      form.append('size', size);
+      form.append('quality', quality);
+      form.append('complexity', complexity);
+      form.append('background', background);
+      form.append('output_format', outputFormat);
+      form.append('n', String(count));
+      if (outputCompression && ['jpeg', 'webp'].includes(outputFormat)) {
+        form.append('output_compression', String(outputCompression));
+      }
+
+      for (let i = 0; i < referenceImages.length; i++) {
+        const { buffer, mime } = await referenceImageToBuffer(referenceImages[i]);
+        form.append('image[]', buffer, { filename: `reference-${i + 1}.png`, contentType: mime });
+      }
+
+      logger.info(`🎨 GPT Image edit: ${model}, ${referenceImages.length} référence(s)`);
+      response = await fetch('https://api.openai.com/v1/images/edits', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          ...form.getHeaders()
+        },
+        body: form
+      });
+    } else {
+      const payload = {
+        model,
+        prompt,
+        size,
+        quality,
+        complexity,
+        background,
+        output_format: outputFormat,
+        n: count,
+        safety_identifier: safetyIdentifier
+      };
+
+      if (outputCompression && ['jpeg', 'webp'].includes(outputFormat)) {
+        payload.output_compression = parseInt(outputCompression);
+      }
+
+      logger.info(`🎨 GPT Image génération: ${model}, qualité=${quality}, taille=${size}`);
+      response = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    const bodyText = await response.text();
+
+    if (!response.ok) {
+      logger.error(`OpenAI image error: ${response.status} ${response.statusText}`, { errorBody: bodyText });
+      const classified = classifyProviderError('OpenAI', response.status, bodyText, model);
+      return res.status(response.status).json({
+        success: false,
+        error: classified.message,
+        code: classified.code,
+        details: bodyText
+      });
+    }
+
+    let data = {};
+    try {
+      data = JSON.parse(bodyText);
+    } catch (e) {
+      logger.warn('Réponse OpenAI non JSON', { bodyText: bodyText?.substring(0, 200) });
+    }
+
+    const mime = outputFormat === 'jpeg' ? 'image/jpeg'
+      : outputFormat === 'webp' ? 'image/webp'
+      : 'image/png';
+
+    const images = (data.data || [])
+      .map(item => item.b64_json ? `data:${mime};base64,${item.b64_json}` : item.url)
+      .filter(Boolean);
+
+    if (images.length === 0) {
+      return res.status(502).json({ success: false, error: 'OpenAI n\'a renvoyé aucune image.' });
+    }
+
+    const previousCredits = parseFloat(user.creditsBalance);
+    await user.deductCredits(creditsNeeded, 'Image IA - GPT Image');
+    logger.info(`✅ GPT Image généré. Crédits: ${previousCredits} -> ${user.creditsBalance} (-${creditsNeeded})`);
+
+    res.json({
+      success: true,
+      images,
+      imageUrls: images,
+      creditsUsed: creditsNeeded,
+      creditsRemaining: parseFloat(user.creditsBalance),
+      model,
+      quality
+    });
+  } catch (error) {
+    logger.error('Erreur GPT Image:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Erreur lors de la génération GPT Image.'
+    });
+  }
+});
+
 /**
  * GET /api/ai/image/fal-balance
  * Vérifie le solde réel du compte Fal.ai associé à la clé configurée.
@@ -689,7 +893,8 @@ router.post('/store', authenticateToken, async (req, res, next) => {
       : '';
     // Ajouter le provider dans le nom pour pouvoir l'identifier plus tard
     const providerTag = aiProvider === 'seedream-v4' || aiProvider === 'seedream' || aiProvider === 'seedream-edit' || aiProvider === 'seedream-text-to-image' || aiProvider === 'seedream-v5-lite' ? 'sd' : 
-                        aiProvider === 'nano-banana' || aiProvider === 'google/gemini-2.5-flash-image' ? 'nb' : 'gen';
+                        aiProvider === 'nano-banana' || aiProvider === 'google/gemini-2.5-flash-image' ? 'nb' :
+                        (typeof aiProvider === 'string' && aiProvider.startsWith('gpt-image')) ? 'gpt' : 'gen';
     // Utiliser le titre du projet comme préfixe au lieu de "img"
     const baseFileName = cleanTitle 
       ? `${cleanTitle}-${providerTag}-${timestamp}`

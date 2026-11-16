@@ -144,7 +144,7 @@ const ConfigAPIPageFixed = () => {
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Nano Banana)', description: 'Gemini 2.5 Flash - Génération d\'images (OpenRouter)', iconPath: '/icons/nano-banana.svg', docs: 'https://openrouter.ai/google/gemini-2.5-flash-image/api' },
     { id: 'grok', name: 'Grok', description: 'Grok - xAI', iconPath: '/icons/grok.ico', docs: 'https://docs.x.ai/api' },
     { id: 'kimi', name: 'Kimi (OpenRouter)', description: 'Kimi - LLM via OpenRouter', iconPath: '/icons/kimi2.ico', docs: 'https://openrouter.ai/docs' },
-    { id: 'openai', name: 'GPT-5.6', description: 'GPT-5.6 Terra - Modèle équilibré d\'OpenAI', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/api-reference' },
+    { id: 'openai', name: 'OpenAI (GPT-5.6 + GPT Image)', description: 'GPT-5.6 Terra (texte) + GPT Image 2.6 (images)', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/api-reference' },
     { id: 'qwen3', name: 'Qwen3', description: 'Qwen3 - IA multimodale avancée', iconPath: '/icons/qwen3.ico', docs: 'https://qwenlm.github.io/' },
     { id: 'whisper', name: 'Whisper Large V3', description: 'Whisper - Transcription audio', iconPath: '/icons/gpt4.ico', docs: 'https://platform.openai.com/docs/guides/speech-to-text' },
     { id: 'fal-tti', name: 'SeedDream 5.0 TTI', description: 'SeedDream 5.0 Lite - Text-to-Image via Fal.ai', iconPath: '/icons/fal.svg', docs: 'https://fal.ai/models/fal-ai/bytedance/seedream/v5/lite/text-to-image/api' },

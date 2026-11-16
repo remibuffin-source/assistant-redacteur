@@ -13,7 +13,7 @@ export class AIService {
    * @returns {Promise<object>} Résultat de la génération
    */
   static async generateContent(aiType, data) {
-    const imageModels = ['seedream-text-to-image', 'seedream-edit', 'nano-banana'];
+    const imageModels = ['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'];
     if (imageModels.includes(aiType)) {
       return this.generateImage(aiType, data);
     }
@@ -284,9 +284,11 @@ export class AIService {
     }
 
     try {
-      const { service, model } = this.getServiceAndModel(aiType);
-      const prompt = data.content;
       const options = data.imageOptions || {};
+      const isGptImage = aiType.startsWith('gpt-image');
+      const { service, model: defaultModel } = this.getServiceAndModel(aiType);
+      const model = isGptImage ? (options.gptModel || 'gpt-image-2.6-flare') : defaultModel;
+      const prompt = data.content;
 
       const headers = {
         'Content-Type': 'application/json',
@@ -294,43 +296,64 @@ export class AIService {
       };
 
       // 1. Générer l'image via le fournisseur externe
-      // Déterminer la taille d'image selon les enums Fal.ai v5 Lite
-      let imageSize;
-      
-      // Si auto_2K, auto_3K ou auto_4K sélectionné, utiliser directement l'enum v5
-      if (options.size === 'auto_2K' || options.size === 'auto_3K' || options.size === 'auto_4K') {
-        imageSize = options.size;
+      let response;
+
+      if (isGptImage) {
+        response = await fetch(`${API_BASE_URL}/ai/image/openai`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            prompt,
+            model,
+            size: options.gptSize || '1024x1024',
+            quality: options.gptQuality || 'medium',
+            complexity: options.gptComplexity || 'high',
+            background: options.gptBackground || 'auto',
+            outputFormat: options.gptFormat || 'png',
+            outputCompression: options.gptCompression,
+            numImages: options.count || 1,
+            referenceImages: data.referenceImages || []
+          })
+        });
       } else {
-        // Mapper le ratio vers les enums Fal.ai v5
-        const ratioToV5Enum = {
-          '1:1': 'square_hd',
-          '4:3': 'landscape_4_3',
-          '16:9': 'landscape_16_9',
-          '3:4': 'portrait_4_3',
-          '9:16': 'portrait_16_9'
-        };
-        imageSize = ratioToV5Enum[options.ratio] || 'auto_2K';
+        // Déterminer la taille d'image selon les enums Fal.ai v5 Lite
+        let imageSize;
+
+        // Si auto_2K, auto_3K ou auto_4K sélectionné, utiliser directement l'enum v5
+        if (options.size === 'auto_2K' || options.size === 'auto_3K' || options.size === 'auto_4K') {
+          imageSize = options.size;
+        } else {
+          // Mapper le ratio vers les enums Fal.ai v5
+          const ratioToV5Enum = {
+            '1:1': 'square_hd',
+            '4:3': 'landscape_4_3',
+            '16:9': 'landscape_16_9',
+            '3:4': 'portrait_4_3',
+            '9:16': 'portrait_16_9'
+          };
+          imageSize = ratioToV5Enum[options.ratio] || 'auto_2K';
+        }
+
+        response = await fetch(`${API_BASE_URL}/ai/image/generate`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            prompt,
+            service,
+            model,
+            options,
+            numImages: options.count || 1,
+            maxImages: options.maxImages || 1,
+            imageSize: imageSize,
+            ratio: options.ratio || '1:1',
+            referenceImages: data.referenceImages || [],
+            negativePrompt: data.negativePrompt || '',
+            strength: data.strength || 0.7,
+            seed: options.seed || undefined,
+            enhancePromptMode: options.enhancePromptMode || 'standard'
+          })
+        });
       }
-      
-      const response = await fetch(`${API_BASE_URL}/ai/image/generate`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ 
-          prompt, 
-          service, 
-          model, 
-          options,
-          numImages: options.count || 1,
-          maxImages: options.maxImages || 1,
-          imageSize: imageSize,
-          ratio: options.ratio || '1:1',
-          referenceImages: data.referenceImages || [],
-          negativePrompt: data.negativePrompt || '',
-          strength: data.strength || 0.7,
-          seed: options.seed || undefined,
-          enhancePromptMode: options.enhancePromptMode || 'standard'
-        })
-      });
 
       const result = await response.json();
 

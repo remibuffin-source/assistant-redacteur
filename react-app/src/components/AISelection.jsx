@@ -187,6 +187,13 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
       category: 'image'
     },
     {
+      id: 'gpt-image-2.6',
+      name: 'GPT Image 2.6',
+      icon: 'gpt4-new',
+      description: 'OpenAI - Génération et édition réalistes',
+      category: 'image'
+    },
+    {
       id: 'wan-2.6',
       name: 'WAN 2.6',
       icon: 'wan',

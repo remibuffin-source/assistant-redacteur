@@ -11,5 +11,7 @@ IA: OpenAI, Anthropic, Google Gemini, Fal.ai (Wan), Kie.ai (Veo).
 - DeepSeek : `deepseek-chat`, `deepseek-reasoner`.
 - OpenRouter : `x-ai/grok-4.1-fast`, `moonshotai/kimi-k2-thinking`, `qwen/qwen3-30b-a3b-thinking-2507`, `mistralai/mistral-large-2411`.
 - Images : `fal-ai/bytedance/seedream/v5/lite/text-to-image` et `…/v5/lite/edit` (~0,035 $/image).
+- Images OpenAI : `gpt-image-2.6-flare` (rapide) et `gpt-image-2.6-sunburst` (précision),
+  via `/v1/images/generations` et `/v1/images/edits` (clé `openai`, vérification d'organisation requise).
 - Vidéo : Kie.ai `veo3` / `veo3_fast`, `wan/2-6-*`.
 - Tarification : `PricingConfig` (BDD) référence encore d'anciens noms de modèles → fallback partiel.

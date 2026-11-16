@@ -11,7 +11,7 @@ const ImagePersonalization = ({ options, onOptionsChange, imageOptions, onImageO
   const hasReferenceImages = attachedFiles.some(f => f.type?.startsWith('image/'));
   const hasReferenceVideos = attachedFiles.some(f => f.type?.startsWith('video/'));
   // SeedDream edit et Nano Banana supportent les images de référence
-  const supportsReferenceImages = selectedAI === 'seedream-edit' || selectedAI === 'nano-banana' || isVideoMode;
+  const supportsReferenceImages = selectedAI === 'seedream-edit' || selectedAI === 'nano-banana' || selectedAI === 'gpt-image-2.6' || isVideoMode;
   
   // Modèles WAN 2.6 disponibles
   const wanModels = [
@@ -243,7 +243,8 @@ const ImagePersonalization = ({ options, onOptionsChange, imageOptions, onImageO
                 </div>
               </div>
 
-              {/* Format / Ratio (compact sans espace) */}
+              {/* Format / Ratio — masqué pour GPT Image (tailles dédiées) */}
+              {selectedAI !== 'gpt-image-2.6' && (<>
               <div className="option-group option-group-format">
                 <label>Format</label>
                 <div className="option-controls format-controls">
@@ -317,7 +318,120 @@ const ImagePersonalization = ({ options, onOptionsChange, imageOptions, onImageO
                   </button>
                 </div>
               </div>
+              </>)}
             </div>
+
+            {/* LIGNE GPT IMAGE 2.6 : modèle, qualité, complexité, taille, fond, format */}
+            {selectedAI === 'gpt-image-2.6' && (
+              <>
+                <div className="option-row">
+                  <div className="option-group" style={{ flex: 1 }}>
+                    <label>Modèle GPT Image</label>
+                    <div className="option-controls">
+                      <button
+                        className={`option-btn ${(imageOptions.gptModel || 'gpt-image-2.6-flare') === 'gpt-image-2.6-flare' ? 'active' : ''}`}
+                        onClick={() => handleImageOptionChange('gptModel', 'gpt-image-2.6-flare')}
+                        title="Flare : rapide, idéal pour l'itération"
+                      >
+                        <i className="fas fa-bolt"></i> Flare
+                      </button>
+                      <button
+                        className={`option-btn ${imageOptions.gptModel === 'gpt-image-2.6-sunburst' ? 'active' : ''}`}
+                        onClick={() => handleImageOptionChange('gptModel', 'gpt-image-2.6-sunburst')}
+                        title="Sunburst : précision d'édition et détails"
+                      >
+                        <i className="fas fa-sun"></i> Sunburst
+                      </button>
+                    </div>
+                  </div>
+                  <div className="option-group" style={{ flex: 1 }}>
+                    <label>Qualité</label>
+                    <div className="option-controls">
+                      {['low', 'medium', 'high', 'xhigh', 'max'].map(q => (
+                        <button
+                          key={q}
+                          className={`option-btn ${(imageOptions.gptQuality || 'medium') === q ? 'active' : ''}`}
+                          onClick={() => handleImageOptionChange('gptQuality', q)}
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="option-row">
+                  <div className="option-group" style={{ flex: 1 }}>
+                    <label>Complexité</label>
+                    <div className="option-controls">
+                      {['low', 'medium', 'high'].map(c => (
+                        <button
+                          key={c}
+                          className={`option-btn ${(imageOptions.gptComplexity || 'high') === c ? 'active' : ''}`}
+                          onClick={() => handleImageOptionChange('gptComplexity', c)}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="option-group" style={{ flex: 1 }}>
+                    <label>Taille</label>
+                    <div className="option-controls">
+                      {[
+                        { v: '1024x1024', l: 'Carré' },
+                        { v: '1536x1024', l: 'Paysage' },
+                        { v: '1024x1536', l: 'Portrait' },
+                        { v: 'auto', l: 'Auto' }
+                      ].map(s => (
+                        <button
+                          key={s.v}
+                          className={`option-btn ${(imageOptions.gptSize || '1024x1024') === s.v ? 'active' : ''}`}
+                          onClick={() => handleImageOptionChange('gptSize', s.v)}
+                        >
+                          {s.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="option-row">
+                  <div className="option-group" style={{ flex: 1 }}>
+                    <label>Fond</label>
+                    <div className="option-controls">
+                      {[
+                        { v: 'auto', l: 'Auto' },
+                        { v: 'opaque', l: 'Opaque' },
+                        { v: 'transparent', l: 'Transparent' }
+                      ].map(b => (
+                        <button
+                          key={b.v}
+                          className={`option-btn ${(imageOptions.gptBackground || 'auto') === b.v ? 'active' : ''}`}
+                          onClick={() => handleImageOptionChange('gptBackground', b.v)}
+                        >
+                          {b.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="option-group" style={{ flex: 1 }}>
+                    <label>Format fichier</label>
+                    <div className="option-controls">
+                      {['png', 'jpeg', 'webp'].map(f => (
+                        <button
+                          key={f}
+                          className={`option-btn ${(imageOptions.gptFormat || 'png') === f ? 'active' : ''}`}
+                          onClick={() => handleImageOptionChange('gptFormat', f)}
+                        >
+                          {f.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* LIGNE 1.5 : Options Seedream v5 - Enhance Prompt + Seed */}
             {(selectedAI === 'seedream-text-to-image') && (

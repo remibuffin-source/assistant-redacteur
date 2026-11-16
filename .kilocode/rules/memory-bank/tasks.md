@@ -15,3 +15,6 @@
 - [ ] Transcription vocale : qualité native Web Speech à confirmer ; option Whisper serveur à étudier
 - [x] **Presets : images de référence restaurées** avec vignettes, rôles et force (IndexedDB + fusion)
 - [ ] Vérifier le solde Fal.ai via le bouton Config API après recharge
+- [x] Nettoyage des fichiers Elastic Beanstalk / AWS obsolètes
+- [x] Intégration GPT Image 2.6 (Sunburst + Flare) : génération, édition, options, crédits
+- [ ] Vérifier la vérification d'organisation OpenAI pour GPT Image

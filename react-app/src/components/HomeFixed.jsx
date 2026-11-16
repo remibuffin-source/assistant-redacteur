@@ -818,7 +818,7 @@ export default function HomeFixed() {
     }
 
     // Détecter si c'est une IA d'image
-    const isImageAI = ['seedream-text-to-image', 'seedream-edit', 'nano-banana'].includes(selectedAI);
+    const isImageAI = ['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'].includes(selectedAI);
     
     if (!content.trim() && attachedFiles.length === 0) {
       alert(isImageAI ? 'Veuillez saisir une description pour générer l\'image.' : 'Veuillez saisir du contenu ou attacher un fichier avant de lancer la génération.');
@@ -1232,7 +1232,7 @@ export default function HomeFixed() {
     
     // Si on passe en mode texte uniquement, réinitialiser l'IA si c'était une IA d'image
     if (newContentTypes.text && !newContentTypes.image && !newContentTypes.video) {
-      if (['seedream-text-to-image', 'seedream-edit', 'nano-banana'].includes(selectedAI)) {
+      if (['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'].includes(selectedAI)) {
         setSelectedAI('gpt4');
         console.log('🔄 Passage en mode texte : IA réinitialisée à GPT-4');
       }
@@ -1240,7 +1240,7 @@ export default function HomeFixed() {
     
     // Si on passe en mode image uniquement, réinitialiser l'IA si c'était une IA de texte
     if (!newContentTypes.text && newContentTypes.image && !newContentTypes.video) {
-      if (!['seedream-text-to-image', 'seedream-edit', 'nano-banana'].includes(selectedAI)) {
+      if (!['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'].includes(selectedAI)) {
         setSelectedAI('seedream-text-to-image');
         console.log('🔄 Passage en mode image : IA réinitialisée à Seedream');
       }
@@ -1262,7 +1262,7 @@ export default function HomeFixed() {
           onAIConfigChange={setMediaAIConfig}
           onRecordingToggle={handleRecordingToggle}
           onDictationToggle={handleDictationToggle}
-          isImageMode={['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'wan-2.6', 'veo-3.1'].includes(selectedAI)}
+          isImageMode={['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6', 'wan-2.6', 'veo-3.1'].includes(selectedAI)}
           selectedAI={selectedAI}
           imageStrength={imagePersonalization.strength || 0.7}
           onStrengthChange={(value) => setImagePersonalization(prev => ({ ...prev, strength: value }))}
@@ -1272,12 +1272,12 @@ export default function HomeFixed() {
         />
         
         {/* Masquer les tâches de traitement pour les IA d'image et vidéo */}
-        {!['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'wan-2.6', 'veo-3.1'].includes(selectedAI) && (
+        {!['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6', 'wan-2.6', 'veo-3.1'].includes(selectedAI) && (
           <ProcessingTasks selectedTasks={selectedTasks} onTaskToggle={handleTaskToggle} />
         )}
         
         {/* Masquer les formats de sortie pour les IA d'image et vidéo */}
-        {!['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'wan-2.6', 'veo-3.1'].includes(selectedAI) && (
+        {!['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6', 'wan-2.6', 'veo-3.1'].includes(selectedAI) && (
           <OutputFormats selectedFormats={selectedFormats} onFormatToggle={handleFormatToggle} />
         )}
 
@@ -1291,7 +1291,7 @@ export default function HomeFixed() {
         )} */}
 
         {/* Personnalisation avancée : différente selon le type d'IA */}
-        {['seedream-text-to-image', 'seedream-edit', 'nano-banana'].includes(selectedAI) ? (
+        {['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'].includes(selectedAI) ? (
           <ImagePersonalization 
             options={imagePersonalization}
             onOptionsChange={setImagePersonalization}
@@ -1314,7 +1314,7 @@ export default function HomeFixed() {
           </button>
         </div>
 
-        <ResultsGrid results={results} onDelete={handleDeleteResult} isImageMode={['seedream-text-to-image', 'seedream-edit', 'nano-banana'].includes(selectedAI)} />
+        <ResultsGrid results={results} onDelete={handleDeleteResult} isImageMode={['seedream-text-to-image', 'seedream-edit', 'nano-banana', 'gpt-image-2.6'].includes(selectedAI)} />
       </div>
 
       {showHelpModal && (
