@@ -144,3 +144,7 @@ capture-specific.js
 # DNS-*.md
 # NGINX-*.md
 # VPS-*.md
+
+# Secrets locaux (ne jamais versionner)
+.kilocode/mcp.json
+CONFIGURATION-STRIPE-URGENTE.md
