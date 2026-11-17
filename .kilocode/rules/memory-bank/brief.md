@@ -12,3 +12,7 @@ Plateforme web de génération et de publication de contenu assistée par IA (As
 - **Erreurs fournisseurs** : messages explicites en français (crédits, modèle obsolète, clé, quota) + pop-up ciblé.
 - **Images de référence** : persistées en IndexedDB, restaurées après rechargement.
 - **Non retenu** : Batch API et prompt caching (pas adaptés au flux interactif actuel).
+- **Dépôt** : `github.com/remibuffin-source/assistant-redacteur` (privé), branche `main`.
+- **Secrets** : uniquement en variables d'environnement (cPanel O2Switch en production,
+  `.env` local en développement). Aucun secret versionné.
+- **SMTP** : lu depuis `process.env` en priorité, fallback `config/smtp.json` legacy.

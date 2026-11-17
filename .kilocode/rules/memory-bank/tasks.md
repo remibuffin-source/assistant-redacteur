@@ -23,3 +23,7 @@
 - [x] IDs OpenRouter absents mis à jour (Gemini 3.1 Pro, Grok 4.3, Qwen3 Instruct, Mistral Large 2512)
 - [x] Bug corrigé : Gemini texte ne pointe plus vers un modèle image
 - [x] Processus de veille des modèles ajouté dans AGENTS.md
+- [x] Migration SMTP vers variables d'environnement (cPanel O2Switch, fallback smtp.json)
+- [x] Audit sécurité : vérification du fallback SPA, aucune fuite réelle
+- [x] Nettoyage ssl-temp obsolète et clone temporaire
+- [ ] Hygiène locale : masquer/révoquer les clés dans API-KEYS-ROUTING.md et Gmail Noreply.md
