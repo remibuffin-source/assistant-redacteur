@@ -41,13 +41,44 @@ export const editorTranslations = {
       characters: 'caractères'
     },
     modals: {
+      saveChoice: {
+        title: 'Que souhaitez-vous enregistrer ?',
+        subtitle: 'Choisissez le type de sauvegarde',
+        config: 'Configuration',
+        configDesc: 'Réglages uniquement (sans contenu)',
+        completeModel: 'Modèle Complet',
+        completeModelDesc: 'Réglages + contenu complet',
+        cancel: 'Annuler'
+      },
+      loadChoice: {
+        title: 'Que souhaitez-vous ouvrir ?',
+        subtitle: 'Choisissez le type de fichier à charger',
+        config: 'Configuration',
+        configDesc: 'Charger un préréglage',
+        completeModel: 'Modèle Complet',
+        completeModelDesc: 'Charger modèle avec contenu',
+        storage: 'Stockage',
+        storageDesc: 'Gérer vos fichiers et images',
+        cancel: 'Annuler'
+      },
       save: {
         title: 'Enregistrer',
-        modelFolder: 'Dossier Modèles (stockage\\Modèles)',
-        publicationFolder: 'Dossier Publications (stockage\\Publications)',
+        modelFolder: 'Dossier Modèles',
+        publicationFolder: 'Dossier Publications',
+        myComputer: 'Mon ordinateur',
         modelName: 'Nom du modèle',
         publicationTitle: 'Titre de la publication',
+        fileNamePlaceholder: 'Nom du fichier (sans extension)',
+        zipDescription: 'Le fichier sera téléchargé au format ZIP avec le contenu et les pièces jointes',
         saveButton: 'Enregistrer',
+        saving: 'Enregistrement...',
+        cancel: 'Annuler'
+      },
+      openChoice: {
+        title: 'Ouvrir un document',
+        openModel: 'Ouvrir un modèle (stockage/Modèles)',
+        openPublication: 'Ouvrir une publication (stockage/Publications)',
+        myComputer: 'Mon ordinateur (.html ou .zip)',
         cancel: 'Annuler'
       },
       open: {
@@ -113,13 +144,44 @@ export const editorTranslations = {
       characters: 'characters'
     },
     modals: {
+      saveChoice: {
+        title: 'What would you like to save?',
+        subtitle: 'Choose the type of save',
+        config: 'Configuration',
+        configDesc: 'Settings only (without content)',
+        completeModel: 'Complete Model',
+        completeModelDesc: 'Settings + complete content',
+        cancel: 'Cancel'
+      },
+      loadChoice: {
+        title: 'What would you like to open?',
+        subtitle: 'Choose the type of file to load',
+        config: 'Configuration',
+        configDesc: 'Load a preset',
+        completeModel: 'Complete Model',
+        completeModelDesc: 'Load model with content',
+        storage: 'Storage',
+        storageDesc: 'Manage your files and images',
+        cancel: 'Cancel'
+      },
       save: {
         title: 'Save',
-        modelFolder: 'Models Folder (storage\\Models)',
-        publicationFolder: 'Publications Folder (storage\\Publications)',
+        modelFolder: 'Models Folder',
+        publicationFolder: 'Publications Folder',
+        myComputer: 'My Computer',
         modelName: 'Model name',
         publicationTitle: 'Publication title',
+        fileNamePlaceholder: 'File name (without extension)',
+        zipDescription: 'The file will be downloaded as ZIP with content and attachments',
         saveButton: 'Save',
+        saving: 'Saving...',
+        cancel: 'Cancel'
+      },
+      openChoice: {
+        title: 'Open a document',
+        openModel: 'Open a model (storage/Models)',
+        openPublication: 'Open a publication (storage/Publications)',
+        myComputer: 'My Computer (.html or .zip)',
         cancel: 'Cancel'
       },
       open: {
@@ -185,13 +247,44 @@ export const editorTranslations = {
       characters: 'caracteres'
     },
     modals: {
+      saveChoice: {
+        title: '¿Qué desea guardar?',
+        subtitle: 'Elija el tipo de guardado',
+        config: 'Configuración',
+        configDesc: 'Solo ajustes (sin contenido)',
+        completeModel: 'Modelo Completo',
+        completeModelDesc: 'Ajustes + contenido completo',
+        cancel: 'Cancelar'
+      },
+      loadChoice: {
+        title: '¿Qué desea abrir?',
+        subtitle: 'Elija el tipo de archivo a cargar',
+        config: 'Configuración',
+        configDesc: 'Cargar una preconfiguración',
+        completeModel: 'Modelo Completo',
+        completeModelDesc: 'Cargar modelo con contenido',
+        storage: 'Almacenamiento',
+        storageDesc: 'Gestionar sus archivos e imágenes',
+        cancel: 'Cancelar'
+      },
       save: {
         title: 'Guardar',
-        modelFolder: 'Carpeta Modelos (almacenamiento\\Modelos)',
-        publicationFolder: 'Carpeta Publicaciones (almacenamiento\\Publicaciones)',
+        modelFolder: 'Carpeta Modelos',
+        publicationFolder: 'Carpeta Publicaciones',
+        myComputer: 'Mi Ordenador',
         modelName: 'Nombre del modelo',
         publicationTitle: 'Título de la publicación',
+        fileNamePlaceholder: 'Nombre del archivo (sin extensión)',
+        zipDescription: 'El archivo se descargará en formato ZIP con el contenido y los archivos adjuntos',
         saveButton: 'Guardar',
+        saving: 'Guardando...',
+        cancel: 'Cancelar'
+      },
+      openChoice: {
+        title: 'Abrir un documento',
+        openModel: 'Abrir un modelo (almacenamiento/Modelos)',
+        openPublication: 'Abrir una publicación (almacenamiento/Publicaciones)',
+        myComputer: 'Mi Ordenador (.html o .zip)',
         cancel: 'Cancelar'
       },
       open: {
@@ -258,18 +351,50 @@ export const editorTranslations = {
       characters: 'characters'
     },
     modals: {
+      saveChoice: {
+        title: 'Was möchten Sie speichern?',
+        subtitle: 'Wählen Sie den Speichertyp',
+        config: 'Konfiguration',
+        configDesc: 'Nur Einstellungen (ohne Inhalt)',
+        completeModel: 'Vollständiges Modell',
+        completeModelDesc: 'Einstellungen + vollständiger Inhalt',
+        cancel: 'Abbrechen'
+      },
+      loadChoice: {
+        title: 'Was möchten Sie öffnen?',
+        subtitle: 'Wählen Sie den Dateityp zum Laden',
+        config: 'Konfiguration',
+        configDesc: 'Eine Voreinstellung laden',
+        completeModel: 'Vollständiges Modell',
+        completeModelDesc: 'Modell mit Inhalt laden',
+        storage: 'Speicher',
+        storageDesc: 'Verwalten Sie Ihre Dateien und Bilder',
+        cancel: 'Abbrechen'
+      },
       save: {
         title: 'Speichern',
-        modelFolder: 'Modellordner (speicher\\Modelle)',
-        publicationFolder: 'Publikationsordner (speicher\\Publikationen)',
+        modelFolder: 'Modellordner',
+        publicationFolder: 'Veröffentlichungsordner',
+        myComputer: 'Mein Computer',
         modelName: 'Modellname',
-        publicationTitle: 'Publikationstitel',
+        publicationTitle: 'Veröffentlichungstitel',
+        fileNamePlaceholder: 'Dateiname (ohne Erweiterung)',
+        zipDescription: 'Die Datei wird als ZIP mit Inhalt und Anhängen heruntergeladen',
         saveButton: 'Speichern',
+        saving: 'Speichern...',
+        cancel: 'Abbrechen'
+      },
+      openChoice: {
+        title: 'Ein Dokument öffnen',
+        openModel: 'Ein Modell öffnen (speicher/Modelle)',
+        openPublication: 'Eine Publikation öffnen (speicher/Publikationen)',
+        myComputer: 'Mein Computer (.html oder .zip)',
         cancel: 'Abbrechen'
       },
       open: {
         title: 'Öffnen',
         openModel: 'Ein Modell öffnen',
+        openFromExplorer: 'Aus Explorer öffnen (Veröffentlichungen)',
         openFromExplorer: 'Aus Explorer öffnen (Publikationen)',
         close: 'Schließen'
       },

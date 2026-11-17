@@ -25,8 +25,8 @@ Le système d'authentification utilise **localStorage** pour stocker les utilisa
 ## 👤 Compte Administrateur (Créé automatiquement)
 
 ### Identifiants :
-- **Email** : `admin@studioducapbrun.com`
-- **Mot de passe** : `AdminStudio2025!`
+- **Email** : `admin@assistant-redacteur.fr`
+- **Mot de passe** : `AdminRedacteur2025!`
 - **Rôle** : Administrateur
 - **Privilèges** : Accès complet à toutes les fonctionnalités
 

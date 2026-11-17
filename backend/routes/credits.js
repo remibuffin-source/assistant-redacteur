@@ -1,9 +1,9 @@
 import express from 'express';
-import User from '../models/User.js';
-import Usage from '../models/Usage.js';
+import { User, CreditHistory, sequelize } from '../models/index.sequelize.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { RECHARGE_OFFERS } from '../config/creditCosts.js';
+import { getRechargeOffers } from '../utils/creditCalculator.js';
 import { logger } from '../utils/logger.js';
+import { Op } from 'sequelize';
 
 const router = express.Router();
 
@@ -15,9 +15,16 @@ const router = express.Router();
 router.get('/balance', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id || req.user.email;
+    
     const user = await User.findOne({ 
-      $or: [{ _id: userId }, { email: userId }] 
-    }).select('credits');
+      where: {
+        [Op.or]: [
+          { id: userId },
+          { email: userId }
+        ]
+      },
+      attributes: ['creditsBalance', 'creditsTotalPurchased', 'creditsTotalUsed', 'creditsLastRecharge']
+    });
     
     if (!user) {
       return res.status(404).json({
@@ -29,10 +36,10 @@ router.get('/balance', authenticateToken, async (req, res) => {
     res.json({
       success: true,
       credits: {
-        balance: user.credits.balance,
-        totalPurchased: user.credits.totalPurchased,
-        totalUsed: user.credits.totalUsed,
-        lastRecharge: user.credits.lastRecharge
+        balance: user.creditsBalance,
+        totalPurchased: user.creditsTotalPurchased,
+        totalUsed: user.creditsTotalUsed,
+        lastRecharge: user.creditsLastRecharge
       }
     });
   } catch (error) {
@@ -54,11 +61,17 @@ router.get('/history', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id || req.user.email;
     const limit = parseInt(req.query.limit) || 50;
-    const skip = parseInt(req.query.skip) || 0;
+    const offset = parseInt(req.query.skip) || 0;
     
+    // Trouver l'utilisateur
     const user = await User.findOne({ 
-      $or: [{ _id: userId }, { email: userId }] 
-    }).select('credits.history');
+      where: {
+        [Op.or]: [
+          { id: userId },
+          { email: userId }
+        ]
+      }
+    });
     
     if (!user) {
       return res.status(404).json({
@@ -67,17 +80,20 @@ router.get('/history', authenticateToken, async (req, res) => {
       });
     }
     
-    // Trier par date décroissante et paginer
-    const history = user.credits.history
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(skip, skip + limit);
+    // Récupérer l'historique
+    const { count, rows: history } = await CreditHistory.findAndCountAll({
+      where: { userId: user.id },
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset
+    });
     
     res.json({
       success: true,
       history,
-      total: user.credits.history.length,
+      total: count,
       limit,
-      skip
+      skip: offset
     });
   } catch (error) {
     logger.error('Error fetching credit history:', error);
@@ -100,8 +116,17 @@ router.get('/usage', authenticateToken, async (req, res) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     
-    const stats = await Usage.getUserStats(userId, startDate, endDate);
-    const recentUsage = await Usage.getRecentUsage(userId, 10);
+    // Pour l'instant, retourner des statistiques basiques
+    // TODO: Implémenter le modèle Usage en Sequelize
+    const stats = {
+      totalCredits: 0,
+      totalTokens: 0,
+      totalOperations: 0,
+      totalCost: 0,
+      byService: []
+    };
+    
+    const recentUsage = [];
     
     res.json({
       success: true,
@@ -125,9 +150,10 @@ router.get('/usage', authenticateToken, async (req, res) => {
  */
 router.get('/offers', authenticateToken, async (req, res) => {
   try {
+    const offers = await getRechargeOffers();
     res.json({
       success: true,
-      offers: RECHARGE_OFFERS
+      offers: offers
     });
   } catch (error) {
     logger.error('Error fetching recharge offers:', error);
@@ -167,7 +193,12 @@ router.post('/add', authenticateToken, async (req, res) => {
     }
     
     const user = await User.findOne({ 
-      $or: [{ _id: userId }, { email: userId }] 
+      where: {
+        [Op.or]: [
+          { id: userId },
+          { email: userId }
+        ]
+      }
     });
     
     if (!user) {
@@ -178,14 +209,12 @@ router.post('/add', authenticateToken, async (req, res) => {
     }
     
     // Ajouter les crédits
-    const newBalance = user.addCredits(
+    const newBalance = await user.addCredits(
       amount, 
       type || 'purchase', 
       description || `Recharge de ${amount} crédits`,
       metadata || {}
     );
-    
-    await user.save();
     
     logger.info(`Added ${amount} credits to user ${userId}. New balance: ${newBalance}`);
     
@@ -194,9 +223,9 @@ router.post('/add', authenticateToken, async (req, res) => {
       message: `${amount} crédits ajoutés avec succès`,
       newBalance,
       credits: {
-        balance: user.credits.balance,
-        totalPurchased: user.credits.totalPurchased,
-        totalUsed: user.credits.totalUsed
+        balance: user.creditsBalance,
+        totalPurchased: user.creditsTotalPurchased,
+        totalUsed: user.creditsTotalUsed
       }
     });
   } catch (error) {
@@ -226,21 +255,26 @@ router.get('/admin/users', authenticateToken, async (req, res) => {
       });
     }
     
-    const users = await User.find()
-      .select('email name credits.balance credits.totalPurchased credits.totalUsed credits.lastRecharge createdAt')
-      .sort({ 'credits.totalUsed': -1 })
-      .limit(100);
+    const users = await User.findAll({
+      attributes: [
+        'id', 'email', 'name', 
+        'creditsBalance', 'creditsTotalPurchased', 'creditsTotalUsed', 
+        'creditsLastRecharge', 'createdAt'
+      ],
+      order: [['creditsTotalUsed', 'DESC']],
+      limit: 100
+    });
     
     res.json({
       success: true,
       users: users.map(u => ({
-        id: u._id,
+        id: u.id,
         email: u.email,
         name: u.name,
-        balance: u.credits.balance,
-        totalPurchased: u.credits.totalPurchased,
-        totalUsed: u.credits.totalUsed,
-        lastRecharge: u.credits.lastRecharge,
+        balance: u.creditsBalance,
+        totalPurchased: u.creditsTotalPurchased,
+        totalUsed: u.creditsTotalUsed,
+        lastRecharge: u.creditsLastRecharge,
         createdAt: u.createdAt
       }))
     });
@@ -271,45 +305,21 @@ router.get('/admin/stats', authenticateToken, async (req, res) => {
       });
     }
     
-    // Statistiques globales
-    const totalUsers = await User.countDocuments();
-    const usersWithCredits = await User.countDocuments({ 'credits.balance': { $gt: 0 } });
+    // Statistiques globales avec Sequelize
+    const totalUsers = await User.count();
+    const usersWithCredits = await User.count({ 
+      where: { creditsBalance: { [Op.gt]: 0 } }
+    });
     
-    const creditStats = await User.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalBalance: { $sum: '$credits.balance' },
-          totalPurchased: { $sum: '$credits.totalPurchased' },
-          totalUsed: { $sum: '$credits.totalUsed' }
-        }
-      }
-    ]);
-    
-    const usageStats = await Usage.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalOperations: { $sum: 1 },
-          totalTokens: { $sum: '$tokensUsed.total' },
-          totalCredits: { $sum: '$creditsDeducted' }
-        }
-      }
-    ]);
-    
-    // Top services utilisés
-    const topServices = await Usage.aggregate([
-      {
-        $group: {
-          _id: '$service',
-          count: { $sum: 1 },
-          totalCredits: { $sum: '$creditsDeducted' },
-          totalTokens: { $sum: '$tokensUsed.total' }
-        }
-      },
-      { $sort: { totalCredits: -1 } },
-      { $limit: 10 }
-    ]);
+    // Agrégation des crédits
+    const creditStats = await User.findOne({
+      attributes: [
+        [sequelize.fn('SUM', sequelize.col('creditsBalance')), 'totalBalance'],
+        [sequelize.fn('SUM', sequelize.col('creditsTotalPurchased')), 'totalPurchased'],
+        [sequelize.fn('SUM', sequelize.col('creditsTotalUsed')), 'totalUsed']
+      ],
+      raw: true
+    });
     
     res.json({
       success: true,
@@ -318,9 +328,9 @@ router.get('/admin/stats', authenticateToken, async (req, res) => {
           total: totalUsers,
           withCredits: usersWithCredits
         },
-        credits: creditStats[0] || { totalBalance: 0, totalPurchased: 0, totalUsed: 0 },
-        usage: usageStats[0] || { totalOperations: 0, totalTokens: 0, totalCredits: 0 },
-        topServices
+        credits: creditStats || { totalBalance: 0, totalPurchased: 0, totalUsed: 0 },
+        usage: { totalOperations: 0, totalTokens: 0, totalCredits: 0 }, // TODO: Implémenter Usage
+        topServices: [] // TODO: Implémenter Usage
       }
     });
   } catch (error) {
@@ -351,39 +361,31 @@ router.get('/admin/monthly-sales', authenticateToken, async (req, res) => {
     }
     
     // Agrégation des ventes par mois (12 derniers mois)
-    const monthlySales = await User.aggregate([
-      {
-        $unwind: '$credits.history'
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    
+    const monthlySales = await CreditHistory.findAll({
+      attributes: [
+        [sequelize.fn('YEAR', sequelize.col('createdAt')), 'year'],
+        [sequelize.fn('MONTH', sequelize.col('createdAt')), 'month'],
+        [sequelize.fn('SUM', sequelize.col('amount')), 'totalCredits'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'totalTransactions']
+      ],
+      where: {
+        type: { [Op.in]: ['purchase', 'recharge'] },
+        createdAt: { [Op.gte]: twelveMonthsAgo }
       },
-      {
-        $match: {
-          'credits.history.type': { $in: ['purchase', 'recharge'] },
-          'credits.history.date': {
-            $gte: new Date(new Date().setMonth(new Date().getMonth() - 12))
-          }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$credits.history.date' },
-            month: { $month: '$credits.history.date' }
-          },
-          totalCredits: { $sum: '$credits.history.amount' },
-          totalTransactions: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { '_id.year': 1, '_id.month': 1 }
-      }
-    ]);
+      group: ['year', 'month'],
+      order: [[sequelize.fn('YEAR', sequelize.col('createdAt')), 'ASC'], [sequelize.fn('MONTH', sequelize.col('createdAt')), 'ASC']],
+      raw: true
+    });
     
     // Formater les données pour le graphique
     const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     const formattedData = monthlySales.map(item => ({
-      month: `${monthNames[item._id.month - 1]} ${item._id.year}`,
-      credits: item.totalCredits,
-      transactions: item.totalTransactions
+      month: `${monthNames[item.month - 1]} ${item.year}`,
+      credits: parseFloat(item.totalCredits) || 0,
+      transactions: parseInt(item.totalTransactions) || 0
     }));
     
     res.json({

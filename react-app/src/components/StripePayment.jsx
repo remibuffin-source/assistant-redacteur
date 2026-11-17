@@ -23,8 +23,8 @@ const CheckoutForm = ({ amount, onSuccess, onError }) => {
 
     try {
       // Créer un PaymentIntent
-      const stripeBackendUrl = import.meta.env.VITE_STRIPE_BACKEND_URL || 'http://localhost:3005';
-      const response = await fetch(`${stripeBackendUrl}/api/create-payment-intent`, {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+      const response = await fetch(`${backendUrl}/stripe/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

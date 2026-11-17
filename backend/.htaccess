@@ -1,0 +1,31 @@
+# Passenger configuration
+PassengerEnabled on
+PassengerAppRoot /home/bure7653/assistant-redacteur/backend
+PassengerAppType node
+PassengerStartupFile server.js
+PassengerNodejs /home/bure7653/nodevenv/assistant-redacteur/backend/20/bin/node
+
+# Base URI pour l'API
+PassengerBaseURI /api
+
+# Réécriture d'URL pour router toutes les requêtes /api vers l'app Node.js
+RewriteEngine On
+RewriteBase /
+
+# Ne pas réécrire les fichiers statiques existants
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Router toutes les requêtes /api vers l'application Node.js
+RewriteCond %{REQUEST_URI} ^/api
+RewriteRule ^(.*)$ /api/$1 [L,QSA]
+
+# Headers CORS
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept"
+Header always set Access-Control-Max-Age "3600"
+
+# Répondre aux requêtes OPTIONS (preflight)
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=204,L]

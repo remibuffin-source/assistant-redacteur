@@ -5,7 +5,7 @@ import { body } from 'express-validator';
 import { authenticateToken } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 import User from '../models/User.js';
-import SocialAccount from '../models/SocialAccount.js';
+import SocialAccount from '../models/SocialAccount.sequelize.js';
 import { logger } from '../utils/logger.js';
 
 const router = express.Router();

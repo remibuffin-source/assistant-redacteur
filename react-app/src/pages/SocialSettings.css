@@ -1,0 +1,130 @@
+.social-settings-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+}
+
+.social-settings-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.social-settings-header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.social-settings-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.social-settings-header p {
+  margin: 0;
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.social-settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.social-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.social-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.social-section.coming-soon {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.social-section.coming-soon:hover {
+  transform: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.section-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+}
+
+.facebook-icon {
+  background: linear-gradient(135deg, #1877f2 0%, #0d5dba 100%);
+}
+
+.twitter-icon {
+  background: linear-gradient(135deg, #1da1f2 0%, #0c85d0 100%);
+}
+
+.linkedin-icon {
+  background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+}
+
+.section-info h2 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  color: #2c3e50;
+}
+
+.section-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.section-content {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .social-settings-page {
+    padding: 20px 10px;
+  }
+
+  .social-settings-header h1 {
+    font-size: 28px;
+  }
+
+  .social-settings-header p {
+    font-size: 16px;
+  }
+
+  .social-section {
+    padding: 16px;
+  }
+
+  .section-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .section-info h2 {
+    font-size: 18px;
+  }
+}

@@ -6,6 +6,8 @@ import { useAssistantAutoSave } from '../hooks/useLocalStorage';
 import { getEditorText } from '../i18n/editorTranslations';
 import MenuBar from './MenuBar';
 import StorageManager from '../utils/StorageManager';
+import StorageManagerAPI from '../utils/StorageManagerAPI';
+import { contentModelsApi } from '../services/storageApi';
 import './ContentEditor.css';
 
 const ContentEditorFixed = () => {
@@ -33,7 +35,15 @@ const ContentEditorFixed = () => {
   const [savedModels, setSavedModels] = useState([]);
   const [showOpenPublications, setShowOpenPublications] = useState(false);
   const [savedPublicationsList, setSavedPublicationsList] = useState([]);
-  const [saveDestination, setSaveDestination] = useState('model'); // 'model' | 'publication'
+  const [saveDestination, setSaveDestination] = useState('model'); // 'model' | 'publication' | 'local'
+  const [selectedModels, setSelectedModels] = useState([]); // Sélection multiple modèles
+  const [editingModelId, setEditingModelId] = useState(null); // Modèle en cours de renommage
+  const [editingModelName, setEditingModelName] = useState(''); // Nouveau nom
+  const [isLoadingModel, setIsLoadingModel] = useState(false); // État de chargement
+  const [loadingModelId, setLoadingModelId] = useState(null); // ID du modèle en cours de chargement
+  const [isPublishing, setIsPublishing] = useState(false); // État de publication (Diffusion)
+  const [isSendingEmail, setIsSendingEmail] = useState(false); // État d'envoi email
+  const [attachedFiles, setAttachedFiles] = useState([]); // Pièces jointes
   const textareaRef = useRef(null);
   const openFileRef = useRef(null);
   const [showOpenChoice, setShowOpenChoice] = useState(false);
@@ -147,20 +157,122 @@ const ContentEditorFixed = () => {
       // Appliquer LTR après injection
       setTimeout(() => enforceLTRInNode(textareaRef.current), 0);
     }
+    
+    // Gérer l'insertion d'image depuis Home
+    if (location.state && location.state.imageToInsert) {
+      const imageData = location.state.imageToInsert;
+      // Utiliser la vignette pour l'affichage dans l'éditeur, avec lien vers l'original
+      const displayUrl = imageData.vignetteUrl || imageData.imageUrl;
+      const imageHtml = `<div class="editor-image-container" style="text-align: center; margin: 20px 0;">
+        <a href="${imageData.imageUrl}" target="_blank" title="Cliquer pour voir l'image en taille réelle">
+          <img src="${displayUrl}" alt="Image générée" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" data-full-url="${imageData.imageUrl}" />
+        </a>
+      </div><br>`;
+      setContent(prev => prev + imageHtml);
+      setFileName(`Image-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}`);
+      
+      // Auto-resize : s'assurer que la zone d'édition s'adapte à l'image
+      const resizeEditor = () => {
+        if (textareaRef.current) {
+          textareaRef.current.style.minHeight = 'auto';
+          textareaRef.current.style.minHeight = Math.max(400, textareaRef.current.scrollHeight + 100) + 'px';
+        }
+      };
+      // Resize immédiat + après chargement image
+      setTimeout(resizeEditor, 100);
+      setTimeout(resizeEditor, 500);
+      setTimeout(resizeEditor, 1000);
+    }
+    
+    // Vérifier aussi le localStorage pour les images en attente
+    const pendingImage = localStorage.getItem('pendingEditorImage');
+    if (pendingImage && !location.state?.imageToInsert) {
+      try {
+        const imageData = JSON.parse(pendingImage);
+        const displayUrl = imageData.vignetteUrl || imageData.imageUrl;
+        const imageHtml = `<div class="editor-image-container" style="text-align: center; margin: 20px 0;">
+          <a href="${imageData.imageUrl}" target="_blank" title="Cliquer pour voir l'image en taille réelle">
+            <img src="${displayUrl}" alt="Image générée" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer;" data-full-url="${imageData.imageUrl}" />
+          </a>
+        </div><br>`;
+        setContent(prev => prev + imageHtml);
+        setFileName(`Image-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}`);
+        localStorage.removeItem('pendingEditorImage');
+        
+        // Auto-resize avec plusieurs délais
+        const resizeEditor = () => {
+          if (textareaRef.current) {
+            textareaRef.current.style.minHeight = 'auto';
+            textareaRef.current.style.minHeight = Math.max(400, textareaRef.current.scrollHeight + 100) + 'px';
+          }
+        };
+        setTimeout(resizeEditor, 100);
+        setTimeout(resizeEditor, 500);
+        setTimeout(resizeEditor, 1000);
+      } catch (e) {
+        console.error('Erreur parsing pendingEditorImage:', e);
+      }
+    }
   }, [location.state]);
 
-  // Forcer le rechargement des styles
+  // Sauvegarde automatique temporaire de l'éditeur (avec pièces jointes)
   useEffect(() => {
-    // Forcer un re-render pour s'assurer que les styles sont appliqués
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/src/components/ContentEditor.css?v=' + Date.now();
-    document.head.appendChild(link);
+    // Sérialiser les pièces jointes (sans les objets File non sérialisables)
+    const serializableFiles = attachedFiles.map(f => ({
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      url: f.url || f.base64 || null
+    })).filter(f => f.url); // Garder seulement ceux avec une URL
     
-    return () => {
-      document.head.removeChild(link);
+    const tempData = {
+      content,
+      fileName,
+      attachedFiles: serializableFiles,
+      savedAt: new Date().toISOString()
     };
+    try {
+      localStorage.setItem('assistantRedacteur_temp_editor', JSON.stringify(tempData));
+    } catch (e) {
+      // Si trop gros, sauvegarder sans les fichiers
+      const lightData = { content, fileName, attachedFiles: [], savedAt: new Date().toISOString() };
+      localStorage.setItem('assistantRedacteur_temp_editor', JSON.stringify(lightData));
+    }
+  }, [content, fileName, attachedFiles]);
+
+  // Restaurer les données temporaires de l'éditeur au chargement
+  useEffect(() => {
+    // Ne pas restaurer si on a des données entrantes (location.state ou sessionStorage)
+    const sessionData = sessionStorage.getItem('editorData');
+    const pendingImage = localStorage.getItem('pendingEditorImage');
+    
+    if (!location.state?.content && !location.state?.imageToInsert && !sessionData && !pendingImage) {
+      const tempData = localStorage.getItem('assistantRedacteur_temp_editor');
+      if (tempData) {
+        try {
+          const parsed = JSON.parse(tempData);
+          const savedAt = new Date(parsed.savedAt);
+          const now = new Date();
+          const hoursDiff = (now - savedAt) / (1000 * 60 * 60);
+          
+          // Ne restaurer que si les données sont récentes (moins de 48h) et non vides
+          if (hoursDiff < 48 && parsed.content && parsed.content.trim()) {
+            setContent(parsed.content);
+            if (parsed.fileName) setFileName(parsed.fileName);
+            if (parsed.attachedFiles && parsed.attachedFiles.length > 0) {
+              setAttachedFiles(parsed.attachedFiles);
+            }
+            console.log('✅ Contenu éditeur restauré depuis la dernière session');
+          }
+        } catch (e) {
+          console.warn('Impossible de restaurer les données éditeur:', e);
+        }
+      }
+    }
   }, []);
+
+  // Les styles CSS sont déjà importés via l'import en haut du fichier
+  // Pas besoin de useEffect pour les charger dynamiquement
 
   const htmlToPlainText = (html) => {
     try {
@@ -729,35 +841,105 @@ const ContentEditorFixed = () => {
       return;
     }
 
-    const result = await StorageManager.saveContentModel(modelName, content, 'text');
-    
-    if (result.success) {
-      alert(result.message);
-      setShowSaveModal(false);
-      setModelName('');
-    } else {
-      alert(result.message);
+    setIsSaving(true);
+
+    try {
+      // Sauvegarder le modèle via l'API
+      const result = await StorageManagerAPI.saveContentModel(modelName, content, 'text');
+      
+      if (result.success) {
+        // Si des fichiers sont attachés, les uploader
+        if (attachedFiles.length > 0 && result.data?.id) {
+          for (const fileData of attachedFiles) {
+            await StorageManagerAPI.uploadFileToContentModel(result.data.id, fileData.file);
+          }
+        }
+        
+        alert(result.message);
+        setShowSaveModal(false);
+        setModelName('');
+        setAttachedFiles([]); // Réinitialiser les fichiers attachés
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error('Erreur sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde du modèle');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleLoadModels = () => {
-    const models = StorageManager.getSavedModels();
-    setSavedModels(models);
-    setShowLoadModal(true);
+  const handleLoadModels = async () => {
+    try {
+      console.log('🔵 [STEP 1] Début handleLoadModels');
+      const models = await StorageManagerAPI.getSavedContentModels();
+      console.log('🔵 [STEP 2] Modèles reçus:', models);
+      console.log('🔵 [STEP 2.1] Nombre de modèles:', models?.length);
+      console.log('🔵 [STEP 2.2] Premier modèle:', models?.[0]);
+      setSavedModels(models);
+      console.log('🔵 [STEP 3] setSavedModels appelé');
+      setShowLoadModal(true);
+      console.log('🔵 [STEP 4] Modal ouvert');
+    } catch (error) {
+      console.error('❌ [ERROR] Erreur chargement modèles:', error);
+      alert('Erreur lors du chargement des modèles: ' + error.message);
+    }
   };
 
-  const handleLoadModel = (model) => {
-    setContent(model.content);
-    setFileName(model.name);
-    setShowLoadModal(false);
+  const handleLoadModel = async (model) => {
+    setIsLoadingModel(true);
+    setLoadingModelId(model.id);
+    
+    try {
+      console.log('🟢 [LOAD] Début handleLoadModel');
+      
+      setContent(model.content);
+      setFileName(model.name);
+      
+      // Charger les fichiers attachés si présents
+      if (model.files && model.files.length > 0) {
+        const filesData = model.files.map(f => ({
+          name: f.originalName,
+          size: f.fileSize,
+          type: f.mimeType,
+          file: null,
+          id: f.id,
+          url: f.filePath
+        }));
+        setAttachedFiles(filesData);
+      } else {
+        setAttachedFiles([]);
+      }
+      
+      setShowLoadModal(false);
+      alert('✅ Modèle chargé avec succès!');
+    } catch (error) {
+      console.error('❌ [LOAD ERROR] Erreur chargement modèle:', error);
+      alert('Erreur lors du chargement du modèle: ' + error.message);
+    } finally {
+      setIsLoadingModel(false);
+      setLoadingModelId(null);
+    }
   };
 
-  const handleDeleteModel = (modelTimestamp) => {
+  const handleDeleteModel = async (modelId) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce modèle ?')) {
-      // Simulation de suppression
-      const updatedModels = savedModels.filter(m => m.timestamp !== modelTimestamp);
-      setSavedModels(updatedModels);
-      // En production, cela appellerait StorageManager.deleteContentModel
+      try {
+        const result = await StorageManagerAPI.deleteContentModel(modelId);
+        
+        if (result.success) {
+          // Rafraîchir la liste
+          const models = await StorageManagerAPI.getSavedContentModels();
+          setSavedModels(models);
+          alert('Modèle supprimé avec succès');
+        } else {
+          alert(result.message);
+        }
+      } catch (error) {
+        console.error('Erreur suppression:', error);
+        alert('Erreur lors de la suppression du modèle');
+      }
     }
   };
 
@@ -767,12 +949,39 @@ const ContentEditorFixed = () => {
   };
 
   const handleOpenPublicationSelect = (pub) => {
+    console.log('🟡 [PUB LOAD] Début handleOpenPublicationSelect');
+    console.log('🟡 [PUB LOAD] Publication reçue:', pub);
+    console.log('🟡 [PUB LOAD] pub.content:', pub.content);
+    console.log('🟡 [PUB LOAD] pub.title:', pub.title);
     setContent(pub.content || '');
+    console.log('🟡 [PUB LOAD] setContent appelé');
     setFileName(pub.title || '');
+    console.log('🟡 [PUB LOAD] setFileName appelé');
     setShowOpenPublications(false);
+    console.log('🟡 [PUB LOAD] Modal fermé - Publication chargée ✅');
+    alert('✅ Publication chargée avec succès!');
   };
 
-  const openFromExplorer = () => {
+  // --- Ouvrir une publication
+  const handleLoadPublications = async () => {
+    try {
+      console.log('🟠 [PUB STEP 1] Début handleLoadPublications');
+      const publications = await StorageManagerAPI.getSavedPublications();
+      console.log('🟠 [PUB STEP 2] Publications reçues:', publications);
+      console.log('🟠 [PUB STEP 2.1] Nombre de publications:', publications?.length);
+      console.log('🟠 [PUB STEP 2.2] Première publication:', publications?.[0]);
+      setSavedPublicationsList(publications);
+      console.log('🟠 [PUB STEP 3] setSavedPublicationsList appelé');
+      setShowOpenPublications(true);
+      console.log('🟠 [PUB STEP 4] Modal ouvert');
+    } catch (error) {
+      console.error('❌ [PUB ERROR] Erreur chargement publications:', error);
+      alert('Erreur lors du chargement des publications: ' + error.message);
+    }
+  };
+
+  // --- Ouvrir depuis l'ordinateur local (HTML ou ZIP)
+  const openFromLocalComputer = () => {
     setShowOpenChoice(false);
     openFileRef.current?.click();
   };
@@ -786,6 +995,8 @@ const ContentEditorFixed = () => {
   const handleSendEmail = async () => {
     const editor = textareaRef.current;
     if (!editor) return;
+    
+    setIsSendingEmail(true);
 
     // Fonction pour convertir HTML en texte formaté avec retours à la ligne
     const htmlToFormattedText = (htmlContent) => {
@@ -835,10 +1046,14 @@ const ContentEditorFixed = () => {
     
     try {
       // Envoyer l'email via l'API backend
-      const response = await fetch('http://localhost:3001/api/send-email', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.assistant-redacteur.fr';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/email/send-email`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
         body: JSON.stringify({
           to: emailRecipients.trim(),
@@ -866,12 +1081,72 @@ const ContentEditorFixed = () => {
         'Détails : ' + error.message + '\n\n' +
         'Vérifiez que le serveur backend est démarré.'
       );
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
-  const handleExplorerChange = (e) => {
+  const handleExplorerChange = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    
+    // Gérer les fichiers ZIP
+    if (file.name.toLowerCase().endsWith('.zip')) {
+      try {
+        const JSZip = (await import('jszip')).default;
+        const zip = await JSZip.loadAsync(file);
+        
+        // Chercher le fichier HTML principal
+        let htmlFile = null;
+        let htmlContent = '';
+        
+        for (const [filename, zipEntry] of Object.entries(zip.files)) {
+          if (filename.endsWith('.html') && !filename.includes('/')) {
+            htmlFile = filename;
+            htmlContent = await zipEntry.async('string');
+            break;
+          }
+        }
+        
+        if (htmlContent) {
+          setFileName(htmlFile.replace('.html', ''));
+          setContent(htmlContent);
+          
+          // Charger les pièces jointes
+          const attachments = [];
+          for (const [filename, zipEntry] of Object.entries(zip.files)) {
+            if (filename.startsWith('attachments/') && !zipEntry.dir) {
+              const blob = await zipEntry.async('blob');
+              const attachmentName = filename.replace('attachments/', '');
+              attachments.push({
+                id: Date.now() + Math.random(),
+                name: attachmentName,
+                size: blob.size,
+                type: blob.type,
+                file: new File([blob], attachmentName, { type: blob.type }),
+                addedAt: new Date().toISOString()
+              });
+            }
+          }
+          
+          if (attachments.length > 0) {
+            setAttachedFiles(attachments);
+            alert(`Fichier chargé avec ${attachments.length} pièce(s) jointe(s)`);
+          }
+          
+          setTimeout(() => enforceLTRInNode(textareaRef.current), 0);
+        } else {
+          alert('Aucun fichier HTML trouvé dans le ZIP');
+        }
+      } catch (err) {
+        console.error('Erreur lecture ZIP:', err);
+        alert('Impossible de lire le fichier ZIP');
+      }
+      e.target.value = '';
+      return;
+    }
+    
+    // Gérer les fichiers normaux (JSON, TXT, HTML)
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
@@ -899,8 +1174,49 @@ const ContentEditorFixed = () => {
       }
     };
     reader.readAsText(file);
-    // reset to allow selecting the same file again later
     e.target.value = '';
+  };
+
+  // --- Export local avec pièces jointes
+  const handleLocalExport = async () => {
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      const exportFileName = fileName || 'publication';
+      
+      // Ajouter le contenu principal
+      zip.file(`${exportFileName}.html`, content);
+      
+      // Ajouter les pièces jointes si elles existent
+      if (attachedFiles && attachedFiles.length > 0) {
+        const attachmentsFolder = zip.folder('attachments');
+        
+        for (const attachment of attachedFiles) {
+          if (attachment.file) {
+            const fileData = await attachment.file.arrayBuffer();
+            attachmentsFolder.file(attachment.name, fileData);
+          }
+        }
+      }
+      
+      // Générer le ZIP et le télécharger
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${exportFileName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      setShowSaveModal(false);
+      alert('Fichier téléchargé avec succès !');
+    } catch (error) {
+      console.error('Erreur export local:', error);
+      alert('Erreur lors de l\'export: ' + error.message);
+    }
   };
 
   // --- Enregistrer: dispatcher vers Modèles ou Publications
@@ -910,33 +1226,47 @@ const ContentEditorFixed = () => {
       return;
     }
 
-    if (saveDestination === 'model') {
-      if (!modelName.trim()) {
-        alert('Veuillez saisir un nom pour le modèle');
-        return;
-      }
-      const result = await StorageManager.saveContentModel(modelName, content, 'text');
-      if (result.success) {
-        alert(result.message);
-        setShowSaveModal(false);
-        setModelName('');
-      } else {
-        alert(result.message);
-      }
-    } else {
-      const title = fileName || 'Publication sans titre';
-      const result = await StorageManager.saveScheduledPublication(
-        title,
-        content,
-        new Date().toISOString(),
-        ['web']
-      );
-      if (result.success) {
-        alert(`Publication "${title}" enregistrée dans Publications`);
+    setIsSaving(true);
+
+    try {
+      if (saveDestination === 'model') {
+        if (!modelName.trim()) {
+          alert('Veuillez saisir un nom pour le modèle');
+          setIsSaving(false);
+          return;
+        }
+        const result = await StorageManagerAPI.saveContentModel(modelName, content, 'text');
+        if (result.success) {
+          alert(result.message);
+          setShowSaveModal(false);
+          setModelName('');
+        } else {
+          alert(result.message);
+        }
+      } else if (saveDestination === 'local') {
+        // Export local avec pièces jointes
+        await handleLocalExport();
         setShowSaveModal(false);
       } else {
-        alert(result.message);
+        const title = fileName || 'Publication sans titre';
+        const result = await StorageManagerAPI.saveScheduledPublication(
+          title,
+          content,
+          new Date().toISOString(),
+          ['web']
+        );
+        if (result.success) {
+          alert(`Publication "${title}" enregistrée dans Publications`);
+          setShowSaveModal(false);
+        } else {
+          alert(result.message);
+        }
       }
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement:', error);
+      alert('Erreur lors de l\'enregistrement: ' + error.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -953,27 +1283,29 @@ const ContentEditorFixed = () => {
       return;
     }
     
+    setIsPublishing(true);
+    
     const publicationTitle = fileName || 'Publication sans titre';
     // Préserver le HTML (avec <br>) pour la diffusion et l'enregistrement
     const currentHtml = textareaRef.current?.innerHTML ?? content;
+    const publishDate = new Date().toISOString();
     
     try {
-      // Sauvegarder automatiquement dans le dossier "Publications"
-      const result = await StorageManager.saveScheduledPublication(
+      // Sauvegarder dans MySQL via l'API
+      const result = await StorageManagerAPI.saveScheduledPublication(
         publicationTitle,
         currentHtml,
-        new Date().toISOString(), // Date de création
-        ['web'] // Plateformes par défaut
+        publishDate,
+        ['web']
       );
-      
+
       if (result.success) {
-        // Stocker temporairement les données pour la nouvelle fenêtre calendrier
         const payload = {
-          content: currentHtml,
           title: publicationTitle,
-          type: 'publication',
-          fromEditor: true,
-          publicationId: result.timestamp || Date.now()
+          content: currentHtml,
+          publishDate,
+          platforms: ['web'],
+          publicationId: result.data?.id || Date.now()
         };
         try {
           localStorage.setItem('editor_to_calendar', JSON.stringify(payload));
@@ -987,6 +1319,8 @@ const ContentEditorFixed = () => {
     } catch (error) {
       console.error('Erreur lors de la publication:', error);
       alert('Erreur lors de la sauvegarde de la publication');
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -1006,7 +1340,7 @@ const ContentEditorFixed = () => {
                 <i className="fas fa-folder-open"></i>
                 {t('buttons.open')}
               </button>
-              <button className="btn-header" onClick={handleLoadModels}>
+              <button className="btn-header" onClick={handleOpenPublications}>
                 <i className="fas fa-folder-open"></i>
                 {t('buttons.model')}
               </button>
@@ -1247,7 +1581,7 @@ const ContentEditorFixed = () => {
               type="file"
               ref={openFileRef}
               style={{ display: 'none' }}
-              accept=".json,.txt,.html,text/*"
+              accept=".json,.txt,.html,.zip,text/*,application/zip"
               onChange={handleExplorerChange}
             />
 
@@ -1299,9 +1633,23 @@ const ContentEditorFixed = () => {
               
               {/* Bouton Diffusion sur la même ligne */}
               <div className="diffusion-section">
-                <button className="btn-publish-inline" onClick={handlePublish}>
-                  <i className="fas fa-paper-plane"></i>
-                  {t('buttons.publish')}
+                <button 
+                  className="btn-publish-inline" 
+                  onClick={handlePublish}
+                  disabled={isPublishing}
+                  style={{ opacity: isPublishing ? 0.7 : 1 }}
+                >
+                  {isPublishing ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin"></i>
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-paper-plane"></i>
+                      {t('buttons.publish')}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -1321,24 +1669,33 @@ const ContentEditorFixed = () => {
         <div className="modal-overlay" onClick={() => setShowSaveModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>{t('modals.save.title')}</h3>
-            <div style={{ display: 'flex', gap: '12px', marginBottom: 12 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: 12, flexWrap: 'nowrap', alignItems: 'center' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
                 <input
                   type="radio"
                   name="saveDest"
                   checked={saveDestination === 'model'}
                   onChange={() => setSaveDestination('model')}
                 />
-                {t('modals.save.modelFolder')}
+                <span style={{ fontSize: '14px' }}>{t('modals.save.modelFolder')}</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
                 <input
                   type="radio"
                   name="saveDest"
                   checked={saveDestination === 'publication'}
                   onChange={() => setSaveDestination('publication')}
                 />
-                {t('modals.save.publicationFolder')}
+                <span style={{ fontSize: '14px' }}>{t('modals.save.publicationFolder')}</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+                <input
+                  type="radio"
+                  name="saveDest"
+                  checked={saveDestination === 'local'}
+                  onChange={() => setSaveDestination('local')}
+                />
+                <span style={{ fontSize: '14px' }}>{t('modals.save.myComputer')}</span>
               </label>
             </div>
 
@@ -1352,6 +1709,18 @@ const ContentEditorFixed = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSaveDispatch()}
                 />
               </>
+            ) : saveDestination === 'local' ? (
+              <>
+                <input
+                  type="text"
+                  placeholder={t('modals.save.fileNamePlaceholder')}
+                  value={fileName}
+                  onChange={(e) => setFileName(e.target.value)}
+                />
+                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+                  {t('modals.save.zipDescription')}
+                </p>
+              </>
             ) : (
               <>
                 <input
@@ -1364,28 +1733,40 @@ const ContentEditorFixed = () => {
             )}
 
             <div className="modal-buttons">
-              <button onClick={handleSaveDispatch}>{t('modals.save.saveButton')}</button>
-              <button onClick={() => setShowSaveModal(false)}>{t('modals.save.cancel')}</button>
+              <button onClick={handleSaveDispatch} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>
+                    {t('modals.save.saving')}
+                  </>
+                ) : (
+                  t('modals.save.saveButton')
+                )}
+              </button>
+              <button onClick={() => setShowSaveModal(false)} disabled={isSaving}>{t('modals.save.cancel')}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Choix d'ouverture: Modèles ou Explorateur (Publications) */}
+      {/* Choix d'ouverture: Modèles, Publications ou Mon ordinateur */}
       {showOpenChoice && (
         <div className="modal-overlay" onClick={() => setShowOpenChoice(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>{t('modals.open.title')}</h3>
-            <div className="modal-buttons" style={{ display:'flex', gap:12 }}>
-              <button onClick={() => { setShowOpenChoice(false); handleLoadModels(); }}>
-                {t('modals.open.openModel')}
+            <h3>{t('modals.openChoice.title')}</h3>
+            <div className="modal-buttons" style={{ display:'flex', flexDirection: 'column', gap:12 }}>
+              <button onClick={() => { console.log('🔴 [CLICK] Bouton "Ouvrir un modèle" cliqué'); setShowOpenChoice(false); handleLoadModels(); }} style={{ width: '100%' }}>
+                <i className="fas fa-folder"></i> {t('modals.openChoice.openModel')}
               </button>
-              <button onClick={openFromExplorer}>
-                {t('modals.open.openFromExplorer')}
+              <button onClick={() => { console.log('🔴 [CLICK] Bouton "Ouvrir une publication" cliqué'); setShowOpenChoice(false); handleLoadPublications(); }} style={{ width: '100%' }}>
+                <i className="fas fa-newspaper"></i> {t('modals.openChoice.openPublication')}
+              </button>
+              <button onClick={openFromLocalComputer} style={{ width: '100%' }}>
+                <i className="fas fa-laptop"></i> {t('modals.openChoice.myComputer')}
               </button>
             </div>
-            <div className="modal-buttons">
-              <button onClick={() => setShowOpenChoice(false)}>{t('modals.open.close')}</button>
+            <div className="modal-buttons" style={{ marginTop: '1rem' }}>
+              <button onClick={() => setShowOpenChoice(false)}>{t('modals.openChoice.cancel')}</button>
             </div>
           </div>
         </div>
@@ -1393,36 +1774,162 @@ const ContentEditorFixed = () => {
 
       {/* Modale de chargement des modèles */}
       {showLoadModal && (
-        <div className="modal-overlay" onClick={() => setShowLoadModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => { setShowLoadModal(false); setSelectedModels([]); setEditingModelId(null); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px', maxHeight: '70vh' }}>
             <h3>{t('modals.loadModel.title')}</h3>
-            <div className="config-list">
+            
+            {/* Barre d'actions pour sélection multiple */}
+            {savedModels.length > 0 && (
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedModels.length === savedModels.length && savedModels.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedModels(savedModels.map(m => m.id));
+                      } else {
+                        setSelectedModels([]);
+                      }
+                    }}
+                    style={{ width: '18px', height: '18px', borderRadius: '50%', accentColor: '#ff6b2c', cursor: 'pointer' }}
+                  />
+                  Tout sélectionner
+                </label>
+                {selectedModels.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Supprimer ${selectedModels.length} modèle(s) ?`)) {
+                        for (const id of selectedModels) {
+                          try {
+                            await handleDeleteModel(id);
+                          } catch (error) {
+                            console.error('Erreur suppression:', error);
+                          }
+                        }
+                        setSelectedModels([]);
+                      }
+                    }}
+                    className="delete-btn"
+                    style={{ padding: '6px 12px' }}
+                  >
+                    <i className="fas fa-trash"></i> Supprimer ({selectedModels.length})
+                  </button>
+                )}
+              </div>
+            )}
+            
+            <div className="config-list" style={{ maxHeight: '45vh', overflowY: 'auto' }}>
               {savedModels.length === 0 ? (
                 <p>{t('modals.loadModel.noModels')}</p>
               ) : (
-                savedModels.map((model) => (
-                  <div key={model.timestamp} className="config-item">
-                    <div className="config-info">
-                      <strong>{model.name}</strong>
-                      <small>{new Date(model.timestamp).toLocaleString()}</small>
+                savedModels.map((model) => {
+                  const isSelected = selectedModels.includes(model.id);
+                  const isEditing = editingModelId === model.id;
+                  return (
+                    <div key={model.id} className="config-item" style={{ background: isSelected ? 'rgba(255, 107, 44, 0.1)' : undefined, padding: '8px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedModels([...selectedModels, model.id]);
+                            } else {
+                              setSelectedModels(selectedModels.filter(id => id !== model.id));
+                            }
+                          }}
+                          style={{ width: '18px', height: '18px', borderRadius: '50%', accentColor: '#ff6b2c', cursor: 'pointer', flexShrink: 0 }}
+                        />
+                        <div className="config-info" style={{ flex: 1 }}>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editingModelName}
+                              onChange={(e) => setEditingModelName(e.target.value)}
+                              onKeyDown={async (e) => {
+                                if (e.key === 'Enter' && editingModelName.trim()) {
+                                  try {
+                                    await contentModelsApi.update(model.id, { name: editingModelName.trim() });
+                                    const result = await contentModelsApi.getAll();
+                                    setSavedModels(result.data || []);
+                                    setEditingModelId(null);
+                                  } catch (error) {
+                                    console.error('Erreur renommage:', error);
+                                  }
+                                } else if (e.key === 'Escape') {
+                                  setEditingModelId(null);
+                                }
+                              }}
+                              autoFocus
+                              style={{ padding: '4px 8px', fontSize: '14px', width: '100%' }}
+                            />
+                          ) : (
+                            <strong>{model.name}</strong>
+                          )}
+                          <small>{new Date(model.createdAt || model.updatedAt).toLocaleString()}</small>
+                        </div>
+                      </div>
+                      <div className="config-actions">
+                        {isEditing ? (
+                          <>
+                            <button onClick={async () => {
+                              if (editingModelName.trim()) {
+                                try {
+                                  await contentModelsApi.update(model.id, { name: editingModelName.trim() });
+                                  const result = await contentModelsApi.getAll();
+                                  setSavedModels(result.data || []);
+                                  setEditingModelId(null);
+                                } catch (error) {
+                                  console.error('Erreur renommage:', error);
+                                }
+                              }
+                            }} className="load-btn" style={{ padding: '4px 8px' }}>
+                              <i className="fas fa-check"></i>
+                            </button>
+                            <button onClick={() => setEditingModelId(null)} className="delete-btn" style={{ padding: '4px 8px' }}>
+                              <i className="fas fa-times"></i>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              onClick={() => { setEditingModelId(model.id); setEditingModelName(model.name); }}
+                              title="Renommer"
+                              style={{ padding: '4px 8px', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                            >
+                              <i className="fas fa-pen"></i>
+                            </button>
+                            <button 
+                              onClick={() => handleLoadModel(model)}
+                              disabled={isLoadingModel}
+                              style={{ opacity: loadingModelId === model.id ? 0.7 : 1 }}
+                            >
+                              {loadingModelId === model.id ? (
+                                <>
+                                  <i className="fas fa-spinner fa-spin" style={{ marginRight: '5px' }}></i>
+                                  Chargement...
+                                </>
+                              ) : (
+                                t('modals.loadModel.load')
+                              )}
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteModel(model.id)}
+                              className="delete-btn"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="config-actions">
-                      <button onClick={() => handleLoadModel(model)}>
-                        {t('modals.loadModel.load')}
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteModel(model.timestamp)}
-                        className="delete-btn"
-                      >
-                        {t('modals.loadModel.delete')}
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
             <div className="modal-buttons">
-              <button onClick={() => setShowLoadModal(false)}>{t('modals.loadModel.close')}</button>
+              <button onClick={() => { setShowLoadModal(false); setSelectedModels([]); setEditingModelId(null); }}>{t('modals.loadModel.close')}</button>
             </div>
           </div>
         </div>
@@ -1438,10 +1945,10 @@ const ContentEditorFixed = () => {
                 <p>{t('modals.openPublication.noPublications')}</p>
               ) : (
                 savedPublicationsList.map((pub) => (
-                  <div key={pub.timestamp} className="config-item">
+                  <div key={pub.id} className="config-item">
                     <div className="config-info">
                       <strong>{pub.title || t('modals.openPublication.untitled')}</strong>
-                      <small>{new Date(pub.timestamp || pub.publishDate).toLocaleString()}</small>
+                      <small>{new Date(pub.publishDate || pub.createdAt || pub.updatedAt).toLocaleString()}</small>
                     </div>
                     <div className="config-actions">
                       <button onClick={() => handleOpenPublicationSelect(pub)}>{t('modals.openPublication.open')}</button>
@@ -1540,22 +2047,32 @@ const ContentEditorFixed = () => {
               </button>
               <button 
                 onClick={handleSendEmail}
-                disabled={!emailRecipients.trim()}
+                disabled={!emailRecipients.trim() || isSendingEmail}
                 style={{
                   padding: '10px 20px',
-                  background: emailRecipients.trim() ? '#28a745' : '#ccc',
+                  background: (!emailRecipients.trim() || isSendingEmail) ? '#ccc' : '#28a745',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: emailRecipients.trim() ? 'pointer' : 'not-allowed',
+                  cursor: (!emailRecipients.trim() || isSendingEmail) ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '8px',
+                  opacity: isSendingEmail ? 0.7 : 1
                 }}
-                title="Copie automatique + ouverture du client email"
+                title="Envoyer l'email"
               >
-                <i className="fas fa-paper-plane"></i>
-                Envoyer par email
+                {isSendingEmail ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Envoi en cours...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane"></i>
+                    Envoyer par email
+                  </>
+                )}
               </button>
             </div>
           </div>

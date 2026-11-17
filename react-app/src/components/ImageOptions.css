@@ -1,0 +1,81 @@
+.image-options-section {
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-left: 4px solid #ff6b2c;
+  margin-top: 15px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.image-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option-group label {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #4a5568;
+  margin-left: 4px;
+}
+
+.option-controls {
+  display: flex;
+  gap: 8px;
+  background: #fff;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.option-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: #718096;
+  font-size: 0.9em;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.option-btn:hover {
+  background: #f7fafc;
+  color: #4a5568;
+}
+
+.option-btn.active {
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8f5c 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(255, 107, 44, 0.4);
+  transform: scale(1.02);
+  border: 2px solid #ff6b2c;
+}
+
+.option-btn i {
+  font-size: 1.1em;
+}

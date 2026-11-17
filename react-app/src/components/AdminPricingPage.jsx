@@ -28,6 +28,7 @@ const AdminPricingPage = () => {
   const [activeTab, setActiveTab] = useState('pricing');
   
   // Configuration des coûts par service (ce que ça nous coûte)
+  // Configuration des coûts par service (ce que ça nous coûte)
   const [serviceCosts, setServiceCosts] = useState({
     anthropic: {
       'claude-3-opus': { input: 0.015, output: 0.075 },
@@ -47,9 +48,22 @@ const AdminPricingPage = () => {
       'deepseek-reasoner': { input: 0.00055, output: 0.0022 }
     }
   });
-  
+
+  // NOUVEAU : Configuration des coûts par image
+  const [imageServiceCosts, setImageServiceCosts] = useState({
+    'fal': {
+      'seedream-4.5-text-to-image': { cost: 0.04, unit: 'image' },
+      'seedream-4.5-edit': { cost: 0.04, unit: 'image' }
+    },
+    'openrouter': {
+        'nano-banana': { cost: 0.04, unit: 'image' }
+    }
+  });
+
   // Marge bénéficiaire (en %)
   const [profitMargin, setProfitMargin] = useState(30); // 30% de marge par défaut
+  const [imageProfitMargin, setImageProfitMargin] = useState(50); // 50% de marge par défaut pour les images
+  const [maxCreditsPerImage, setMaxCreditsPerImage] = useState(3); // Plafond de crédits par image
   
   // Offres de recharge (prix de vente)
   // Prix de base : 1 crédit = 0.05€ (sans remise)
@@ -71,7 +85,7 @@ const AdminPricingPage = () => {
       const url = `${API_BASE_URL}/pricing/config`;
       console.log('🔍 URL appelée:', url);
       console.log('🔍 API_BASE_URL:', API_BASE_URL);
-      const response = await fetch(url);
+      const response = await fetch(url, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         console.log('📥 Configuration chargée:', data);
@@ -79,8 +93,17 @@ const AdminPricingPage = () => {
         if (data.serviceCosts && Object.keys(data.serviceCosts).length > 0) {
           setServiceCosts(data.serviceCosts);
         }
+        if (data.imageServiceCosts && Object.keys(data.imageServiceCosts).length > 0) {
+          setImageServiceCosts(data.imageServiceCosts);
+        }
         if (data.profitMargin) {
           setProfitMargin(data.profitMargin);
+        }
+        if (data.imageProfitMargin) {
+          setImageProfitMargin(data.imageProfitMargin);
+        }
+        if (data.maxCreditsPerImage) {
+          setMaxCreditsPerImage(data.maxCreditsPerImage);
         }
         if (data.rechargeOffers && data.rechargeOffers.length > 0) {
           setRechargeOffers(data.rechargeOffers);
@@ -98,7 +121,10 @@ const AdminPricingPage = () => {
     try {
       const payload = {
         serviceCosts,
+        imageServiceCosts,
         profitMargin,
+        imageProfitMargin,
+        maxCreditsPerImage,
         rechargeOffers
       };
       
@@ -107,6 +133,7 @@ const AdminPricingPage = () => {
       const response = await fetch(`${API_BASE_URL}/pricing/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
       
@@ -140,6 +167,19 @@ const AdminPricingPage = () => {
         [model]: {
           ...prev[service][model],
           [field]: parseFloat(value) || 0
+        }
+      }
+    }));
+  };
+
+  const updateImageServiceCost = (service, model, field, value) => {
+    setImageServiceCosts(prev => ({
+      ...prev,
+      [service]: {
+        ...prev[service],
+        [model]: {
+          ...prev[service][model],
+          [field]: field === 'unit' ? value : (parseFloat(value) || 0)
         }
       }
     }));
@@ -276,9 +316,11 @@ const AdminPricingPage = () => {
       {/* Marge bénéficiaire globale */}
       <div className="pricing-section">
         <h2>📈 Marge Bénéficiaire</h2>
-        <div className="margin-config">
-          <label>
-            Marge sur les tokens (%)
+        <div className="margin-config" style={{display: 'flex', gap: '12px', flexDirection: 'row'}}>
+          <div style={{background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', flex: '1 1 0', width: '33%'}}>
+            <label style={{display: 'block', fontWeight: '600', marginBottom: '8px', color: '#374151', fontSize: '13px'}}>
+              Marge tokens (%)
+            </label>
             <input 
               type="number" 
               value={profitMargin}
@@ -286,12 +328,39 @@ const AdminPricingPage = () => {
               min="0"
               max="100"
               step="5"
+              style={{width: '100%', padding: '10px', fontSize: '16px', borderRadius: '6px', border: '2px solid #e2e8f0'}}
             />
-          </label>
-          <div className="margin-info">
-            <p>Cette marge s'applique sur le coût réel des tokens pour calculer le prix de vente.</p>
-            <p><strong>Exemple :</strong> Si un token coûte 0,001€ et la marge est de {profitMargin}%, 
-            le prix de vente sera {(0.001 * (1 + profitMargin / 100)).toFixed(4)}€</p>
+            <p style={{margin: '8px 0 0 0', color: '#059669', fontSize: '12px'}}><strong>Ex:</strong> 0,001€ + {profitMargin}% = {(0.001 * (1 + profitMargin / 100)).toFixed(4)}€</p>
+          </div>
+          <div style={{background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', flex: '1 1 0', width: '33%'}}>
+            <label style={{display: 'block', fontWeight: '600', marginBottom: '6px', color: '#374151', fontSize: '12px'}}>
+              Marge images (%)
+            </label>
+            <input 
+              type="number" 
+              value={imageProfitMargin}
+              onChange={(e) => setImageProfitMargin(parseFloat(e.target.value) || 0)}
+              min="0"
+              max="100"
+              step="5"
+              style={{width: '100%', padding: '10px', fontSize: '16px', borderRadius: '6px', border: '2px solid #e2e8f0'}}
+            />
+            <p style={{margin: '8px 0 0 0', color: '#059669', fontSize: '12px'}}><strong>Ex:</strong> 0,04$ + {imageProfitMargin}% = {(0.04 * (1 + imageProfitMargin / 100)).toFixed(3)}$</p>
+          </div>
+          <div style={{background: '#fef3c7', padding: '12px', borderRadius: '8px', border: '1px solid #f59e0b', flex: '1 1 0', width: '33%'}}>
+            <label style={{display: 'block', fontWeight: '600', marginBottom: '8px', color: '#92400e', fontSize: '13px'}}>
+              Plafond crédits/image
+            </label>
+            <input 
+              type="number" 
+              value={maxCreditsPerImage}
+              onChange={(e) => setMaxCreditsPerImage(parseFloat(e.target.value) || 3)}
+              min="1"
+              max="20"
+              step="1"
+              style={{width: '100%', padding: '10px', fontSize: '16px', borderRadius: '6px', border: '2px solid #f59e0b'}}
+            />
+            <p style={{margin: '8px 0 0 0', color: '#b45309', fontSize: '12px'}}><strong>Actuel :</strong> {maxCreditsPerImage} crédits max/image</p>
           </div>
         </div>
       </div>
@@ -343,6 +412,103 @@ const AdminPricingPage = () => {
           </div>
         ))}
       </div>
+
+      {/* NOUVEAU : Coûts par image */}
+      <div className="pricing-section">
+        <h2>🖼️ Coûts des Services AI (par Image)</h2>
+        <p className="section-description">Configurez les coûts réels pour la génération d'images</p>
+        {Object.entries(imageServiceCosts).filter(([service]) => service !== 'wan-2.6').map(([service, models]) => (
+          <div key={service} className="service-costs">
+            <h3>{service.charAt(0).toUpperCase() + service.slice(1)}</h3>
+            <div className="models-grid">
+              {Object.entries(models).map(([model, costs]) => (
+                <div key={model} className="model-cost-card">
+                  <h4>{model}</h4>
+                  <div className="cost-inputs">
+                    <label>
+                      Coût ($)
+                      <input
+                        type="number"
+                        value={costs.cost}
+                        onChange={(e) => updateImageServiceCost(service, model, 'cost', e.target.value)}
+                        step="0.0001"
+                        min="0"
+                      />
+                    </label>
+                    <label>
+                      Unité
+                      <input
+                        type="text"
+                        value={costs.unit || 'image'}
+                        onChange={(e) => updateImageServiceCost(service, model, 'unit', e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="cost-summary">
+                    <small>Prix de vente (avec {imageProfitMargin}% marge, plafond {maxCreditsPerImage} crédits):</small>
+                    <div>
+                      <strong>${(costs.cost * (1 + imageProfitMargin / 100)).toFixed(4)}</strong> / {costs.unit || 'image'}
+                      <span style={{marginLeft: '10px', color: '#6b7280', fontSize: '12px'}}>
+                        = {Math.min(maxCreditsPerImage, ((costs.cost * (1 + imageProfitMargin / 100)) / 0.01)).toFixed(0)} crédits
+                        {((costs.cost * (1 + imageProfitMargin / 100)) / 0.01) > maxCreditsPerImage && (
+                          <span style={{color: '#f59e0b', marginLeft: '5px'}}>(plafonné)</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* WAN 2.6 Vidéo */}
+      {imageServiceCosts['wan-2.6'] && (
+        <div className="pricing-section">
+          <h2>🎬 Coûts WAN 2.6 (Génération Vidéo)</h2>
+          <p className="section-description">Configurez les coûts réels pour la génération de vidéos (marge: {imageProfitMargin}%)</p>
+          <div className="service-costs">
+            <h3>WAN 2.6</h3>
+            <div className="models-grid">
+              {Object.entries(imageServiceCosts['wan-2.6']).map(([model, costs]) => (
+                <div key={model} className="model-cost-card">
+                  <h4>{model.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                  <div className="cost-inputs">
+                    <label>
+                      Coût ($)
+                      <input
+                        type="number"
+                        value={costs.cost}
+                        onChange={(e) => updateImageServiceCost('wan-2.6', model, 'cost', e.target.value)}
+                        step="0.01"
+                        min="0"
+                      />
+                    </label>
+                    <label>
+                      Unité
+                      <input
+                        type="text"
+                        value={costs.unit || 'video'}
+                        onChange={(e) => updateImageServiceCost('wan-2.6', model, 'unit', e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="cost-summary">
+                    <small>Prix de vente (avec {imageProfitMargin}% marge):</small>
+                    <div>
+                      <strong>${(costs.cost * (1 + imageProfitMargin / 100)).toFixed(2)}</strong> / {costs.unit || 'video'}
+                      <span style={{marginLeft: '10px', color: '#10b981', fontSize: '12px', fontWeight: 'bold'}}>
+                        = {Math.ceil((costs.cost * (1 + imageProfitMargin / 100)) / 0.01)} crédits
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Offres de recharge */}
       <div className="pricing-section">

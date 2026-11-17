@@ -53,6 +53,20 @@ const OutputFormats = ({ selectedFormats, onFormatToggle }) => {
         {t('sections.outputFormat.title')}
       </h3>
       
+      {/* Bouton "Aucun format" en première position */}
+      <div className="format-section-group">
+        <div className="format-grid-zone">
+          <button
+            className={`format-btn-original ${selectedFormats.includes('none') ? 'selected' : ''}`}
+            onClick={() => handleFormatToggle('none')}
+            data-format="none"
+          >
+            <i className="fas fa-ban"></i>
+            <span>{t('sections.outputFormat.formats.none')}</span>
+          </button>
+        </div>
+      </div>
+      
       {formatGroups.map((group, groupIndex) => (
         <div key={groupIndex} className="format-section-group">
           <h4 className="format-section-title">

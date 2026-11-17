@@ -150,43 +150,35 @@ export const useAssistantAutoSave = () => {
       };
     }
 
-    // Simulation de tests spécifiques selon le service
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let result;
-        
-        switch(service) {
-          case 'openai':
-            result = key.startsWith('sk-') && key.length > 30;
-            break;
-          case 'anthropic':
-            result = key.startsWith('sk-ant-') && key.length > 40;
-            break;
-          case 'gemini':
-            result = key.startsWith('AIza') && key.length > 30;
-            break;
-          case 'twitter':
-            result = key.includes('Bearer ') || key.length > 40;
-            break;
-          case 'facebook':
-            result = key.includes('EA') && key.length > 30;
-            break;
-          case 'linkedin':
-            result = key.includes('AQ') && key.length > 30;
-            break;
-          default:
-            result = key.length > 20; // Validation générique pour les autres services
-        }
+    // Appeler le backend pour tester la clé réellement
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      
+      const response = await fetch(`${API_BASE_URL}/admin/test-api-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ service, apiKey: key })
+      });
 
-        resolve({
-          success: true,
-          message: result ?
-            `✅ Clé ${service} valide` :
-            `❌ Format de clé ${service} invalide`,
-          valid: result
-        });
-      }, 1500);
-    });
+      const data = await response.json();
+      
+      return {
+        success: data.success,
+        message: data.message || (data.valid ? '✅ Clé valide' : '❌ Clé invalide'),
+        valid: data.valid
+      };
+    } catch (error) {
+      console.error('Erreur test clé API:', error);
+      return {
+        success: false,
+        message: `❌ Erreur de connexion: ${error.message}`,
+        valid: false
+      };
+    }
   };
 
   return {

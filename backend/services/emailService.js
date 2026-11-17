@@ -1,14 +1,50 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../utils/logger.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
- * Service d'envoi d'emails via Gmail
- * Utilise nodemailer avec SMTP Gmail
+ * Service d'envoi d'emails
+ * Utilise nodemailer avec configuration SMTP sécurisée
  */
 class EmailService {
   constructor() {
     this.transporter = null;
     this.initialized = false;
+    this.smtpConfig = null;
+  }
+
+  /**
+   * Charger la configuration SMTP depuis le fichier JSON sécurisé
+   */
+  loadSmtpConfig() {
+    try {
+      // Essayer de charger depuis le fichier config/smtp.json
+      const configPath = join(__dirname, '../config/smtp.json');
+      const configData = readFileSync(configPath, 'utf8');
+      this.smtpConfig = JSON.parse(configData);
+      logger.info('✅ SMTP configuration loaded from config file');
+      return true;
+    } catch (error) {
+      // Fallback sur les variables d'environnement
+      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        this.smtpConfig = {
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: parseInt(process.env.SMTP_PORT) || 587,
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        };
+        logger.info('✅ SMTP configuration loaded from environment variables');
+        return true;
+      }
+      
+      logger.error('❌ No SMTP configuration found (neither config file nor env vars)');
+      return false;
+    }
   }
 
   /**
@@ -16,19 +52,22 @@ class EmailService {
    */
   async initialize() {
     try {
-      // Vérifier que les variables d'environnement sont définies
-      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        throw new Error('SMTP credentials not configured. Please set SMTP_USER and SMTP_PASS in .env');
+      // Charger la configuration SMTP
+      if (!this.smtpConfig) {
+        const loaded = this.loadSmtpConfig();
+        if (!loaded) {
+          throw new Error('SMTP credentials not configured. Please set up config/smtp.json or environment variables');
+        }
       }
 
       // Créer le transporteur
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT) || 587,
+        host: this.smtpConfig.host,
+        port: parseInt(this.smtpConfig.port),
         secure: false, // true pour 465, false pour autres ports
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
+          user: this.smtpConfig.user,
+          pass: this.smtpConfig.pass
         },
         tls: {
           rejectUnauthorized: false
@@ -38,7 +77,7 @@ class EmailService {
       // Vérifier la connexion
       await this.transporter.verify();
       this.initialized = true;
-      logger.info('✅ Email service initialized successfully');
+      logger.info(`✅ Email service initialized successfully with ${this.smtpConfig.user}`);
       
       return true;
     } catch (error) {
@@ -68,7 +107,7 @@ class EmailService {
       const recipients = Array.isArray(to) ? to.join(', ') : to;
 
       // Préparer l'expéditeur
-      const sender = from || `Assistant Rédacteur <${process.env.SMTP_USER}>`;
+      const sender = from || `Assistant Rédacteur <${this.smtpConfig.user}>`;
 
       // Options de l'email
       const mailOptions = {

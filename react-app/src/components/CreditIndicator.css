@@ -1,0 +1,123 @@
+.credit-indicator {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.credit-indicator.low {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.credit-indicator.critical {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.credit-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.credit-icon {
+  font-size: 24px;
+}
+
+.credit-amount {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.credit-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.credit-estimate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 8px;
+}
+
+.estimate-label {
+  opacity: 0.9;
+}
+
+.estimate-amount {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.credit-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.warning-icon {
+  font-size: 18px;
+}
+
+.warning-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.recharge-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recharge-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.credit-indicator.critical .recharge-button {
+  background: #fee140;
+  color: #fa709a;
+  animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}

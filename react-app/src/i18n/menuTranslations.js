@@ -23,6 +23,26 @@ export const menuTranslations = {
       select: 'Sélectionner la langue'
     },
     modals: {
+      saveChoice: {
+        title: 'Que souhaitez-vous enregistrer ?',
+        subtitle: 'Choisissez le type de sauvegarde',
+        config: 'Configuration Interface',
+        configDesc: 'Paramètres et préférences uniquement',
+        completeModel: 'Modèle Complet',
+        completeModelDesc: 'Tout : paramètres + contenu + résultats + fichiers',
+        cancel: 'Annuler'
+      },
+      loadChoice: {
+        title: 'Que souhaitez-vous charger ?',
+        subtitle: 'Choisissez le type de chargement',
+        config: 'Configuration Interface',
+        configDesc: 'Paramètres et préférences uniquement',
+        completeModel: 'Modèle Complet',
+        completeModelDesc: 'Tout : paramètres + contenu + résultats + fichiers',
+        storage: 'Stockage Serveur',
+        storageDesc: 'Accéder aux fichiers stockés sur le serveur',
+        cancel: 'Annuler'
+      },
       save: {
         title: 'Enregistrer la configuration',
         placeholder: 'Nom du préréglage',
@@ -107,6 +127,26 @@ export const menuTranslations = {
       select: 'Select language'
     },
     modals: {
+      saveChoice: {
+        title: 'What do you want to save?',
+        subtitle: 'Choose the type of save',
+        config: 'Interface Configuration',
+        configDesc: 'Settings and preferences only',
+        completeModel: 'Complete Model',
+        completeModelDesc: 'Everything: settings + content + results + files',
+        cancel: 'Cancel'
+      },
+      loadChoice: {
+        title: 'What do you want to load?',
+        subtitle: 'Choose the type of load',
+        config: 'Interface Configuration',
+        configDesc: 'Settings and preferences only',
+        completeModel: 'Complete Model',
+        completeModelDesc: 'Everything: settings + content + results + files',
+        storage: 'Server Storage',
+        storageDesc: 'Access files stored on the server',
+        cancel: 'Cancel'
+      },
       save: {
         title: 'Save configuration',
         placeholder: 'Preset name',
@@ -191,6 +231,26 @@ export const menuTranslations = {
       select: 'Seleccionar idioma'
     },
     modals: {
+      saveChoice: {
+        title: '¿Qué desea guardar?',
+        subtitle: 'Elija el tipo de guardado',
+        config: 'Configuración de Interfaz',
+        configDesc: 'Solo ajustes y preferencias',
+        completeModel: 'Modelo Completo',
+        completeModelDesc: 'Todo: ajustes + contenido + resultados + archivos',
+        cancel: 'Cancelar'
+      },
+      loadChoice: {
+        title: '¿Qué desea cargar?',
+        subtitle: 'Elija el tipo de carga',
+        config: 'Configuración de Interfaz',
+        configDesc: 'Solo ajustes y preferencias',
+        completeModel: 'Modelo Completo',
+        completeModelDesc: 'Todo: ajustes + contenido + resultados + archivos',
+        storage: 'Almacenamiento Servidor',
+        storageDesc: 'Acceder a los archivos almacenados en el servidor',
+        cancel: 'Cancelar'
+      },
       save: {
         title: 'Guardar configuración',
         placeholder: 'Nombre del ajuste',
@@ -275,6 +335,26 @@ export const menuTranslations = {
       select: 'Sprache auswählen'
     },
     modals: {
+      saveChoice: {
+        title: 'Was möchten Sie speichern?',
+        subtitle: 'Wählen Sie den Speichertyp',
+        config: 'Oberflächenkonfiguration',
+        configDesc: 'Nur Einstellungen und Präferenzen',
+        completeModel: 'Vollständiges Modell',
+        completeModelDesc: 'Alles: Einstellungen + Inhalt + Ergebnisse + Dateien',
+        cancel: 'Abbrechen'
+      },
+      loadChoice: {
+        title: 'Was möchten Sie laden?',
+        subtitle: 'Wählen Sie den Ladetyp',
+        config: 'Oberflächenkonfiguration',
+        configDesc: 'Nur Einstellungen und Präferenzen',
+        completeModel: 'Vollständiges Modell',
+        completeModelDesc: 'Alles: Einstellungen + Inhalt + Ergebnisse + Dateien',
+        storage: 'Server-Speicher',
+        storageDesc: 'Auf dem Server gespeicherte Dateien zugreifen',
+        cancel: 'Abbrechen'
+      },
       save: {
         title: 'Konfiguration speichern',
         placeholder: 'Voreinstellungsname',

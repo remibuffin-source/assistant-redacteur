@@ -255,47 +255,45 @@
   background: linear-gradient(135deg, rgba(255, 107, 44, 0.3), rgba(255, 107, 44, 0.2));
   border: 2px solid rgba(255, 107, 44, 0.4);
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 2rem;
   margin: 0 0 3rem 0;
   display: flex;
-  align-items: flex-start;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 1.5rem;
   box-shadow: 0 4px 20px rgba(255, 107, 44, 0.1);
-  position: relative;
 }
 
 /* Solde actuel intégré */
 .balance-card-integrated {
-  position: absolute;
-  bottom: 25px;
-  right: 25px;
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.15);
   border: 2px solid var(--accent-color);
-  border-radius: 15px;
-  padding: 1.2rem;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  min-width: 200px;
-  height: auto;
+  gap: 0.8rem;
+  max-width: 280px;
   box-shadow: 0 4px 15px rgba(255, 107, 44, 0.2);
 }
 
 .balance-card-integrated i {
-  font-size: 1.5rem;
+  font-size: 1.43rem;
   color: var(--accent-color);
+  flex-shrink: 0;
 }
 
 .balance-card-integrated .balance-info h3 {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.825rem;
   color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .balance-card-integrated .balance-amount {
-  font-size: 1.73rem;
+  font-size: 1.32rem;
   font-weight: bold;
   color: var(--accent-color);
+  line-height: 1.3;
 }
 
 .freedom-icon {
@@ -553,52 +551,235 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ============================================
+   RESPONSIVE PAGE SOUSCRIPTION - TABLETTE & MOBILE
+   ============================================ */
+
+/* Tablette */
+@media (max-width: 1024px) {
   .subscription-page {
+    padding: 1.5rem 30px;
+  }
+  
+  .preset-amounts {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .preset-amounts-horizontal {
+    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+    gap: 0.75rem;
+  }
+  
+  .amount-btn-compact {
+    width: 100%;
+    height: 100px;
     padding: 1rem;
   }
   
+  .amount-btn {
+    padding: 1rem;
+  }
+  
+  .amount-btn .amount {
+    font-size: 1.5rem;
+  }
+  
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .subscription-page {
+    padding: 1rem 15px;
+    margin-top: 80px;
+  }
+  
+  .subscription-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+  
   .subscription-header h2 {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    gap: 0.5rem;
+  }
+  
+  .subscription-header p {
+    font-size: 1rem;
   }
   
   .balance-card {
     flex-direction: column;
     text-align: center;
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
   
+  .balance-card i {
+    font-size: 2rem;
+    padding: 0.75rem;
+  }
+  
+  .balance-amount {
+    font-size: 2rem;
+  }
+  
+  /* 2 offres par ligne sur mobile - moins larges avec espacement */
   .preset-amounts {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem 0.5rem;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  
+  .preset-amounts-horizontal {
+    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+    gap: 0.75rem 0.5rem;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  
+  /* Vignettes plus compactes et moins larges */
+  .amount-btn {
+    padding: 0.6rem 0.5rem;
+    border-radius: 8px;
+    max-width: 140px;
+    margin: 0 auto;
+  }
+  
+  .amount-btn .amount {
+    font-size: 1.3rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .amount-btn .label {
+    font-size: 0.7rem;
+  }
+  
+  .amount-btn-compact {
+    width: 100%;
+    max-width: 140px;
+    height: 70px;
+    padding: 0.6rem;
+    border-radius: 8px;
+    margin: 0 auto;
+  }
+  
+  .amount-large {
+    font-size: 1.2rem;
   }
   
   .freedom-message {
     flex-direction: column;
     text-align: center;
-    padding: 1.5rem;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+  
+  .freedom-message-top {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .freedom-icon i {
+    font-size: 2rem;
+    padding: 1rem;
+  }
+  
+  .freedom-content h4 {
+    font-size: 1.2rem;
+  }
+  
+  .freedom-content p {
+    font-size: 1rem;
   }
   
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
   
-  .recharge-btn {
+  .feature-card {
+    padding: 1.25rem;
+  }
+  
+  .feature-card i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .feature-card h4 {
+    font-size: 1rem;
+  }
+  
+  .recharge-btn,
+  .recharge-btn-inline {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    min-width: 200px;
+  }
+  
+  .custom-amount-inline h4 {
+    font-size: 1.5rem !important;
+  }
+  
+  .choose-amount-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .amount-input {
+    width: 100%;
+    max-width: 200px;
     padding: 1rem 2rem;
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+  
+  .custom-input-horizontal {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }
 
+/* Très petit mobile */
 @media (max-width: 480px) {
-  .preset-amounts {
-    grid-template-columns: 1fr;
-  }
-  
   .subscription-header h2 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
   
   .balance-amount {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+  
+  /* Toujours 2 par ligne même sur très petit écran */
+  .preset-amounts,
+  .preset-amounts-horizontal {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+  
+  .amount-btn {
+    padding: 0.5rem;
+  }
+  
+  .amount-btn .amount {
+    font-size: 1.2rem;
+  }
+  
+  .amount-btn .label {
+    font-size: 0.7rem;
+  }
+  
+  .amount-btn-compact {
+    height: 70px;
+    padding: 0.5rem;
+  }
+  
+  .amount-large {
+    font-size: 1rem;
   }
 }

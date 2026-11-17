@@ -12,15 +12,25 @@ const AccountPageFixed = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
+  const [creditsBalance, setCreditsBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(true);
+  const [storageInfo, setStorageInfo] = useState({
+    totalMB: '0',
+    totalGB: '0',
+    limitGB: '5',
+    usedPercent: '0',
+    isOverLimit: false
+  });
+  const [loadingStorage, setLoadingStorage] = useState(true);
 
   const [userData, setUserData] = useState({
-    username: autoSaveData.username || 'utilisateur123',
-    email: autoSaveData.email || 'contact@studioducapbrun.com',
-    firstName: autoSaveData.firstName || 'Studio',
-    lastName: autoSaveData.lastName || 'du Cap Brun',
-    company: autoSaveData.company || 'Studio du Cap Brun',
-    phone: autoSaveData.phone || '+33 6 12 34 56 78',
-    address: autoSaveData.address || '123 Avenue de la Création, 75000 Paris',
+    username: autoSaveData.username || '',
+    email: autoSaveData.email || '',
+    firstName: autoSaveData.firstName || '',
+    lastName: autoSaveData.lastName || '',
+    company: autoSaveData.company || '',
+    phone: autoSaveData.phone || '',
+    address: autoSaveData.address || '',
     language: autoSaveData.language || 'fr',
     notifications: autoSaveData.notifications !== undefined ? autoSaveData.notifications : true,
     autoSave: autoSaveData.autoSave !== undefined ? autoSaveData.autoSave : true,
@@ -42,6 +52,86 @@ const AccountPageFixed = () => {
       navigate('/login');
     }
   }, [isAuthenticated, isLoading, navigate]);
+
+  // Récupérer le solde de crédits depuis l'API
+  useEffect(() => {
+    const fetchCreditsBalance = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoadingBalance(false);
+          return;
+        }
+
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCreditsBalance(data.user?.creditsBalance || 0);
+        } else if (response.status === 401) {
+          // Token expiré - mais on ne redirige PAS immédiatement
+          // On laisse l'utilisateur voir son compte
+          console.warn('Token expiré, mais on laisse accès à la page compte');
+          setCreditsBalance(0);
+        }
+      } catch (error) {
+        console.error('Erreur récupération solde:', error);
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchCreditsBalance();
+    }
+  }, [isAuthenticated]);
+
+  // Récupérer le stockage réel depuis l'API
+  useEffect(() => {
+    const fetchStorageUsage = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoadingStorage(false);
+          return;
+        }
+
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const response = await fetch(`${API_BASE_URL}/storage/usage`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setStorageInfo({
+              totalMB: data.data.totalMB || '0',
+              totalGB: data.data.totalGB || '0',
+              limitGB: data.data.limitGB || '5',
+              usedPercent: data.data.usedPercent || '0',
+              isOverLimit: data.data.isOverLimit || false
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erreur récupération stockage:', error);
+      } finally {
+        setLoadingStorage(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchStorageUsage();
+    }
+  }, [isAuthenticated]);
+
 
   if (!isAuthenticated) {
     return null;
@@ -214,9 +304,9 @@ const AccountPageFixed = () => {
         <div className="form-section" style={{ marginTop: '2rem' }}>
           <h3>{t('security.accountSecurity')}</h3>
           <div className="security-info">
-            <p>Dernière connexion : Aujourd'hui à 14:32</p>
-            <p>Adresse IP : 192.168.1.1</p>
-            <p>Navigateur : Chrome 120.0</p>
+            <p>{t('security.lastLogin')} : {t('security.today')} 14:32</p>
+            <p>{t('security.ipAddress')} : 192.168.1.1</p>
+            <p>{t('security.browser')} : Chrome 120.0</p>
           </div>
         </div>
       </div>
@@ -224,7 +314,7 @@ const AccountPageFixed = () => {
   );
 
   const renderSubscriptionTab = () => {
-    const currentBalance = autoSaveData.balance || 0;
+    const currentBalance = creditsBalance;
 
     return (
       <div className="account-content-two-columns">
@@ -232,29 +322,77 @@ const AccountPageFixed = () => {
           <div className="form-section">
             <h3>{t('accounting.rechargeSystem')}</h3>
             <div className="freedom-message-top" style={{ margin: '1rem 0' }}>
-              <div className="freedom-icon">
-                <i className="fas fa-dove"></i>
+              <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                <div className="freedom-icon">
+                  <i className="fas fa-dove"></i>
+                </div>
+                <div className="freedom-content">
+                  <h4>{t('accounting.freedom.title')}</h4>
+                  <p>
+                    {t('accounting.freedom.description')}
+                  </p>
+                  <ul>
+                    <li><i className="fas fa-check"></i> {t('accounting.freedom.noCommitment')}</li>
+                    <li><i className="fas fa-check"></i> {t('accounting.freedom.noExpiration')}</li>
+                    <li><i className="fas fa-check"></i> {t('accounting.freedom.yourPace')}</li>
+                    <li><i className="fas fa-check"></i> {t('accounting.freedom.totalControl')}</li>
+                  </ul>
+                </div>
               </div>
-              <div className="freedom-content">
-                <h4>{t('accounting.freedom.title')}</h4>
-                <p>
-                  {t('accounting.freedom.description')}
-                </p>
-                <ul>
-                  <li><i className="fas fa-check"></i> {t('accounting.freedom.noCommitment')}</li>
-                  <li><i className="fas fa-check"></i> {t('accounting.freedom.noExpiration')}</li>
-                  <li><i className="fas fa-check"></i> {t('accounting.freedom.yourPace')}</li>
-                  <li><i className="fas fa-check"></i> {t('accounting.freedom.totalControl')}</li>
-                </ul>
-              </div>
-              <button className="btn-recharge-integrated" onClick={() => navigate('/subscription')}>
-                {t('accounting.rechargeButton')}
-              </button>
-              <div className="balance-card-integrated">
-                <i className="fas fa-wallet"></i>
-                <div className="balance-info">
-                  <h3>{t('accounting.currentBalance')}</h3>
-                  <span className="balance-amount">{currentBalance.toFixed(2)}€</span>
+              
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'stretch', justifyContent: 'center' }}>
+                <div className="balance-card-integrated" style={{ flex: '1 1 calc(33.333% - 1rem)', minWidth: '200px', cursor: 'pointer' }} onClick={() => navigate('/subscription')}>
+                  <i className="fas fa-credit-card"></i>
+                  <div className="balance-info">
+                    <h3>{t('accounting.rechargeButton')}</h3>
+                    <span className="balance-amount" style={{ fontSize: '0.9rem' }}>
+                      Cliquez pour recharger
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="balance-card-integrated" style={{ flex: '1 1 calc(33.333% - 1rem)', minWidth: '200px' }}>
+                  <i className="fas fa-wallet"></i>
+                  <div className="balance-info">
+                    <h3>{t('accounting.currentBalance')}</h3>
+                    <span className="balance-amount">
+                      {loadingBalance ? '...' : `${Math.floor(currentBalance)} crédits`}
+                      {!loadingBalance && currentBalance > 0 && (
+                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', display: 'block', marginTop: '2px' }}>
+                          (≈ {(currentBalance * 0.05).toFixed(2)}€)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="balance-card-integrated" style={{ 
+                  flex: '1 1 calc(33.333% - 1rem)', 
+                  minWidth: '200px',
+                  borderColor: storageInfo.isOverLimit ? '#dc3545' : undefined,
+                  background: storageInfo.isOverLimit ? 'rgba(220, 53, 69, 0.1)' : undefined
+                }}>
+                  <i className="fas fa-hdd" style={{ color: storageInfo.isOverLimit ? '#dc3545' : undefined }}></i>
+                  <div className="balance-info">
+                    <h3>Stockage</h3>
+                    <span className="balance-amount">
+                      {loadingStorage ? '...' : (
+                        parseFloat(storageInfo.totalMB) >= 1024 
+                          ? `${storageInfo.totalGB} GB / ${storageInfo.limitGB} GB`
+                          : `${storageInfo.totalMB} MB / ${storageInfo.limitGB} GB`
+                      )}
+                      {!loadingStorage && (
+                        <span style={{ 
+                          fontSize: '11px', 
+                          color: storageInfo.isOverLimit ? '#dc3545' : 'rgba(255,255,255,0.6)', 
+                          display: 'block', 
+                          marginTop: '2px' 
+                        }}>
+                          {storageInfo.isOverLimit ? '⚠️ Quota dépassé' : `${storageInfo.usedPercent}% utilisé`}
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -314,6 +452,12 @@ const AccountPageFixed = () => {
               onClick={() => setActiveTab('subscription')}
             >
               {t('tabs.accounting')}
+            </button>
+            <button 
+              className="tab-btn"
+              onClick={() => window.open('/politique-cgv', '_blank')}
+            >
+              Politique & CGV
             </button>
           </div>
 

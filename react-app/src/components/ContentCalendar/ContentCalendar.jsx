@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 // Importations de FullCalendar
 import FullCalendar from '@fullcalendar/react';
@@ -16,6 +17,8 @@ import './ContentCalendar.css';
 // Importation du système de traduction
 import { useAssistantAutoSave } from '../../hooks/useLocalStorage';
 import { getCalendarText } from '../../i18n/calendarTranslations';
+import { publicationsApi } from '../../services/storageApi';
+import wixBlogApi from '../../services/wixBlogApi';
 
 // --- Données de configuration et de simulation ---
 const getPlatformDetails = (t) => ({
@@ -27,6 +30,7 @@ const getPlatformDetails = (t) => ({
     website: { name: t('platforms.website'), icon: 'fas fa-globe', color: '#FF5722' },
     blog: { name: t('platforms.blog'), icon: 'fas fa-blog', color: '#9C27B0' },
     youtube: { name: 'YouTube', icon: '/icons/youtube.ico', color: '#FF0000' },
+    wixblog: { name: 'Blog Wix', icon: 'fas fa-blog', color: '#0C6EFC' },
 });
 
 const INITIAL_MAIN_POSTS = [
@@ -64,6 +68,8 @@ const getBaseModuleTemplates = (t) => ({
 
 // Le Composant Principal du Calendrier
 const ContentCalendar = ({ editorData }) => {
+    const location = useLocation();
+    
     // Système de traduction
     const { autoSaveData } = useAssistantAutoSave();
     const userLanguage = autoSaveData.language || 'fr';
@@ -92,6 +98,7 @@ const ContentCalendar = ({ editorData }) => {
     // --- États pour la modal de planification ---
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [selectedPost, setSelectedPost] = useState(null);
+    const [isSavingSchedule, setIsSavingSchedule] = useState(false); // État de sauvegarde
     const [scheduleData, setScheduleData] = useState({
         title: '',
         content: '',
@@ -110,7 +117,18 @@ const ContentCalendar = ({ editorData }) => {
     const [selectedModules, setSelectedModules] = useState(new Set());
     const [newPostDate, setNewPostDate] = useState(new Date().toISOString().split('T')[0]);
 
+    // NOUVEAU : États pour la sidebar simplifiée
+    const [showSequenceMenu, setShowSequenceMenu] = useState(false); // Menu déroulant Créer Séquence
+    const [showPublicationsModal, setShowPublicationsModal] = useState(false); // Modal ouvrir publication
+    const [sidebarWidth, setSidebarWidth] = useState(280); // Largeur de la sidebar redimensionnable
+    const [isResizing, setIsResizing] = useState(false);
+    const [selectedForDeletion, setSelectedForDeletion] = useState(new Set()); // Publications sélectionnées pour suppression
+    const [isDeletingPublications, setIsDeletingPublications] = useState(false); // État de suppression en cours
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // État sidebar mobile
+    const [isPublishingWix, setIsPublishingWix] = useState(false); // État publication Wix Blog
+
     const fileInputRef = useRef(null); // Référence pour l'input de fichier
+    const sidebarRef = useRef(null); // Référence pour la sidebar
 
     // Fonction pour calculer le numéro de semaine
     const getWeekNumber = (date) => {
@@ -163,21 +181,64 @@ const ContentCalendar = ({ editorData }) => {
         }
     };
 
-    // --- Chargement des données depuis localStorage ---
-    useEffect(() => {
-        // Charger les publications
+    // --- Chargement des données depuis MySQL (API publications-v2) ---
+    const [isLoadingPublications, setIsLoadingPublications] = useState(true);
+    
+    const loadPublicationsFromApi = useCallback(async (showLoading = true) => {
+        if (showLoading) setIsLoadingPublications(true);
         try {
-            const saved = localStorage.getItem('savedPublications');
-            if (saved) {
-                const publications = JSON.parse(saved);
-                const formattedPublications = publications.map(pub => ({
-                    id: pub.timestamp || Date.now(), title: pub.title, content: pub.content,
-                    platforms: pub.platforms || ['website'], status: pub.status || 'scheduled',
-                    start: pub.publishDate || pub.timestamp
-                }));
-                setSavedPublications(formattedPublications);
+            console.log('📡 [Calendar] Chargement des publications depuis l\'API...');
+            const result = await publicationsApi.getAll();
+            const publications = result?.data || [];
+            console.log(`📊 [Calendar] ${publications.length} publications reçues de l'API`);
+
+            const formattedPublications = publications.map(pub => {
+                // S'assurer que platforms est toujours un tableau
+                let platformsArray = pub.platforms || ['website'];
+                if (typeof platformsArray === 'string') {
+                    try {
+                        platformsArray = JSON.parse(platformsArray);
+                    } catch {
+                        platformsArray = [platformsArray];
+                    }
+                }
+                if (!Array.isArray(platformsArray)) {
+                    platformsArray = ['website'];
+                }
+                
+                return {
+                    id: String(pub.id),
+                    title: pub.title,
+                    content: pub.content,
+                    platforms: platformsArray,
+                    status: pub.status || 'draft',
+                    start: pub.publishDate,
+                    type: pub.type || 'text',
+                    imageUrl: pub.imageUrl || null,
+                    vignetteUrl: pub.vignetteUrl || null
+                };
+            });
+
+            console.log(`✅ [Calendar] ${formattedPublications.length} publications formatées`);
+            
+            // Debug: afficher les publications avec images (URL complète)
+            const imagePubs = formattedPublications.filter(p => p.type === 'image' || p.imageUrl);
+            if (imagePubs.length > 0) {
+                console.log('🖼️ [Calendar] Publications avec images chargées:', imagePubs.map(p => ({ id: p.id, title: p.title, type: p.type, imageUrl: p.imageUrl })));
             }
-        } catch (error) { console.error('Erreur chargement publications:', error); }
+
+            setSavedPublications(formattedPublications);
+            console.log('💾 [Calendar] savedPublications mis à jour');
+        } catch (error) {
+            console.error('❌ [Calendar] Erreur chargement publications (API):', error);
+        } finally {
+            setIsLoadingPublications(false);
+        }
+    }, []);
+    
+    useEffect(() => {
+        // Chargement initial
+        loadPublicationsFromApi();
 
         // NOUVEAU : Charger les modules utilisateur
         try {
@@ -186,7 +247,57 @@ const ContentCalendar = ({ editorData }) => {
                 setUserModules(JSON.parse(savedModules));
             }
         } catch (error) { console.error('Erreur chargement modules:', error); }
-    }, []);
+        
+        // Rafraîchissement automatique toutes les 30 secondes (silencieux)
+        const refreshInterval = setInterval(() => {
+            loadPublicationsFromApi(false);
+        }, 30000);
+        
+        return () => clearInterval(refreshInterval);
+    }, [loadPublicationsFromApi]);
+
+    // --- Traitement des images envoyées depuis Home ---
+    useEffect(() => {
+        // Vérifier si une image a été envoyée depuis Home
+        if (location.state && location.state.imageToSchedule) {
+            const imageData = location.state.imageToSchedule;
+            setScheduleData({
+                title: imageData.title || `Image - ${new Date().toLocaleDateString('fr-FR')}`,
+                content: '', // Ne pas inclure le prompt dans la description
+                imageUrl: imageData.imageUrl,
+                vignetteUrl: imageData.vignetteUrl || imageData.imageUrl,
+                publishDate: new Date().toISOString().split('T')[0],
+                publishTime: '09:00',
+                platforms: imageData.platforms || ['instagram', 'facebook'],
+                status: 'scheduled',
+                type: 'image'
+            });
+            setShowScheduleModal(true);
+        }
+        
+        // Vérifier aussi le localStorage
+        const pendingImage = localStorage.getItem('pendingCalendarImage');
+        if (pendingImage && !location.state?.imageToSchedule) {
+            try {
+                const imageData = JSON.parse(pendingImage);
+                setScheduleData({
+                    title: imageData.title || `Image - ${new Date().toLocaleDateString('fr-FR')}`,
+                    content: '', // Ne pas inclure le prompt dans la description
+                    imageUrl: imageData.imageUrl,
+                    vignetteUrl: imageData.vignetteUrl || imageData.imageUrl,
+                    publishDate: new Date().toISOString().split('T')[0],
+                    publishTime: '09:00',
+                    platforms: imageData.platforms || ['instagram', 'facebook'],
+                    status: 'scheduled',
+                    type: 'image'
+                });
+                setShowScheduleModal(true);
+                localStorage.removeItem('pendingCalendarImage');
+            } catch (e) {
+                console.error('Erreur parsing pendingCalendarImage:', e);
+            }
+        }
+    }, [location.state]);
 
     // --- Traitement des données de l'éditeur ---
     useEffect(() => {
@@ -241,16 +352,16 @@ const ContentCalendar = ({ editorData }) => {
             setLocalPosts(updatePostDate);
         } else if (sourceId === 'saved-publications') {
             setSavedPublications(updatePostDate);
-            
-            // Mettre à jour localStorage
-            const currentSaved = JSON.parse(localStorage.getItem('savedPublications') || '[]');
-            const updatedSaved = currentSaved.map(p => {
-                if (p.timestamp === postId || p.timestamp === event.id) {
-                    return { ...p, publishDate: newDate };
+
+            // Persister en base (MySQL) via API
+            (async () => {
+                try {
+                    await publicationsApi.reschedule(postId, newDate);
+                } catch (error) {
+                    console.error('Erreur replanification publication (API):', error);
+                    alert('Erreur lors de la replanification. Veuillez recharger la page.');
                 }
-                return p;
-            });
-            localStorage.setItem('savedPublications', JSON.stringify(updatedSaved));
+            })();
         }
         
         alert(`Le post "${event.title}" a été déplacé au ${event.start.toLocaleDateString()}.`);
@@ -366,6 +477,200 @@ const ContentCalendar = ({ editorData }) => {
         handleCloseModuleModal();
     };
 
+    // NOUVEAU : Fonctions pour le redimensionnement de la sidebar
+    const handleMouseDown = (e) => {
+        e.preventDefault();
+        setIsResizing(true);
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isResizing) return;
+            const newWidth = Math.max(200, Math.min(500, e.clientX));
+            setSidebarWidth(newWidth);
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+        };
+
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizing]);
+
+    // NOUVEAU : Fonction pour ouvrir une publication existante dans le modal
+    const handleOpenPublication = (publication) => {
+        setSelectedPost({
+            id: publication.id,
+            title: publication.title,
+            content: publication.content,
+            platforms: publication.platforms || ['website'],
+            status: publication.status,
+            start: publication.start
+        });
+        
+        const pubDate = new Date(publication.start);
+        setScheduleData({
+            title: publication.title,
+            content: normalizeForTextarea(publication.content || ''),
+            publishDate: pubDate.toISOString().split('T')[0],
+            publishTime: pubDate.toTimeString().slice(0, 5),
+            platforms: publication.platforms || ['website'],
+            status: publication.status || 'scheduled',
+            type: publication.type || 'text',
+            imageUrl: publication.imageUrl || null,
+            vignetteUrl: publication.vignetteUrl || null
+        });
+        
+        setShowPublicationsModal(false);
+        setShowScheduleModal(true);
+    };
+
+    // NOUVEAU : Fonction pour insérer une nouvelle publication
+    const handleInsertPublication = () => {
+        setSelectedPost(null);
+        setScheduleData({
+            title: '',
+            content: '',
+            publishDate: new Date().toISOString().split('T')[0],
+            publishTime: '09:00',
+            platforms: ['website'],
+            status: 'draft',
+            type: 'text'
+        });
+        setShowScheduleModal(true);
+    };
+
+    // NOUVEAU : Fonction pour gérer la sélection/désélection pour suppression
+    const togglePublicationSelection = (pubId, e) => {
+        e.stopPropagation(); // Empêcher l'ouverture du modal de planification
+        setSelectedForDeletion(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(pubId)) {
+                newSet.delete(pubId);
+            } else {
+                newSet.add(pubId);
+            }
+            return newSet;
+        });
+    };
+
+    // NOUVEAU : Fonction pour supprimer les publications sélectionnées
+    const handleDeleteSelectedPublications = async () => {
+        if (selectedForDeletion.size === 0) {
+            alert('Veuillez sélectionner au moins une publication à supprimer.');
+            return;
+        }
+
+        const confirmDelete = window.confirm(
+            `Êtes-vous sûr de vouloir supprimer ${selectedForDeletion.size} publication(s) ?\n\nCette action est irréversible.`
+        );
+
+        if (!confirmDelete) return;
+
+        setIsDeletingPublications(true);
+
+        try {
+            const deletePromises = Array.from(selectedForDeletion).map(id => 
+                publicationsApi.delete(id)
+            );
+            
+            await Promise.all(deletePromises);
+
+            // Recharger les publications
+            const refreshed = await publicationsApi.getAll();
+            const publications = refreshed?.data || [];
+            const formattedPublications = publications.map(pub => {
+                let platformsArray = pub.platforms || ['website'];
+                if (typeof platformsArray === 'string') {
+                    try { platformsArray = JSON.parse(platformsArray); } catch { platformsArray = [platformsArray]; }
+                }
+                if (!Array.isArray(platformsArray)) platformsArray = ['website'];
+                
+                return {
+                    id: String(pub.id),
+                    title: pub.title,
+                    content: pub.content,
+                    platforms: platformsArray,
+                    status: pub.status || 'draft',
+                    start: pub.publishDate,
+                    type: pub.type || 'text',
+                    imageUrl: pub.imageUrl || null,
+                    vignetteUrl: pub.vignetteUrl || null
+                };
+            });
+            setSavedPublications(formattedPublications);
+            setSelectedForDeletion(new Set());
+
+            alert(`✅ ${selectedForDeletion.size} publication(s) supprimée(s) avec succès.`);
+        } catch (error) {
+            console.error('Erreur suppression publications:', error);
+            alert(`❌ Erreur lors de la suppression: ${error.message}`);
+        } finally {
+            setIsDeletingPublications(false);
+        }
+    };
+
+    // NOUVEAU : Fonction pour supprimer une publication individuelle depuis le modal de modification
+    const handleDeleteCurrentPublication = async () => {
+        if (!selectedPost?.id) {
+            alert('Aucune publication sélectionnée.');
+            return;
+        }
+
+        const confirmDelete = window.confirm(
+            `Êtes-vous sûr de vouloir supprimer la publication "${selectedPost.title || 'Sans titre'}" ?\n\nCette action est irréversible.`
+        );
+
+        if (!confirmDelete) return;
+
+        setIsSavingSchedule(true);
+
+        try {
+            await publicationsApi.delete(selectedPost.id);
+
+            // Recharger les publications
+            const refreshed = await publicationsApi.getAll();
+            const publications = refreshed?.data || [];
+            const formattedPublications = publications.map(pub => {
+                let platformsArray = pub.platforms || ['website'];
+                if (typeof platformsArray === 'string') {
+                    try { platformsArray = JSON.parse(platformsArray); } catch { platformsArray = [platformsArray]; }
+                }
+                if (!Array.isArray(platformsArray)) platformsArray = ['website'];
+                
+                return {
+                    id: String(pub.id),
+                    title: pub.title,
+                    content: pub.content,
+                    platforms: platformsArray,
+                    status: pub.status || 'draft',
+                    start: pub.publishDate,
+                    type: pub.type || 'text',
+                    imageUrl: pub.imageUrl || null,
+                    vignetteUrl: pub.vignetteUrl || null
+                };
+            });
+            setSavedPublications(formattedPublications);
+
+            setShowScheduleModal(false);
+            setSelectedPost(null);
+            alert('✅ Publication supprimée avec succès.');
+        } catch (error) {
+            console.error('Erreur suppression publication:', error);
+            alert(`❌ Erreur lors de la suppression: ${error.message}`);
+        } finally {
+            setIsSavingSchedule(false);
+        }
+    };
+
     const toggleFilter = (platformKey) => {
         setActiveFilters(prevFilters => {
             const newFilters = new Set(prevFilters);
@@ -411,7 +716,9 @@ const ContentCalendar = ({ editorData }) => {
         setShowScheduleModal(true);
     };
 
-    const handleScheduleSave = () => {
+    const handleScheduleSave = async () => {
+        setIsSavingSchedule(true);
+        
         const dateTime = `${scheduleData.publishDate}T${scheduleData.publishTime}:00`;
         // Si l'utilisateur a saisi du texte avec \n, reconvertir en <br> pour conserver la mise en forme HTML côté stockage
         const contentHtml = (scheduleData.content || '').replace(/\r?\n/g, '<br>');
@@ -422,47 +729,86 @@ const ContentCalendar = ({ editorData }) => {
             content: contentHtml,
             platforms: scheduleData.platforms,
             status: scheduleData.status,
-            start: dateTime
+            start: dateTime,
+            type: scheduleData.type || 'text',
+            imageUrl: scheduleData.imageUrl || null,
+            vignetteUrl: scheduleData.vignetteUrl || null
         };
 
-        if (selectedPost) {
-            // Modifier un post existant
-            setSavedPublications(prev => 
-                prev.map(p => p.id === selectedPost.id ? newPost : p)
-            );
-            
-            // Mettre à jour localStorage pour les modifications
-            const currentSaved = JSON.parse(localStorage.getItem('savedPublications') || '[]');
-            const updatedSaved = currentSaved.map(p => 
-                p.timestamp === selectedPost.id || p.timestamp === selectedPost.start
-                    ? {
-                        title: newPost.title,
-                        content: newPost.content,
-                        publishDate: dateTime,
-                        platforms: newPost.platforms,
-                        status: newPost.status,
-                        timestamp: selectedPost.id
-                    }
-                    : p
-            );
-            localStorage.setItem('savedPublications', JSON.stringify(updatedSaved));
-        } else {
-            // Créer un nouveau post
-            setSavedPublications(prev => [...prev, newPost]);
-            
-            // Sauvegarder dans localStorage
-            const currentSaved = JSON.parse(localStorage.getItem('savedPublications') || '[]');
-            currentSaved.push({
-                title: newPost.title,
-                content: contentHtml,
-                publishDate: dateTime,
-                platforms: newPost.platforms,
-                status: newPost.status,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('savedPublications', JSON.stringify(currentSaved));
+        console.log('📅 [Calendar] handleScheduleSave - newPost:', newPost);
+        console.log('📅 [Calendar] type:', newPost.type, 'imageUrl:', newPost.imageUrl?.substring(0, 50));
+
+        try {
+            if (selectedPost) {
+                // Modifier une publication existante (MySQL)
+                await publicationsApi.update(selectedPost.id, {
+                    title: newPost.title,
+                    content: contentHtml,
+                    publishDate: dateTime,
+                    platforms: newPost.platforms,
+                    type: newPost.type,
+                    imageUrl: newPost.imageUrl,
+                    vignetteUrl: newPost.vignetteUrl
+                });
+                // DÉSACTIVÉ TEMPORAIREMENT : updateStatus cause ERR_HTTP2_PROTOCOL_ERROR
+                // try {
+                //     await publicationsApi.updateStatus(selectedPost.id, newPost.status, 'Planifiée depuis le calendrier');
+                // } catch (statusError) {
+                //     console.warn('⚠️ Mise à jour statut échouée (non bloquant):', statusError.message);
+                // }
+            } else {
+                // Créer une nouvelle publication (MySQL)
+                const created = await publicationsApi.create({
+                    title: newPost.title,
+                    content: contentHtml,
+                    publishDate: dateTime,
+                    platforms: newPost.platforms,
+                    source: 'calendar',
+                    type: newPost.type,
+                    imageUrl: newPost.imageUrl,
+                    vignetteUrl: newPost.vignetteUrl,
+                    status: newPost.status // Inclure le statut directement
+                });
+                const createdId = created?.data?.id;
+                // DÉSACTIVÉ TEMPORAIREMENT : updateStatus cause ERR_HTTP2_PROTOCOL_ERROR
+                // if (createdId && newPost.status !== 'draft') {
+                //     try {
+                //         await publicationsApi.updateStatus(createdId, newPost.status, 'Planifiée depuis le calendrier');
+                //     } catch (statusError) {
+                //         console.warn('⚠️ Mise à jour statut échouée (non bloquant):', statusError.message);
+                //     }
+                // }
+            }
+
+            // Recharger depuis l'API pour resynchroniser l'affichage
+            const refreshed = await publicationsApi.getAll();
+            const publications = refreshed?.data || [];
+            const formattedPublications = publications.map(pub => ({
+                id: String(pub.id),
+                title: pub.title,
+                content: pub.content,
+                platforms: pub.platforms || ['website'],
+                status: pub.status || 'draft',
+                start: pub.publishDate,
+                type: pub.type || 'text',
+                imageUrl: pub.imageUrl || null,
+                vignetteUrl: pub.vignetteUrl || null
+            }));
+            setSavedPublications(formattedPublications);
+
+            // Si wixblog est coché, publier automatiquement sur Wix Blog
+            if (newPost.platforms.includes('wixblog')) {
+                await handlePublishToWixBlog(newPost);
+            }
+
+        } catch (error) {
+            console.error('Erreur sauvegarde/planification (API):', error);
+            alert(`Erreur lors de la sauvegarde/planification.\n\nDétails: ${error.message}\n\nVeuillez réessayer.`);
+            setIsSavingSchedule(false);
+            return;
         }
 
+        setIsSavingSchedule(false);
         setShowScheduleModal(false);
         setSelectedPost(null);
     };
@@ -478,6 +824,60 @@ const ContentCalendar = ({ editorData }) => {
             platforms: ['website'],
             status: 'scheduled'
         });
+    };
+
+    // Fonction pour publier sur Wix Blog (déclenchée lors de la sauvegarde si wixblog est coché)
+    const handlePublishToWixBlog = async (publication) => {
+        try {
+            // Récupérer les clés API Wix depuis localStorage
+            const storedKeys = localStorage.getItem('network_api_keys');
+            const apiKeys = storedKeys ? JSON.parse(storedKeys) : {};
+            const wixSecret = apiKeys.wixBlog;
+
+            if (!wixSecret) {
+                console.warn('Clé API Wix Blog manquante, publication ignorée');
+                return;
+            }
+
+            // Parser l'App ID et App Secret (format: appId:appSecret ou juste appSecret)
+            let appId = 'f6f2c365-e2e2-4258-8510-196a09afff36'; // ID par défaut
+            let appSecret = wixSecret;
+            
+            if (wixSecret.includes(':')) {
+                const parts = wixSecret.split(':');
+                appId = parts[0];
+                appSecret = parts[1];
+            }
+
+            // Préparer les données de publication
+            const publicationData = {
+                title: publication.title || 'Sans titre',
+                content: normalizeForTextarea(publication.content || ''),
+                imageUrl: publication.imageUrl || null
+            };
+
+            const credentials = {
+                appId,
+                appSecret
+            };
+
+            const options = {
+                publish: true // Publier directement
+            };
+
+            // Appeler l'API Wix Blog
+            const result = await wixBlogApi.publishPost(publicationData, credentials, options);
+
+            if (result.success) {
+                console.log('✅ Publication Wix Blog réussie:', result.postUrl);
+            } else {
+                throw new Error(result.message || 'Erreur inconnue');
+            }
+
+        } catch (error) {
+            console.error('❌ Erreur publication Wix Blog:', error);
+            alert(`❌ Erreur lors de la publication sur Wix Blog\n\n${error.message || error}\n\nVérifiez vos clés API dans la page "Réseaux API".`);
+        }
     };
 
     // --- Rendu des icônes de plateforme ---
@@ -516,19 +916,43 @@ const ContentCalendar = ({ editorData }) => {
     // --- Rendu des cartes de post ---
     const renderEventContent = (eventInfo) => {
         const { extendedProps: post, source, title, start } = eventInfo.event;
-        const sourceClass = source.id === 'local-file-source' ? 'source-local' : '';
+        const sourceClass = source?.id === 'local-file-source' ? 'source-local' : '';
         const time = new Date(start).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const isImagePost = post.type === 'image' || post.imageUrl;
+        
+        // S'assurer que platforms est un tableau
+        let platforms = post.platforms || ['website'];
+        if (typeof platforms === 'string') {
+            try { platforms = JSON.parse(platforms); } catch { platforms = [platforms]; }
+        }
+        if (!Array.isArray(platforms)) platforms = ['website'];
 
         return (
             <div className={`post-card status-${post.status} ${sourceClass}`}>
                 <div className="post-card-header">
                     <div className="post-card-platforms">
-                        {post.platforms.map(p => renderPlatformIconInCard(p))}
+                        {platforms.map(p => renderPlatformIconInCard(p))}
                     </div>
                     <div className="post-card-time">{time}</div>
                 </div>
                 <div className="post-card-title">{title}</div>
-                <div className="post-card-content">{post.content?.substring(0, 40)}...</div>
+                {isImagePost && post.imageUrl ? (
+                    <div className="post-card-image" style={{ marginTop: '4px' }}>
+                        <img 
+                            src={post.vignetteUrl || post.imageUrl} 
+                            alt={title}
+                            style={{ 
+                                width: '100%', 
+                                height: '60px', 
+                                objectFit: 'cover', 
+                                borderRadius: '4px' 
+                            }}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                    </div>
+                ) : (
+                    <div className="post-card-content">{post.content?.substring(0, 40)}...</div>
+                )}
             </div>
         );
     };
@@ -536,83 +960,167 @@ const ContentCalendar = ({ editorData }) => {
     // --- JSX : La structure de la page ---
     return (
         <div className="calendar-layout">
-            {/* Colonne de Filtres (Sidebar) */}
-            <div className="filter-sidebar">
-                <div>
-                    {/* MODIFIÉ : Zone de création par Séquence */}
-                    <div className="sequence-section">
-                        <div className="sequence-header">
-                            <h2>{t('buttons.createSequence')}</h2>
-                            {/* NOUVEAU : Bouton pour ajouter un module */}
-                            <button className="btn-add-module" onClick={handleOpenModuleModal}>+</button>
-                        </div>
-                        <div className="form-group">
-                            <label>{t('sidebar.modulesLabel')}</label>
-                            <div className="modules-selection">
-                                {/* MODIFIÉ : Affiche les modules de base ET ceux de l'utilisateur */}
-                                {Object.entries({ ...BASE_MODULE_TEMPLATES, ...userModules }).map(([key, { title, isBase }]) => (
-                                    <label key={key} className="module-checkbox">
+            {/* Bouton hamburger pour ouvrir la sidebar (mobile/tablette) */}
+            <button 
+                className="sidebar-toggle-btn"
+                onClick={() => setIsSidebarOpen(true)}
+                aria-label="Ouvrir le menu"
+            >
+                <i className="fas fa-bars"></i>
+            </button>
+            
+            {/* Overlay sombre quand sidebar ouverte (mobile/tablette) */}
+            <div 
+                className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`}
+                onClick={() => setIsSidebarOpen(false)}
+            />
+            
+            {/* Colonne de Filtres (Sidebar) - REDIMENSIONNABLE */}
+            <div 
+                className={`filter-sidebar ${isSidebarOpen ? 'open' : ''}`}
+                ref={sidebarRef}
+                style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '500px' }}
+            >
+                <div className="sidebar-content">
+                    {/* SECTION PRINCIPALE : Actions rapides */}
+                    <div className="actions-section">
+                        <h2><i className="fas fa-bolt"></i> Actions</h2>
+                        
+                        {/* Bouton Nouvelle Publication */}
+                        <button className="action-button primary" onClick={handleInsertPublication}>
+                            <i className="fas fa-plus-circle"></i> Nouvelle publication
+                        </button>
+                        
+                        {/* Bouton Ouvrir une publication */}
+                        <button className="action-button" onClick={() => setShowPublicationsModal(true)}>
+                            <i className="fas fa-folder-open"></i> Ouvrir une publication
+                        </button>
+                        
+                        {/* Menu déroulant Créer Séquence */}
+                        <div className="sequence-dropdown">
+                            <button 
+                                className="action-button dropdown-toggle" 
+                                onClick={() => setShowSequenceMenu(!showSequenceMenu)}
+                            >
+                                <i className="fas fa-layer-group"></i> Créer Séquence
+                                <i className={`fas fa-chevron-${showSequenceMenu ? 'up' : 'down'} dropdown-arrow`}></i>
+                            </button>
+                            
+                            {showSequenceMenu && (
+                                <div className="sequence-menu">
+                                    <div className="form-group">
+                                        <label>{t('sidebar.modulesLabel')}</label>
+                                        <div className="modules-selection">
+                                            {Object.entries({ ...BASE_MODULE_TEMPLATES, ...userModules }).map(([key, { title, isBase }]) => (
+                                                <label key={key} className="module-checkbox">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedModules.has(key)}
+                                                        onChange={() => toggleModule(key)}
+                                                    />
+                                                    <span>{title}</span>
+                                                    {isBase && <span className="base-module-tag">Base</span>}
+                                                </label>
+                                            ))}
+                                        </div>
+                                        <button className="btn-add-module-small" onClick={handleOpenModuleModal}>
+                                            <i className="fas fa-plus"></i> Ajouter module
+                                        </button>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>{t('sidebar.sequenceDateLabel')}</label>
                                         <input
-                                            type="checkbox"
-                                            checked={selectedModules.has(key)}
-                                            onChange={() => toggleModule(key)}
+                                            type="date"
+                                            value={newPostDate}
+                                            onChange={(e) => setNewPostDate(e.target.value)}
                                         />
-                                        <span>{title}</span>
-                                        {isBase && <span className="base-module-tag">Base</span>}
-                                    </label>
-                                ))}
-                            </div>
+                                    </div>
+                                    <button className="btn-create-sequence" onClick={handleCreateFromSequence}>
+                                        <i className="fas fa-calendar-plus"></i> {t('buttons.createAndSchedule')}
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <div className="form-group">
-                            <label>{t('sidebar.sequenceDateLabel')}</label>
-                            <input
-                                type="date"
-                                value={newPostDate}
-                                onChange={(e) => setNewPostDate(e.target.value)}
-                            />
-                        </div>
-                        <button className="btn-create-sequence" onClick={handleCreateFromSequence}>
-                           {t('buttons.createAndSchedule')}
+                    </div>
+
+                    {/* SECTION Import/Export */}
+                    <div className="io-section">
+                        <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" style={{ display: 'none' }} />
+                        <button className="action-button" onClick={() => fileInputRef.current.click()}>
+                            <i className="fas fa-cloud-upload-alt"></i> Importer JSON
+                        </button>
+                        <button className="action-button" onClick={handleExport}>
+                            <i className="fas fa-download"></i> Exporter JSON
                         </button>
                     </div>
 
-                    <h2>{t('sidebar.platformsTitle')}</h2>
-                    <div 
-                        className={`platform-filter ${activeFilters.size === Object.keys(PLATFORM_DETAILS).length ? 'active' : ''}`}
-                        onClick={toggleAllFilters}
-                    >
-                        <span>{t('sidebar.allPlatforms')}</span>
-                        <span className="count">{mainPosts.length + localPosts.length + savedPublications.length}</span>
-                    </div>
-                    {Object.entries(PLATFORM_DETAILS).map(([key, { name, icon }]) => (
-                        <div
-                            key={key}
-                            className={`platform-filter ${activeFilters.has(key) ? 'active' : ''}`}
-                            onClick={() => toggleFilter(key)}
+                    {/* SECTION Filtres par plateforme */}
+                    <div className="platforms-section">
+                        <h2><i className="fas fa-filter"></i> {t('sidebar.platformsTitle')}</h2>
+                        <div 
+                            className={`platform-filter ${activeFilters.size === Object.keys(PLATFORM_DETAILS).length ? 'active' : ''}`}
+                            onClick={toggleAllFilters}
                         >
-                            {renderPlatformIcon(icon, name)}
-                            <span>{name}</span>
-                            <span className="count">
-                                {mainPosts.filter(p => p.platforms.includes(key)).length + 
-                                 localPosts.filter(p => p.platforms.includes(key)).length + 
-                                 savedPublications.filter(p => p.platforms.includes(key)).length}
-                            </span>
+                            <span>{t('sidebar.allPlatforms')}</span>
+                            <span className="count">{mainPosts.length + localPosts.length + savedPublications.length}</span>
                         </div>
-                    ))}
+                        {Object.entries(PLATFORM_DETAILS).map(([key, { name, icon }]) => (
+                            <div
+                                key={key}
+                                className={`platform-filter ${activeFilters.has(key) ? 'active' : ''}`}
+                                onClick={() => toggleFilter(key)}
+                            >
+                                {renderPlatformIcon(icon, name)}
+                                <span>{name}</span>
+                                <span className="count">
+                                    {mainPosts.filter(p => p.platforms.includes(key)).length + 
+                                     localPosts.filter(p => p.platforms.includes(key)).length + 
+                                     savedPublications.filter(p => p.platforms.includes(key)).length}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="io-section">
-                    <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".json" style={{ display: 'none' }} />
-                    <button className="import-button" onClick={() => fileInputRef.current.click()}>
-                        <span>☁️</span> {t('buttons.import')}
-                    </button>
-                    <button className="export-button" onClick={handleExport}>
-                        <span>💾</span> {t('buttons.export')}
-                    </button>
-                </div>
+                
+                {/* Poignée de redimensionnement */}
+                <div 
+                    className="sidebar-resizer"
+                    onMouseDown={handleMouseDown}
+                    style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '5px',
+                        cursor: 'col-resize',
+                        background: isResizing ? '#007bff' : 'transparent'
+                    }}
+                />
             </div>
 
             {/* Zone du Calendrier */}
-            <div className="calendar-container">
+            <div className="calendar-container" style={{ position: 'relative' }}>
+                {isLoadingPublications && (
+                    <div style={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)',
+                        padding: '40px',
+                        borderRadius: '20px',
+                        boxShadow: '0 8px 32px rgba(255, 107, 53, 0.4)',
+                        zIndex: 10000,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <i className="fas fa-spinner fa-spin" style={{
+                            fontSize: '64px',
+                            color: 'white'
+                        }}></i>
+                    </div>
+                )}
                 <FullCalendar
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                     initialView="dayGridMonth"
@@ -668,9 +1176,9 @@ const ContentCalendar = ({ editorData }) => {
                     slotMaxTime="22:00:00"
                     businessHours={false}
                     eventSources={[
-                        { id: 'main-source', events: mainPosts.filter(p => p.platforms.some(pf => activeFilters.has(pf))) },
-                        { id: 'local-file-source', events: localPosts.filter(p => p.platforms.some(pf => activeFilters.has(pf))) },
-                        { id: 'saved-publications', events: savedPublications.filter(p => p.platforms.some(pf => activeFilters.has(pf))) }
+                        { id: 'main-source', events: mainPosts.filter(p => Array.isArray(p.platforms) && p.platforms.some(pf => activeFilters.has(pf))) },
+                        { id: 'local-file-source', events: localPosts.filter(p => Array.isArray(p.platforms) && p.platforms.some(pf => activeFilters.has(pf))) },
+                        { id: 'saved-publications', events: savedPublications.filter(p => Array.isArray(p.platforms) && p.platforms.some(pf => activeFilters.has(pf))) }
                     ]}
                     eventContent={renderEventContent}
                     eventDrop={handleEventDrop}
@@ -689,23 +1197,57 @@ const ContentCalendar = ({ editorData }) => {
                         </div>
                         
                         <div className="modal-body">
-                            <div className="form-group">
-                                <label>{t('modals.schedule.titleLabel')}</label>
-                                <input
-                                    type="text"
-                                    value={scheduleData.title}
-                                    onChange={(e) => setScheduleData({...scheduleData, title: e.target.value})}
-                                    placeholder={t('modals.schedule.titlePlaceholder')}
-                                />
+                            {/* Ligne horizontale : Titre à gauche + Image à droite */}
+                            <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
+                                {/* Titre à gauche */}
+                                <div className="form-group" style={{ flex: scheduleData.type === 'image' && scheduleData.imageUrl ? '1' : '1', marginBottom: 0 }}>
+                                    <label>{t('modals.schedule.titleLabel')}</label>
+                                    <input
+                                        type="text"
+                                        value={scheduleData.title}
+                                        onChange={(e) => setScheduleData({...scheduleData, title: e.target.value})}
+                                        placeholder={t('modals.schedule.titlePlaceholder')}
+                                    />
+                                </div>
+
+                                {/* Image à droite (si type image) */}
+                                {scheduleData.type === 'image' && scheduleData.imageUrl && (
+                                    <div className="form-group image-preview-section" style={{ width: '250px', flexShrink: 0, marginBottom: 0 }}>
+                                        <label>Image à publier</label>
+                                        <div style={{ 
+                                            textAlign: 'center', 
+                                            padding: '10px', 
+                                            background: '#f5f5f5', 
+                                            borderRadius: '8px',
+                                            border: '1px solid #ddd'
+                                        }}>
+                                            <a href={scheduleData.imageUrl} target="_blank" rel="noopener noreferrer">
+                                                <img 
+                                                    src={scheduleData.vignetteUrl || scheduleData.imageUrl} 
+                                                    alt="Image à publier"
+                                                    style={{ 
+                                                        maxWidth: '100%', 
+                                                        maxHeight: '150px', 
+                                                        borderRadius: '8px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                />
+                                            </a>
+                                            <div style={{ fontSize: '11px', color: '#666', marginTop: '5px' }}>
+                                                Cliquer pour voir en taille réelle
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-group content-section">
-                                <label>{t('modals.schedule.contentLabel')}</label>
+                                <label>{scheduleData.type === 'image' ? 'Légende / Description' : t('modals.schedule.contentLabel')}</label>
                                 <textarea
                                     value={normalizeForTextarea(scheduleData.content)}
                                     onChange={(e) => setScheduleData({...scheduleData, content: e.target.value})}
-                                    placeholder={t('modals.schedule.contentPlaceholder')}
-                                    rows="14"
+                                    placeholder={scheduleData.type === 'image' ? 'Légende de l\'image...' : t('modals.schedule.contentPlaceholder')}
+                                    rows={scheduleData.type === 'image' ? 4 : 14}
                                 />
                             </div>
 
@@ -772,13 +1314,48 @@ const ContentCalendar = ({ editorData }) => {
                             </div>
                         </div>
 
-                        <div className="modal-footer">
-                            <button className="btn-cancel" onClick={handleScheduleCancel}>
-                                {t('modals.schedule.cancelButton')}
-                            </button>
-                            <button className="btn-save" onClick={handleScheduleSave}>
-                                {selectedPost ? t('modals.schedule.editButton') : t('modals.schedule.scheduleButton')}
-                            </button>
+                        <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
+                            <div>
+                                {selectedPost && (
+                                    <button 
+                                        className="btn-delete" 
+                                        onClick={handleDeleteCurrentPublication}
+                                        disabled={isSavingSchedule}
+                                        style={{ 
+                                            background: '#dc3545', 
+                                            color: 'white', 
+                                            border: 'none',
+                                            padding: '10px 20px',
+                                            borderRadius: '6px',
+                                            cursor: isSavingSchedule ? 'wait' : 'pointer',
+                                            opacity: isSavingSchedule ? 0.7 : 1
+                                        }}
+                                    >
+                                        <i className="fas fa-trash" style={{ marginRight: '8px' }}></i>
+                                        Supprimer
+                                    </button>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button className="btn-cancel" onClick={handleScheduleCancel} disabled={isSavingSchedule}>
+                                    {t('modals.schedule.cancelButton')}
+                                </button>
+                                <button 
+                                    className="btn-save" 
+                                    onClick={handleScheduleSave}
+                                    disabled={isSavingSchedule}
+                                    style={{ opacity: isSavingSchedule ? 0.7 : 1 }}
+                                >
+                                    {isSavingSchedule ? (
+                                        <>
+                                            <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>
+                                            Enregistrement...
+                                        </>
+                                    ) : (
+                                        selectedPost ? t('modals.schedule.editButton') : t('modals.schedule.scheduleButton')
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
             </div>
@@ -842,6 +1419,114 @@ const ContentCalendar = ({ editorData }) => {
                     <div className="modal-footer">
                         <button className="btn-cancel" onClick={handleCloseModuleModal}>Annuler</button>
                         <button className="btn-save" onClick={handleSaveModule}>Sauvegarder</button>
+                    </div>
+                </div>
+            </div>
+        )}
+        
+        {/* NOUVEAU : Modal pour ouvrir une publication existante */}
+        {showPublicationsModal && (
+            <div className="schedule-modal-overlay" onClick={() => { setShowPublicationsModal(false); setSelectedForDeletion(new Set()); }}>
+                <div className="schedule-modal publications-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h3><i className="fas fa-folder-open"></i> Publications ({savedPublications.length})</h3>
+                        <button className="modal-close" onClick={() => { setShowPublicationsModal(false); setSelectedForDeletion(new Set()); }}>×</button>
+                    </div>
+                    <div className="modal-body">
+                        {/* Barre d'actions si des publications sont sélectionnées */}
+                        {selectedForDeletion.size > 0 && (
+                            <div style={{ 
+                                padding: '10px 15px', 
+                                background: '#fff3cd', 
+                                borderRadius: '6px', 
+                                marginBottom: '10px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <span><strong>{selectedForDeletion.size}</strong> publication(s) sélectionnée(s)</span>
+                                <button 
+                                    onClick={handleDeleteSelectedPublications}
+                                    disabled={isDeletingPublications}
+                                    style={{ 
+                                        background: '#dc3545', 
+                                        color: 'white', 
+                                        border: 'none', 
+                                        padding: '8px 16px', 
+                                        borderRadius: '4px',
+                                        cursor: isDeletingPublications ? 'wait' : 'pointer',
+                                        opacity: isDeletingPublications ? 0.7 : 1
+                                    }}
+                                >
+                                    {isDeletingPublications ? (
+                                        <><i className="fas fa-spinner fa-spin"></i> Suppression...</>
+                                    ) : (
+                                        <><i className="fas fa-trash"></i> Supprimer</>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                        <div className="publications-list">
+                            {savedPublications.length === 0 ? (
+                                <div className="no-publications">
+                                    <i className="fas fa-inbox"></i>
+                                    <p>Aucune publication enregistrée</p>
+                                </div>
+                            ) : (
+                                savedPublications.map(pub => {
+                                    const platforms = Array.isArray(pub.platforms) ? pub.platforms : [];
+                                    let dateStr = 'Date inconnue';
+                                    try { if (pub.start) dateStr = new Date(pub.start).toLocaleDateString('fr-FR'); } catch {}
+                                    
+                                    return (
+                                        <div 
+                                            key={pub.id} 
+                                            className={`publication-item status-${pub.status || 'draft'} ${selectedForDeletion.has(pub.id) ? 'selected-for-deletion' : ''}`}
+                                            onClick={() => handleOpenPublication(pub)}
+                                        >
+                                            {/* Checkbox de sélection */}
+                                            <input 
+                                                type="checkbox"
+                                                className="publication-checkbox"
+                                                checked={selectedForDeletion.has(pub.id)}
+                                                onChange={(e) => togglePublicationSelection(pub.id, e)}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                            <div className="publication-item-header">
+                                                {pub.type === 'image' && (pub.vignetteUrl || pub.imageUrl) && (
+                                                    <img 
+                                                        src={pub.vignetteUrl || pub.imageUrl} 
+                                                        alt={pub.title}
+                                                        className="publication-thumbnail"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                )}
+                                                <div className="publication-info">
+                                                    <div className="publication-title">{pub.title || 'Sans titre'}</div>
+                                                    <div className="publication-meta">
+                                                        <span className={`status-badge ${pub.status || 'draft'}`}>
+                                                            {pub.status === 'published' ? 'Publié' : 
+                                                             pub.status === 'scheduled' ? 'Planifié' : 'Brouillon'}
+                                                        </span>
+                                                        <span className="publication-date">{dateStr}</span>
+                                                    </div>
+                                                    <div className="publication-platforms">
+                                                        {platforms.map((p, idx) => (
+                                                            <span key={`${pub.id}-${p}-${idx}`} className="platform-tag">{p}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button className="btn-cancel" onClick={() => { setShowPublicationsModal(false); setSelectedForDeletion(new Set()); }}>
+                            Fermer
+                        </button>
                     </div>
                 </div>
             </div>

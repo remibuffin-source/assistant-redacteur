@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MenuBar from './MenuBar';
+import MetaConnect from './SocialConnect/MetaConnect';
+import { metaStorage } from '../services/metaApi';
+import wixBlogApi from '../services/wixBlogApi';
 import './NetworkAPIPage.css';
 
 /**
@@ -22,7 +25,8 @@ const useNetworkApiKeys = () => {
         youtube: '',
         tiktok: '',
         blog: '',
-        website: ''
+        website: '',
+        wixBlog: ''
       };
     } catch {
       return {
@@ -33,7 +37,8 @@ const useNetworkApiKeys = () => {
         youtube: '',
         tiktok: '',
         blog: '',
-        website: ''
+        website: '',
+        wixBlog: ''
       };
     }
   });
@@ -53,6 +58,11 @@ const NetworkAPIPage = () => {
   const [testResults, setTestResults] = useState({});
   const { apiKeys, updateApiKey } = useNetworkApiKeys();
   const [saveStatus, setSaveStatus] = useState(null);
+  const [metaConnected, setMetaConnected] = useState(false);
+
+  useEffect(() => {
+    setMetaConnected(metaStorage.isConnected());
+  }, []);
 
   const networkServices = [
     { 
@@ -105,6 +115,13 @@ const NetworkAPIPage = () => {
       docs: 'https://developer.wordpress.org/rest-api/'
     },
     { 
+      id: 'wixBlog', 
+      name: 'Wix Blog API', 
+      icon: 'fas fa-blog', 
+      description: 'Publiez automatiquement sur votre blog Wix',
+      docs: 'https://dev.wix.com/docs/build-apps/develop-your-app/access/authentication/authenticate-using-oauth'
+    },
+    { 
       id: 'website', 
       name: 'Site Web', 
       icon: 'fas fa-globe', 
@@ -145,9 +162,48 @@ const NetworkAPIPage = () => {
     setTesting(prev => ({ ...prev, [service]: true }));
     
     try {
+      // Test réel pour Wix Blog
+      if (service === 'wixBlog') {
+        // Parser l'App ID et App Secret (format: appId:appSecret)
+        let appId, appSecret;
+        if (currentKey.includes(':')) {
+          const parts = currentKey.split(':');
+          appId = parts[0];
+          appSecret = parts[1];
+        } else {
+          // Si pas de format appId:appSecret, utiliser l'ID par défaut
+          appId = 'f6f2c365-e2e2-4258-8510-196a09afff36';
+          appSecret = currentKey;
+        }
+
+        const result = await wixBlogApi.testConnection(appId, appSecret);
+        
+        if (result.success) {
+          setTestResults(prev => ({ 
+            ...prev, 
+            [service]: { 
+              success: true, 
+              message: `✅ Connexion Wix réussie ! ${result.categoriesCount || 0} catégories trouvées`, 
+              valid: true 
+            } 
+          }));
+        } else {
+          setTestResults(prev => ({ 
+            ...prev, 
+            [service]: { 
+              success: false, 
+              message: `❌ ${result.message || 'Erreur de connexion Wix'}`, 
+              valid: false 
+            } 
+          }));
+        }
+        return;
+      }
+
+      // Test factice pour les autres services (en attendant implémentation)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      const isValidFormat = currentKey.length >= 20 && /^[a-zA-Z0-9\-_]+$/.test(currentKey);
+      const isValidFormat = currentKey.length >= 20 && /^[a-zA-Z0-9\-_:]+$/.test(currentKey);
       
       if (isValidFormat) {
         setTestResults(prev => ({ 
@@ -173,7 +229,7 @@ const NetworkAPIPage = () => {
         ...prev, 
         [service]: { 
           success: false, 
-          message: '❌ Erreur lors du test de connexion', 
+          message: `❌ Erreur: ${error.message || 'Erreur lors du test de connexion'}`, 
           valid: false 
         } 
       }));
@@ -182,10 +238,81 @@ const NetworkAPIPage = () => {
     }
   };
 
+  const handleMetaConnect = (data) => {
+    setMetaConnected(true);
+    setSaveStatus({ success: true, message: 'Connexion Facebook/Instagram réussie !' });
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
+  const handleMetaDisconnect = () => {
+    setMetaConnected(false);
+    setSaveStatus({ success: true, message: 'Déconnexion réussie' });
+    setTimeout(() => setSaveStatus(null), 2000);
+  };
+
   const renderServiceCard = (service) => {
     const currentKey = apiKeys[service.id] || '';
     const isTesting = testing[service.id];
     const testResult = testResults[service.id];
+
+    // Pour Facebook et Instagram, utiliser le composant OAuth MetaConnect
+    if (service.id === 'facebook' || service.id === 'instagram') {
+      return (
+        <div key={service.id} className="network-service-card meta-oauth-card">
+          <div className="service-header">
+            <div className="service-logo">
+              {service.iconPath ? (
+                <img src={service.iconPath} alt={service.name} className="service-icon-official" />
+              ) : (
+                <i className={service.icon}></i>
+              )}
+            </div>
+            <div className="service-info">
+              <h3>{service.name}</h3>
+              <p>{service.description}</p>
+              {service.docs && (
+                <a 
+                  href={service.docs} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="docs-link"
+                  title="Documentation API"
+                >
+                  <i className="fas fa-book"></i> Documentation
+                </a>
+              )}
+            </div>
+          </div>
+
+          {service.id === 'facebook' && (
+            <div className="meta-oauth-container">
+              <div className="oauth-notice">
+                <i className="fas fa-shield-alt"></i>
+                <span>Connexion sécurisée via OAuth 2.0</span>
+              </div>
+              <MetaConnect 
+                onConnect={handleMetaConnect}
+                onDisconnect={handleMetaDisconnect}
+              />
+            </div>
+          )}
+
+          {service.id === 'instagram' && metaConnected && (
+            <div className="instagram-linked-notice">
+              <i className="fas fa-check-circle"></i>
+              <span>Instagram est lié via votre connexion Facebook ci-dessus</span>
+            </div>
+          )}
+
+          {service.id === 'instagram' && !metaConnected && (
+            <div className="instagram-info-notice">
+              <i className="fas fa-info-circle"></i>
+              <span>Connectez Facebook ci-dessus pour accéder à Instagram</span>
+            </div>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div key={service.id} className="network-service-card">
@@ -279,7 +406,7 @@ const NetworkAPIPage = () => {
   return (
     <div className="page-container">
       <MenuBar onHelp={() => {}} />
-      <div className="page-content" style={{paddingTop: '0px', paddingLeft: '30px', paddingRight: '30px', marginTop: '-40px'}}>
+      <div className="page-content" style={{paddingTop: '0px', paddingLeft: '60px', paddingRight: '60px', marginTop: '-40px'}}>
         <div className="network-api-page">
           <div className="config-header">
             <div className="header-content">

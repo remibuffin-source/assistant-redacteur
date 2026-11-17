@@ -1,5 +1,5 @@
 import express from 'express';
-import ApiKey from '../models/ApiKey.js';
+import { ApiKey } from '../models/index.sequelize.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
 
@@ -13,14 +13,14 @@ const router = express.Router();
 router.post('/api-keys', authenticateToken, async (req, res) => {
   try {
     const { apiKeys } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
 
     // Log pour debug
     logger.info(`Tentative de sauvegarde par user:`, req.user);
 
     // Vérifier que l'utilisateur est admin (accepter role='admin' OU email admin)
     const isAdmin = req.user.role === 'admin' || 
-                    req.user.email === 'admin@studioducapbrun.com' ||
+                    req.user.email === 'admin@assistant-redacteur.fr' ||
                     req.user.id === 'admin-001';
     
     if (!isAdmin) {
@@ -85,7 +85,7 @@ router.get('/api-keys/:userId', authenticateToken, async (req, res) => {
 
     // Vérifier que l'utilisateur est admin ou demande ses propres clés
     if (req.user.role !== 'admin' && 
-        req.user.email !== 'admin@studioducapbrun.com' && 
+        req.user.email !== 'admin@assistant-redacteur.fr' && 
         req.user.id !== userId) {
       return res.status(403).json({
         success: false,
@@ -123,7 +123,7 @@ router.get('/api-keys/service/:service', authenticateToken, async (req, res) => 
     const userId = req.user.id;
 
     // Vérifier que l'utilisateur est admin
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@studioducapbrun.com') {
+    if (req.user.role !== 'admin' && req.user.email !== 'admin@assistant-redacteur.fr') {
       return res.status(403).json({
         success: false,
         message: 'Accès refusé'
@@ -166,7 +166,7 @@ router.delete('/api-keys/:service', authenticateToken, async (req, res) => {
     const userId = req.user.id;
 
     // Vérifier que l'utilisateur est admin
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@studioducapbrun.com') {
+    if (req.user.role !== 'admin' && req.user.email !== 'admin@assistant-redacteur.fr') {
       return res.status(403).json({
         success: false,
         message: 'Accès refusé'
@@ -202,20 +202,22 @@ router.get('/api-keys-status', authenticateToken, async (req, res) => {
     const userId = req.user.id;
 
     // Vérifier que l'utilisateur est admin
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@studioducapbrun.com') {
+    if (req.user.role !== 'admin' && req.user.email !== 'admin@assistant-redacteur.fr') {
       return res.status(403).json({
         success: false,
         message: 'Accès refusé'
       });
     }
 
-    const keys = await ApiKey.find({ userId, isActive: true }).select('service metadata lastUsed createdAt');
+    const keys = await ApiKey.findAll({ 
+      where: { userId, isActive: true },
+      attributes: ['service', 'metadataKeyPrefix', 'createdAt']
+    });
 
     const status = keys.map(key => ({
       service: key.service,
       configured: true,
-      keyPrefix: key.metadata?.keyPrefix,
-      lastUsed: key.lastUsed,
+      keyPrefix: key.metadataKeyPrefix,
       createdAt: key.createdAt
     }));
 

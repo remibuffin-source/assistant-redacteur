@@ -7,7 +7,12 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "migrate": "node scripts/runMigration.js"
+    "migrate": "node scripts/runMigration.js",
+    "test:migration": "node scripts/testMigration.js",
+    "db:init": "node -e \"import('./models/index.sequelize.js').then(m => m.initDatabase())\"",
+    "db:migrate": "node scripts/migrateToMySQL.js",
+    "clean": "node scripts/cleanForO2Switch.js",
+    "clean:rename": "node scripts/cleanForO2Switch.js --rename"
   },
   "dependencies": {
     "axios": "^1.13.2",
@@ -22,9 +27,9 @@
     "express-validator": "^7.3.0",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
+    "mysql2": "^3.15.3",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.7",
     "passport": "^0.6.0",
@@ -35,8 +40,13 @@
     "passport-linkedin-oauth2": "^2.0.0",
     "passport-twitter": "^1.0.4",
     "pg": "^8.16.3",
+    "puppeteer": "^24.36.0",
     "redis": "^4.6.8",
+    "sequelize": "^6.37.7",
+    "sharp": "^0.33.2",
     "socket.io": "^4.8.1",
+    "sqlite3": "^5.1.7",
+    "stripe": "^14.10.0",
     "twitter-api-v2": "^1.28.0",
     "winston": "^3.10.0"
   },
@@ -44,7 +54,8 @@
     "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "keywords": [
     "assistant-redacteur",

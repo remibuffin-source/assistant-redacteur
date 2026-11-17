@@ -148,3 +148,12 @@ capture-specific.js
 # Secrets locaux (ne jamais versionner)
 .kilocode/mcp.json
 CONFIGURATION-STRIPE-URGENTE.md
+
+# Données locales et secrets (ne jamais versionner)
+backend/database.sqlite
+backend/config/smtp.json
+stockage/
+users/
+
+# Documentation contenant des cles API (ne pas versionner)
+backend/routes/API-KEYS-ROUTING.md

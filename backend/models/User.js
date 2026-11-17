@@ -1,368 +1,416 @@
-import mongoose from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { sequelize } from '../config/sequelize.js';
 
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email'
-    ]
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select: false // Ne pas inclure par défaut dans les queries
-  },
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true,
-    maxlength: [50, 'Name cannot exceed 50 characters']
-  },
-  avatar: {
-    type: String,
-    default: null
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin', 'moderator'],
-    default: 'user'
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  lastLogin: {
-    type: Date,
-    default: null
-  },
-  emailVerified: {
-    type: Boolean,
-    default: false
-  },
-  emailVerificationToken: {
-    type: String,
-    default: null
-  },
-  passwordResetToken: {
-    type: String,
-    default: null
-  },
-  passwordResetExpires: {
-    type: Date,
-    default: null
-  },
-
-  // Configuration OAuth
-  oauthProviders: {
-    google: {
-      id: String,
-      email: String,
-      name: String,
-      avatar: String
-    },
-    facebook: {
-      id: String,
-      email: String,
-      name: String,
-      avatar: String
-    },
-    twitter: {
-      id: String,
-      username: String,
-      name: String,
-      avatar: String
-    },
-    linkedin: {
-      id: String,
-      email: String,
-      name: String,
-      avatar: String
+class User extends Model {
+  /**
+   * Comparer les mots de passe
+   */
+  async comparePassword(candidatePassword) {
+    try {
+      return await bcrypt.compare(candidatePassword, this.password);
+    } catch (error) {
+      throw error;
     }
-  },
+  }
 
-  // Préférences utilisateur
-  preferences: {
-    theme: {
-      type: String,
-      enum: ['light', 'dark', 'auto'],
-      default: 'auto'
-    },
-    language: {
-      type: String,
-      default: 'fr',
-      enum: ['fr', 'en', 'es', 'de']
-    },
-    timezone: {
-      type: String,
-      default: 'Europe/Paris'
-    },
-    notifications: {
-      email: {
-        type: Boolean,
-        default: true
+  /**
+   * Générer un token JWT
+   */
+  generateAuthToken() {
+    return jwt.sign(
+      {
+        id: this.id,
+        email: this.email,
+        role: this.role
       },
-      push: {
-        type: Boolean,
-        default: true
-      },
-      publicationSuccess: {
-        type: Boolean,
-        default: true
-      },
-      publicationFailure: {
-        type: Boolean,
-        default: true
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRE || '30d'
       }
-    }
-  },
+    );
+  }
 
-  // Système de crédits
-  credits: {
-    balance: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    totalPurchased: {
-      type: Number,
-      default: 0
-    },
-    totalUsed: {
-      type: Number,
-      default: 0
-    },
-    lastRecharge: {
-      type: Date,
-      default: null
-    },
-    history: [{
-      type: {
-        type: String,
-        enum: ['purchase', 'usage', 'refund', 'bonus', 'adjustment'],
-        required: true
+  /**
+   * Générer un token de rafraîchissement
+   */
+  generateRefreshToken() {
+    return jwt.sign(
+      {
+        id: this.id
       },
-      amount: {
-        type: Number,
-        required: true
-      },
-      balanceAfter: {
-        type: Number,
-        required: true
-      },
-      description: String,
-      relatedTo: String, // ID de l'article, transaction, etc.
-      metadata: mongoose.Schema.Types.Mixed,
-      createdAt: {
-        type: Date,
-        default: Date.now
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn: process.env.JWT_REFRESH_EXPIRE || '90d'
       }
-    }]
-  },
-
-  // Statistiques utilisateur
-  stats: {
-    totalPublications: {
-      type: Number,
-      default: 0
-    },
-    successfulPublications: {
-      type: Number,
-      default: 0
-    },
-    failedPublications: {
-      type: Number,
-      default: 0
-    },
-    lastPublicationDate: {
-      type: Date,
-      default: null
-    },
-    favoritePlatforms: [{
-      platform: {
-        type: String,
-        enum: ['twitter', 'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok']
-      },
-      count: {
-        type: Number,
-        default: 0
-      }
-    }]
+    );
   }
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
 
-// Index pour améliorer les performances
-userSchema.index({ email: 1 });
-userSchema.index({ 'oauthProviders.google.id': 1 });
-userSchema.index({ 'oauthProviders.facebook.id': 1 });
-userSchema.index({ 'oauthProviders.twitter.id': 1 });
-
-// Virtual pour le nom complet
-userSchema.virtual('fullName').get(function() {
-  return this.name;
-});
-
-// Méthode pour hasher le mot de passe
-userSchema.pre('save', async function(next) {
-  // Ne hasher que si le mot de passe a été modifié
-  if (!this.isModified('password')) return next();
-
-  try {
-    // Hasher le mot de passe avec un coût de 12
-    const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Méthode pour comparer les mots de passe
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Méthode pour générer un token JWT
-userSchema.methods.generateAuthToken = function() {
-  return jwt.sign(
-    {
-      id: this._id,
-      email: this.email,
-      role: this.role
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_EXPIRE || '7d'
+  /**
+   * Ajouter des crédits
+   */
+  async addCredits(amount, type = 'purchase', description = '', metadata = {}) {
+    this.creditsBalance += amount;
+    this.creditsTotalPurchased += amount;
+    
+    if (type === 'purchase') {
+      this.creditsLastRecharge = new Date();
     }
-  );
-};
+    
+    // Ajouter à l'historique (sera géré par une table séparée CreditHistory)
+    await this.save();
+    return this.creditsBalance;
+  }
 
-// Méthode pour générer un token de rafraîchissement
-userSchema.methods.generateRefreshToken = function() {
-  return jwt.sign(
-    {
-      id: this._id
-    },
-    process.env.JWT_REFRESH_SECRET,
-    {
-      expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d'
+  /**
+   * Déduire des crédits
+   */
+  async deductCredits(amount, description = '', relatedTo = null) {
+    if (this.creditsBalance < amount) {
+      throw new Error('Insufficient credits');
     }
-  );
-};
-
-// Méthode pour ajouter des crédits
-userSchema.methods.addCredits = function(amount, type = 'purchase', description = '', metadata = {}) {
-  this.credits.balance += amount;
-  this.credits.totalPurchased += amount;
-  
-  if (type === 'purchase') {
-    this.credits.lastRecharge = new Date();
-  }
-  
-  this.credits.history.push({
-    type,
-    amount,
-    balanceAfter: this.credits.balance,
-    description,
-    metadata,
-    createdAt: new Date()
-  });
-  
-  return this.credits.balance;
-};
-
-// Méthode pour déduire des crédits
-userSchema.methods.deductCredits = function(amount, description = '', relatedTo = null) {
-  if (this.credits.balance < amount) {
-    throw new Error('Insufficient credits');
-  }
-  
-  this.credits.balance -= amount;
-  this.credits.totalUsed += amount;
-  
-  this.credits.history.push({
-    type: 'usage',
-    amount: -amount,
-    balanceAfter: this.credits.balance,
-    description,
-    relatedTo,
-    createdAt: new Date()
-  });
-  
-  return this.credits.balance;
-};
-
-// Méthode pour vérifier si l'utilisateur a assez de crédits
-userSchema.methods.hasEnoughCredits = function(amount) {
-  return this.credits.balance >= amount;
-};
-
-// Méthode pour mettre à jour les statistiques
-userSchema.methods.updateStats = function(publicationResult) {
-  this.stats.totalPublications += 1;
-
-  if (publicationResult.success) {
-    this.stats.successfulPublications += 1;
-    this.stats.lastPublicationDate = new Date();
-  } else {
-    this.stats.failedPublications += 1;
+    
+    this.creditsBalance -= amount;
+    this.creditsTotalUsed += amount;
+    
+    await this.save();
+    return this.creditsBalance;
   }
 
-  // Mettre à jour les plateformes favorites
-  const platformIndex = this.stats.favoritePlatforms.findIndex(
-    p => p.platform === publicationResult.platform
-  );
+  /**
+   * Vérifier si l'utilisateur a assez de crédits
+   */
+  hasEnoughCredits(amount) {
+    return this.creditsBalance >= amount;
+  }
 
-  if (platformIndex >= 0) {
-    this.stats.favoritePlatforms[platformIndex].count += 1;
-  } else {
-    this.stats.favoritePlatforms.push({
-      platform: publicationResult.platform,
-      count: 1
+  /**
+   * Obtenir le quota de stockage (en octets)
+   * 5 GB pour tous les utilisateurs
+   */
+  getStorageQuota() {
+    return 5 * 1024 * 1024 * 1024; // 5 GB
+  }
+
+  /**
+   * Vérifier si l'utilisateur a assez d'espace de stockage
+   */
+  hasEnoughStorage(sizeInBytes) {
+    const quota = this.getStorageQuota();
+    return (this.storageUsed + sizeInBytes) <= quota;
+  }
+
+  /**
+   * Ajouter de l'espace de stockage utilisé
+   */
+  async addStorageUsed(sizeInBytes) {
+    this.storageUsed = (this.storageUsed || 0) + sizeInBytes;
+    await this.save();
+    return this.storageUsed;
+  }
+
+  /**
+   * Libérer de l'espace de stockage
+   */
+  async freeStorage(sizeInBytes) {
+    this.storageUsed = Math.max(0, (this.storageUsed || 0) - sizeInBytes);
+    await this.save();
+    return this.storageUsed;
+  }
+
+  /**
+   * Mettre à jour les statistiques
+   */
+  async updateStats(publicationResult) {
+    this.statsTotalPublications += 1;
+
+    if (publicationResult.success) {
+      this.statsSuccessfulPublications += 1;
+      this.statsLastPublicationDate = new Date();
+    } else {
+      this.statsFailedPublications += 1;
+    }
+
+    await this.save();
+  }
+
+  /**
+   * Supprimer le mot de passe des réponses JSON
+   */
+  toJSON() {
+    const values = { ...this.get() };
+    delete values.password;
+    delete values.passwordResetToken;
+    delete values.passwordResetExpires;
+    delete values.emailVerificationToken;
+    return values;
+  }
+
+  /**
+   * Méthode statique pour trouver un utilisateur par email
+   */
+  static async findByCredentials(email, password) {
+    return await this.findOne({ 
+      where: { email },
+      attributes: { include: ['password'] }
     });
   }
 
-  // Trier par count décroissant
-  this.stats.favoritePlatforms.sort((a, b) => b.count - a.count);
-};
+  /**
+   * Méthode statique pour trouver par OAuth
+   */
+  static async findByOAuthProvider(provider, providerId) {
+    const field = `oauth${provider.charAt(0).toUpperCase() + provider.slice(1)}Id`;
+    const where = {};
+    where[field] = providerId;
+    return await this.findOne({ where });
+  }
+}
 
-// Méthode statique pour trouver un utilisateur par email ou OAuth
-userSchema.statics.findByCredentials = function(email, password) {
-  return this.findOne({ email }).select('+password');
-};
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  email: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: {
+        msg: 'Please provide a valid email'
+      }
+    }
+  },
+  password: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    validate: {
+      len: {
+        args: [6, 255],
+        msg: 'Password must be at least 6 characters'
+      }
+    }
+  },
+  name: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      len: {
+        args: [1, 50],
+        msg: 'Name cannot exceed 50 characters'
+      }
+    }
+  },
+  avatar: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  role: {
+    type: DataTypes.ENUM('user', 'admin', 'moderator'),
+    defaultValue: 'user'
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  emailVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  emailVerificationToken: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  passwordResetToken: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  passwordResetExpires: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
 
-userSchema.statics.findByOAuthProvider = function(provider, id) {
-  const providerField = `oauthProviders.${provider}.id`;
-  const query = {};
-  query[providerField] = id;
-  return this.findOne(query);
-};
+  // OAuth Providers (colonnes séparées pour MySQL)
+  oauthGoogleId: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthGoogleEmail: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthGoogleName: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthGoogleAvatar: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  oauthFacebookId: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthFacebookEmail: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthFacebookName: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthFacebookAvatar: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  oauthTwitterId: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthTwitterUsername: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthTwitterName: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthTwitterAvatar: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  oauthLinkedinId: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthLinkedinEmail: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthLinkedinName: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  oauthLinkedinAvatar: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
 
-// Supprimer le mot de passe des réponses JSON
-userSchema.methods.toJSON = function() {
-  const userObject = this.toObject();
-  delete userObject.password;
-  delete userObject.passwordResetToken;
-  delete userObject.passwordResetExpires;
-  delete userObject.emailVerificationToken;
-  return userObject;
-};
+  // Préférences
+  preferencesTheme: {
+    type: DataTypes.ENUM('light', 'dark', 'auto'),
+    defaultValue: 'auto'
+  },
+  preferencesLanguage: {
+    type: DataTypes.ENUM('fr', 'en', 'es', 'de'),
+    defaultValue: 'fr'
+  },
+  preferencesTimezone: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'Europe/Paris'
+  },
+  preferencesNotificationsEmail: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  preferencesNotificationsPush: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  preferencesNotificationsPublicationSuccess: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  preferencesNotificationsPublicationFailure: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
 
-const User = mongoose.model('User', userSchema);
+  // Crédits
+  creditsBalance: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
+  creditsTotalPurchased: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0
+  },
+  creditsTotalUsed: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0
+  },
+  creditsLastRecharge: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+
+  // Stockage (en octets)
+  storageUsed: {
+    type: DataTypes.BIGINT,
+    defaultValue: 0,
+    comment: 'Espace de stockage utilisé en octets'
+  },
+
+  // Statistiques
+  statsTotalPublications: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  statsSuccessfulPublications: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  statsFailedPublications: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  statsLastPublicationDate: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+
+  // Intégration Postiz
+  postizUserId: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'ID de l\'utilisateur dans Postiz'
+  },
+  postizOnboardingStatus: {
+    type: DataTypes.ENUM('not_started', 'in_progress', 'completed'),
+    defaultValue: 'not_started',
+    comment: 'Statut de l\'onboarding des réseaux sociaux'
+  }
+}, {
+  sequelize,
+  modelName: 'User',
+  tableName: 'users',
+  timestamps: true,
+  indexes: [
+    { fields: ['email'], unique: true },
+    { fields: ['oauthGoogleId'] },
+    { fields: ['oauthFacebookId'] },
+    { fields: ['oauthTwitterId'] },
+    { fields: ['oauthLinkedinId'] }
+  ],
+  hooks: {
+    beforeSave: async (user) => {
+      // Hasher le mot de passe si modifié
+      if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 12);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    }
+  }
+});
 
 export default User;

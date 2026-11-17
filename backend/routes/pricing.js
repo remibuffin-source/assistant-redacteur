@@ -1,5 +1,5 @@
 import express from 'express';
-import PricingConfig from '../models/PricingConfig.js';
+import { PricingConfig } from '../models/index.sequelize.js';
 
 const router = express.Router();
 
@@ -11,11 +11,28 @@ router.get('/config', async (req, res) => {
   try {
     const config = await PricingConfig.getConfig();
     
+    // Parser les données JSON si elles sont des chaînes
+    const serviceCosts = typeof config.serviceCosts === 'string' 
+      ? JSON.parse(config.serviceCosts) 
+      : config.serviceCosts;
+    
+    const rechargeOffers = typeof config.rechargeOffers === 'string'
+      ? JSON.parse(config.rechargeOffers)
+      : config.rechargeOffers;
+    
+    // Parser les données JSON pour les images
+    const imageServiceCosts = typeof config.imageServiceCosts === 'string'
+      ? JSON.parse(config.imageServiceCosts)
+      : (config.imageServiceCosts || {});
+    
     res.json({
-      profitMargin: config.profitMargin,
-      serviceCosts: Object.fromEntries(config.serviceCosts),
-      rechargeOffers: config.rechargeOffers,
-      monthlySubscriptionAmount: config.monthlySubscriptionAmount
+      profitMargin: parseFloat(config.profitMargin),
+      serviceCosts: serviceCosts,
+      rechargeOffers: rechargeOffers,
+      monthlySubscriptionAmount: parseFloat(config.monthlySubscriptionAmount),
+      imageProfitMargin: parseFloat(config.imageProfitMargin) || 50,
+      imageServiceCosts: imageServiceCosts,
+      maxCreditsPerImage: parseFloat(config.maxCreditsPerImage) || 3
     });
   } catch (error) {
     console.error('Erreur lors de la récupération de la config:', error);
@@ -31,8 +48,13 @@ router.get('/offers', async (req, res) => {
   try {
     const config = await PricingConfig.getConfig();
     
+    // Parser les données JSON si c'est une chaîne
+    const rechargeOffers = typeof config.rechargeOffers === 'string'
+      ? JSON.parse(config.rechargeOffers)
+      : config.rechargeOffers;
+    
     res.json({
-      offers: config.rechargeOffers || []
+      offers: rechargeOffers || []
     });
   } catch (error) {
     console.error('Erreur lors de la récupération des offres:', error);
@@ -46,13 +68,16 @@ router.get('/offers', async (req, res) => {
  */
 router.post('/save', async (req, res) => {
   try {
-    const { profitMargin, serviceCosts, rechargeOffers, monthlySubscriptionAmount } = req.body;
+    const { profitMargin, serviceCosts, rechargeOffers, monthlySubscriptionAmount, imageProfitMargin, imageServiceCosts, maxCreditsPerImage } = req.body;
 
     await PricingConfig.updateConfig({
       profitMargin,
       serviceCosts,
       rechargeOffers,
-      monthlySubscriptionAmount: monthlySubscriptionAmount || 0
+      monthlySubscriptionAmount: monthlySubscriptionAmount || 0,
+      imageProfitMargin: imageProfitMargin || 50,
+      imageServiceCosts: imageServiceCosts || {},
+      maxCreditsPerImage: maxCreditsPerImage || 3
     });
 
     res.json({ 

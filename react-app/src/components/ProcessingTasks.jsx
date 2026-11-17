@@ -7,6 +7,12 @@ const ProcessingTasks = ({ selectedTasks, onTaskToggle }) => {
   const t = (path) => getHomeText(userLanguage, path);
   const taskOptions = [
     {
+      id: 'none',
+      name: t('sections.processingTasks.tasks.none'),
+      icon: 'fas fa-ban',
+      description: t('sections.processingTasks.tasks.none')
+    },
+    {
       id: 'resume',
       name: t('sections.processingTasks.tasks.resume'),
       icon: 'fas fa-compress-alt',

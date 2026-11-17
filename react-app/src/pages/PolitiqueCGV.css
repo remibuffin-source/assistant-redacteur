@@ -1,0 +1,215 @@
+.politique-cgv-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.politique-cgv-content {
+  max-width: 900px;
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 60px;
+  margin: 20px 0;
+}
+
+.politique-cgv-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 40px;
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #667eea;
+}
+
+.politique-section {
+  margin-bottom: 40px;
+}
+
+.politique-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.politique-section p {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #000000;
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+.politique-section p strong {
+  color: #000000;
+  font-weight: 700;
+}
+
+.politique-footer {
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 2px solid #e2e8f0;
+  text-align: center;
+}
+
+.politique-footer p {
+  font-size: 0.9rem;
+  color: #000000;
+  font-style: italic;
+}
+
+/* Styles pour les sous-titres */
+.politique-subtitle {
+  font-size: 1.2rem;
+  color: #000000;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.politique-date {
+  font-size: 1rem;
+  color: #666666;
+  text-align: center;
+  margin-bottom: 40px;
+  font-style: italic;
+}
+
+/* Styles pour les titres de partie */
+.partie-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 40px 0 30px 0;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  border: 2px solid #667eea;
+}
+
+/* Styles pour les listes */
+.politique-section ul {
+  margin: 20px 0;
+  padding-left: 30px;
+}
+
+.politique-section li {
+  font-size: 1rem;
+  color: #000000;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* Styles pour les sous-titres h3 */
+.politique-section h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 25px 0 15px 0;
+}
+
+/* Protection des emails contre le spam */
+.email-protected {
+  color: #000000;
+  text-decoration: none;
+  cursor: default;
+  user-select: all;
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.95em;
+}
+
+.email-protected:hover {
+  background-color: #e0e0e0;
+}
+
+/* Styles pour les codes */
+.politique-section code {
+  background-color: #f8f9fa;
+  color: #000000;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.95em;
+  border: 1px solid #dee2e6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .politique-cgv-content {
+    padding: 40px 30px;
+  }
+
+  .politique-cgv-title {
+    font-size: 2rem;
+  }
+
+  .politique-section h2 {
+    font-size: 1.3rem;
+  }
+
+  .politique-section p {
+    font-size: 0.95rem;
+  }
+
+  .partie-title {
+    font-size: 1.5rem;
+    padding: 15px;
+  }
+
+  .politique-section h3 {
+    font-size: 1.1rem;
+  }
+
+  .politique-section li {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .politique-cgv-container {
+    padding: 20px 10px;
+  }
+
+  .politique-cgv-content {
+    padding: 30px 20px;
+    border-radius: 15px;
+  }
+
+  .politique-cgv-title {
+    font-size: 1.6rem;
+    margin-bottom: 30px;
+  }
+
+  .politique-section h2 {
+    font-size: 1.2rem;
+  }
+
+  .politique-section p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .partie-title {
+    font-size: 1.3rem;
+    padding: 12px;
+  }
+
+  .politique-section h3 {
+    font-size: 1rem;
+  }
+
+  .politique-section li {
+    font-size: 0.9rem;
+  }
+}

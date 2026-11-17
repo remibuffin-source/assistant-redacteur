@@ -13,6 +13,14 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
     creativity: 3,
     adaptation: 'web'
   });
+  
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 992);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (options) {
@@ -50,154 +58,322 @@ const AdvancedOptions = ({ options, onOptionsChange }) => {
         {t('sections.advancedOptions.title')}
       </h3>
       
-      <div className="advanced-options-grid">
-        {/* Style et état d'esprit */}
-        <div className="option-group-original">
-          <h4>{t('sections.advancedOptions.style.title')}</h4>
-          <div className="radio-group-original">
-            <label>
-              <input 
-                type="radio" 
-                name="style" 
-                value="professionnel" 
-                checked={localOptions.style === 'professionnel'}
-                onChange={(e) => handleOptionChange('style', e.target.value)}
+      <div 
+        className={isMobile ? '' : 'advanced-options-grid'}
+        style={isMobile ? {
+          display: 'flex !important',
+          flexDirection: 'column',
+          gap: '10px',
+          width: '100%'
+        } : {}}
+      >
+        {/* Sur mobile : Longueur en PREMIER */}
+        {isMobile && (
+          <div className="option-group-original option-box-length">
+            <h4>{t('sections.advancedOptions.length.title')}</h4>
+            <div className="slider-container-original length-slider-container">
+              <label>20%</label>
+              <input
+                type="range"
+                id="lengthSlider"
+                min="1"
+                max="10"
+                value={localOptions.length}
+                onChange={(e) => handleOptionChange('length', parseInt(e.target.value))}
               />
-              {t('sections.advancedOptions.style.professional')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="style" 
-                value="creatif" 
-                checked={localOptions.style === 'creatif'}
-                onChange={(e) => handleOptionChange('style', e.target.value)}
+              <label>200%</label>
+              <div className="length-tooltip">
+                {updateLengthTooltip(localOptions.length)}
+              </div>
+            </div>
+            
+            <h4 style={{ marginTop: '22px' }}>{t('sections.advancedOptions.creativity.title')}</h4>
+            <div className="slider-container-original">
+              <label>{t('sections.advancedOptions.creativity.conservative')}</label>
+              <input
+                type="range"
+                id="creativitySlider"
+                min="1"
+                max="5"
+                value={localOptions.creativity}
+                onChange={(e) => handleOptionChange('creativity', parseInt(e.target.value))}
               />
-              {t('sections.advancedOptions.style.creative')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="style" 
-                value="academique" 
-                checked={localOptions.style === 'academique'}
-                onChange={(e) => handleOptionChange('style', e.target.value)}
-              />
-              {t('sections.advancedOptions.style.academic')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="style" 
-                value="decontracte" 
-                checked={localOptions.style === 'decontracte'}
-                onChange={(e) => handleOptionChange('style', e.target.value)}
-              />
-              {t('sections.advancedOptions.style.casual')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="style" 
-                value="persuasif" 
-                checked={localOptions.style === 'persuasif'}
-                onChange={(e) => handleOptionChange('style', e.target.value)}
-              />
-              {t('sections.advancedOptions.style.persuasive')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="style" 
-                value="informatif" 
-                checked={localOptions.style === 'informatif'}
-                onChange={(e) => handleOptionChange('style', e.target.value)}
-              />
-              {t('sections.advancedOptions.style.informative')}
-            </label>
-          </div>
-        </div>
-
-        {/* Longueur du contenu et créativité */}
-        <div className="option-group-original">
-          <h4>{t('sections.advancedOptions.length.title')}</h4>
-          <div className="slider-container-original length-slider-container">
-            <label>20%</label>
-            <input
-              type="range"
-              id="lengthSlider"
-              min="1"
-              max="10"
-              value={localOptions.length}
-              onChange={(e) => handleOptionChange('length', parseInt(e.target.value))}
-            />
-            <label>200%</label>
-            <div className="length-tooltip">
-              {updateLengthTooltip(localOptions.length)}
+              <label>{t('sections.advancedOptions.creativity.creative')}</label>
             </div>
           </div>
-          
-          <h4 style={{ marginTop: '22px' }}>{t('sections.advancedOptions.creativity.title')}</h4>
-          <div className="slider-container-original">
-            <label>{t('sections.advancedOptions.creativity.conservative')}</label>
-            <input
-              type="range"
-              id="creativitySlider"
-              min="1"
-              max="5"
-              value={localOptions.creativity}
-              onChange={(e) => handleOptionChange('creativity', parseInt(e.target.value))}
-            />
-            <label>{t('sections.advancedOptions.creativity.creative')}</label>
-          </div>
-        </div>
+        )}
 
-        {/* Adaptation au média */}
-        <div className="option-group-original">
-          <h4>{t('sections.advancedOptions.adaptation.title')}</h4>
-          <div className="radio-group-original">
-            <label>
-              <input 
-                type="radio" 
-                name="adaptation" 
-                value="web" 
-                checked={localOptions.adaptation === 'web'}
-                onChange={(e) => handleOptionChange('adaptation', e.target.value)}
-              />
-              {t('sections.advancedOptions.adaptation.web')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="adaptation" 
-                value="print" 
-                checked={localOptions.adaptation === 'print'}
-                onChange={(e) => handleOptionChange('adaptation', e.target.value)}
-              />
-              {t('sections.advancedOptions.adaptation.print')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="adaptation" 
-                value="social" 
-                checked={localOptions.adaptation === 'social'}
-                onChange={(e) => handleOptionChange('adaptation', e.target.value)}
-              />
-              {t('sections.advancedOptions.adaptation.social')}
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="adaptation" 
-                value="presentation" 
-                checked={localOptions.adaptation === 'presentation'}
-                onChange={(e) => handleOptionChange('adaptation', e.target.value)}
-              />
-              {t('sections.advancedOptions.adaptation.presentation')}
-            </label>
+        {/* Sur mobile : Style et Adaptation côte à côte */}
+        {isMobile && (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Style */}
+            <div className="option-group-original option-box-style" style={{ flex: 1 }}>
+              <h4>{t('sections.advancedOptions.style.title')}</h4>
+              <div className="radio-group-original">
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="professionnel" 
+                    checked={localOptions.style === 'professionnel'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.professional')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="creatif" 
+                    checked={localOptions.style === 'creatif'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.creative')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="academique" 
+                    checked={localOptions.style === 'academique'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.academic')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="decontracte" 
+                    checked={localOptions.style === 'decontracte'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.casual')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="persuasif" 
+                    checked={localOptions.style === 'persuasif'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.persuasive')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="informatif" 
+                    checked={localOptions.style === 'informatif'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.informative')}
+                </label>
+              </div>
+            </div>
+
+            {/* Adaptation */}
+            <div className="option-group-original option-box-adaptation" style={{ flex: 1 }}>
+              <h4>{t('sections.advancedOptions.adaptation.title')}</h4>
+              <div className="radio-group-original">
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="web" 
+                    checked={localOptions.adaptation === 'web'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.web')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="print" 
+                    checked={localOptions.adaptation === 'print'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.print')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="social" 
+                    checked={localOptions.adaptation === 'social'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.social')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="presentation" 
+                    checked={localOptions.adaptation === 'presentation'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.presentation')}
+                </label>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Version DESKTOP : ordre original */}
+        {!isMobile && (
+          <>
+            {/* Style et état d'esprit */}
+            <div className="option-group-original option-box-style">
+              <h4>{t('sections.advancedOptions.style.title')}</h4>
+              <div className="radio-group-original">
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="professionnel" 
+                    checked={localOptions.style === 'professionnel'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.professional')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="creatif" 
+                    checked={localOptions.style === 'creatif'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.creative')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="academique" 
+                    checked={localOptions.style === 'academique'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.academic')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="decontracte" 
+                    checked={localOptions.style === 'decontracte'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.casual')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="persuasif" 
+                    checked={localOptions.style === 'persuasif'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.persuasive')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="style" 
+                    value="informatif" 
+                    checked={localOptions.style === 'informatif'}
+                    onChange={(e) => handleOptionChange('style', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.style.informative')}
+                </label>
+              </div>
+            </div>
+
+            {/* Longueur du contenu et créativité */}
+            <div className="option-group-original option-box-length">
+              <h4>{t('sections.advancedOptions.length.title')}</h4>
+              <div className="slider-container-original length-slider-container">
+                <label>20%</label>
+                <input
+                  type="range"
+                  id="lengthSlider"
+                  min="1"
+                  max="10"
+                  value={localOptions.length}
+                  onChange={(e) => handleOptionChange('length', parseInt(e.target.value))}
+                />
+                <label>200%</label>
+                <div className="length-tooltip">
+                  {updateLengthTooltip(localOptions.length)}
+                </div>
+              </div>
+              
+              <h4 style={{ marginTop: '22px' }}>{t('sections.advancedOptions.creativity.title')}</h4>
+              <div className="slider-container-original">
+                <label>{t('sections.advancedOptions.creativity.conservative')}</label>
+                <input
+                  type="range"
+                  id="creativitySlider"
+                  min="1"
+                  max="5"
+                  value={localOptions.creativity}
+                  onChange={(e) => handleOptionChange('creativity', parseInt(e.target.value))}
+                />
+                <label>{t('sections.advancedOptions.creativity.creative')}</label>
+              </div>
+            </div>
+
+            {/* Adaptation au média */}
+            <div className="option-group-original option-box-adaptation">
+              <h4>{t('sections.advancedOptions.adaptation.title')}</h4>
+              <div className="radio-group-original">
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="web" 
+                    checked={localOptions.adaptation === 'web'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.web')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="print" 
+                    checked={localOptions.adaptation === 'print'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.print')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="social" 
+                    checked={localOptions.adaptation === 'social'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.social')}
+                </label>
+                <label>
+                  <input 
+                    type="radio" 
+                    name="adaptation" 
+                    value="presentation" 
+                    checked={localOptions.adaptation === 'presentation'}
+                    onChange={(e) => handleOptionChange('adaptation', e.target.value)}
+                  />
+                  {t('sections.advancedOptions.adaptation.presentation')}
+                </label>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

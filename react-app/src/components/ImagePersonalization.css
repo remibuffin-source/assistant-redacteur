@@ -1,0 +1,633 @@
+.image-personalization-section {
+  background: var(--bg-secondary, #1e293b);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 25px;
+}
+
+.image-personalization-section .section-title-compact {
+  color: var(--text-primary, #f8fafc);
+  font-size: 1rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-personalization-section .section-title-compact i {
+  color: #ff6b2c;
+}
+
+.image-personalization-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Ligne horizontale pour grouper 2 options côte à côte */
+.image-personalization-section .option-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+}
+
+/* Ligne triple : Nombre + Format + Taille */
+.image-personalization-section .option-row-triple {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* Chaque groupe prend 50% de la largeur */
+.image-personalization-section .option-group-half {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Groupe Nombre (doublé) */
+.image-personalization-section .option-group-number {
+  flex: 0 0 auto;
+  min-width: 180px;
+  max-width: 200px;
+}
+
+/* Groupe format (compact sans espace) */
+.image-personalization-section .option-group-format {
+  flex: 0 0 auto;
+  min-width: 380px;
+}
+
+/* Groupe taille (étendu jusqu'au bout) */
+.image-personalization-section .option-group-size-full {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Groupe pleine largeur */
+.image-personalization-section .option-group-full {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsive : empiler sur mobile */
+@media screen and (max-width: 768px) {
+  .image-personalization-section .option-row {
+    flex-direction: column;
+  }
+  
+  .image-personalization-section .option-group-half {
+    width: 100%;
+  }
+
+  /* Ligne 1 : Nombre + Format sur même ligne horizontale */
+  .image-personalization-section .option-row-triple {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* Nombre + Format + Taille chacun pleine largeur */
+  .image-personalization-section .option-row-triple > .option-group-number,
+  .image-personalization-section .option-row-triple > .option-group-format {
+    display: block;
+    width: 100%;
+  }
+
+  .image-personalization-section .option-row-triple > .option-group-number {
+    margin-right: 0;
+  }
+
+  .image-personalization-section .option-row-triple > .option-group-size-full {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Format controls : wrapper sur mobile */
+  .image-personalization-section .option-controls.format-controls {
+    flex-wrap: wrap !important;
+    gap: 6px;
+  }
+
+  /* Boutons format : plus hauts, icône au-dessus du ratio */
+  .image-personalization-section .option-controls .option-btn-format {
+    min-width: 56px;
+    padding: 10px 8px;
+    font-size: 0.75rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .image-personalization-section .option-controls .option-btn-format i {
+    margin-right: 0;
+    font-size: 1rem;
+  }
+
+  /* Groupe format : pas de min-width fixe sur mobile */
+  .image-personalization-section .option-group-format {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+.image-personalization-section .option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.image-personalization-section .option-group label {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.image-personalization-section .option-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Boutons nombre d'images - doublé */
+.image-personalization-section .option-controls .option-btn-count {
+  min-width: 36px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  flex: 0 0 auto;
+}
+
+/* Boutons format d'images - compact */
+.image-personalization-section .option-controls.format-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+.image-personalization-section .option-controls .option-btn-format {
+  display: flex;
+  min-width: 68px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.image-personalization-section .option-controls .option-btn-format i {
+  font-size: 0.85rem;
+  margin-right: 3px;
+}
+
+/* Boutons Standard/HD - largeur réduite de 80% */
+.image-personalization-section .option-controls .option-btn-size {
+  min-width: auto;
+  padding: 5px 8px;
+  font-size: 0.75rem;
+}
+
+/* Boutons qualité du rendu - largeur réduite de 50% */
+.image-personalization-section .option-controls .option-btn-quality {
+  min-width: auto;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* Boutons éclairage - largeur réduite de 50% */
+.image-personalization-section .option-controls .option-btn-lighting {
+  min-width: auto;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* Boutons ambiance - largeur réduite de 50% */
+.image-personalization-section .option-controls .option-btn-mood {
+  min-width: auto;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.image-personalization-section .style-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.image-personalization-section .modifiers-controls {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.image-personalization-section .option-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  background: var(--bg-tertiary, #0f172a);
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.image-personalization-section .option-btn:hover {
+  border-color: #ff6b2c;
+  color: var(--text-primary, #f8fafc);
+}
+
+.image-personalization-section .option-btn.active {
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8f5a 100%);
+  border-color: #ff6b2c;
+  color: white;
+}
+
+.image-personalization-section .modifier-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.image-personalization-section .option-group.full-width {
+  width: 100%;
+}
+
+.image-personalization-section .negative-prompt-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  background: var(--bg-tertiary, #0f172a);
+  color: var(--text-primary, #f8fafc);
+  font-size: 0.9rem;
+}
+
+.image-personalization-section .negative-prompt-input::placeholder {
+  color: var(--text-muted, #64748b);
+}
+
+.image-personalization-section .negative-prompt-input:focus {
+  outline: none;
+  border-color: #ff6b2c;
+}
+
+.prompt-preview {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(255, 107, 44, 0.1);
+  border: 1px solid rgba(255, 107, 44, 0.3);
+  border-radius: 8px;
+}
+
+.prompt-preview small {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.prompt-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.prompt-tag {
+  padding: 4px 10px;
+  background: rgba(255, 107, 44, 0.2);
+  border-radius: 20px;
+  color: #ff8f5a;
+  font-size: 0.8rem;
+}
+
+.prompt-tag.modifier {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+/* Mode jour */
+[data-theme="light"] .image-personalization-section {
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .image-personalization-section .option-btn {
+  background: white;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+[data-theme="light"] .image-personalization-section .option-btn:hover {
+  border-color: #ff6b2c;
+  color: #1e293b;
+}
+
+[data-theme="light"] .image-personalization-section .negative-prompt-input {
+  background: white;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+/* ============================================
+   STYLES SPÉCIFIQUES WAN 2.6 (MODE VIDÉO)
+   ============================================ */
+
+/* Ligne compacte Modèle + Options */
+.image-personalization-section .option-row-wan-compact {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.image-personalization-section .option-group-wan-model {
+  flex: 1;
+  min-width: 0;
+}
+
+.image-personalization-section .option-group-wan-advanced {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Boutons modèle compacts */
+.image-personalization-section .wan-model-controls-compact {
+  display: flex;
+  gap: 8px;
+}
+
+.image-personalization-section .option-btn-wan-model-compact {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Options avancées compactes */
+.image-personalization-section .wan-advanced-controls-compact {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.image-personalization-section .option-btn-toggle-compact {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  min-width: auto;
+}
+
+.image-personalization-section .option-btn-toggle-compact.active {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  border-color: #10b981;
+}
+
+/* Seed input compact */
+.image-personalization-section .seed-input-group-compact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-tertiary, #0f172a);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.image-personalization-section .seed-input-group-compact i {
+  color: var(--text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.image-personalization-section .seed-input-compact {
+  width: 60px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 4px;
+  background: var(--bg-secondary, #1e293b);
+  color: var(--text-primary, #f8fafc);
+  font-size: 0.75rem;
+}
+
+.image-personalization-section .seed-input-compact:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 44, 0.3);
+}
+
+.image-personalization-section .seed-input-compact::placeholder {
+  color: var(--text-muted, #64748b);
+  font-size: 0.7rem;
+}
+
+/* Responsive compact */
+@media screen and (max-width: 768px) {
+  .image-personalization-section .option-row-wan-compact {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .image-personalization-section .option-group-wan-advanced {
+    min-width: 100%;
+  }
+}
+
+/* Groupe durée */
+.image-personalization-section .option-group-duration {
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+
+/* Groupe résolution */
+.image-personalization-section .option-group-resolution {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
+
+/* Contrôles durée */
+.image-personalization-section .duration-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.image-personalization-section .option-btn-duration {
+  min-width: 60px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* Contrôles résolution */
+.image-personalization-section .resolution-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.image-personalization-section .option-btn-resolution {
+  min-width: 70px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* Boutons modèle WAN */
+.image-personalization-section .wan-model-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.image-personalization-section .option-btn-wan-model {
+  position: relative;
+  min-width: 140px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+}
+
+.image-personalization-section .option-btn-wan-model .tooltip-text {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  width: 280px;
+  text-align: left;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  line-height: 1.4;
+}
+
+.image-personalization-section .option-btn-wan-model .tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: #1e293b;
+}
+
+.image-personalization-section .option-btn-wan-model:hover .tooltip-text {
+  display: block;
+}
+
+/* Options avancées WAN */
+.image-personalization-section .wan-advanced-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.image-personalization-section .option-btn-toggle {
+  min-width: 120px;
+  padding: 10px 16px;
+}
+
+.image-personalization-section .option-btn-toggle.active {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  border-color: #10b981;
+}
+
+/* Input Seed */
+.image-personalization-section .seed-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-tertiary, #0f172a);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.image-personalization-section .seed-input-group label {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.image-personalization-section .seed-input {
+  width: 90px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-secondary, #1e293b);
+  color: var(--text-primary, #f8fafc);
+  font-size: 0.85rem;
+}
+
+.image-personalization-section .seed-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 44, 0.3);
+}
+
+.image-personalization-section .seed-input::placeholder {
+  color: var(--text-muted, #64748b);
+}
+
+/* Info icône */
+.image-personalization-section .info-icon {
+  margin-left: 6px;
+  color: var(--text-muted, #64748b);
+  cursor: help;
+}
+
+.image-personalization-section .info-icon:hover {
+  color: #ff6b2c;
+}
+
+/* Info référence */
+.image-personalization-section .reference-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  color: #60a5fa;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.image-personalization-section .reference-info i {
+  font-size: 1rem;
+}
+
+.image-personalization-section .reference-info strong {
+  color: #93c5fd;
+}
+
+/* Mode jour - WAN */
+[data-theme="light"] .image-personalization-section .option-btn-wan-model .tooltip-text {
+  background: white;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .image-personalization-section .option-btn-wan-model .tooltip-text::after {
+  border-top-color: white;
+}
+
+[data-theme="light"] .image-personalization-section .seed-input-group {
+  background: white;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .image-personalization-section .seed-input {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+[data-theme="light"] .image-personalization-section .reference-info {
+  background: rgba(59, 130, 246, 0.05);
+}

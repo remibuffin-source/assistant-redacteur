@@ -1,0 +1,25 @@
+# Fichiers à ne pas uploader sur O2Switch
+node_modules/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.log
+coverage/
+.vscode/
+.idea/
+tests/
+*.test.js
+*.spec.js
+.git/
+.gitignore
+README*.md
+TESTS.md
+ROUTES_MIGRATION.md
+DEPLOIEMENT_O2SWITCH.md
+scripts/testMigration.js
+scripts/migrateToMySQL.js
+scripts/cleanForO2Switch.js

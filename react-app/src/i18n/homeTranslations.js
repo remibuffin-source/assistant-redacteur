@@ -42,8 +42,14 @@ export const homeTranslations = {
           table: 'Tableau',
           website: 'Site Web',
           profile: 'Profil',
-          profileTooltip: 'Sélectionner le profil de configuration IA',
+          profileTooltip: 'Déterminez la qualité d\'analyse des contenus que vous fournissez',
           selectAI: 'Sélectionner l\'IA pour',
+          configModal: {
+            title: 'Configuration des IA multimodales',
+            saveForAll: 'Sauvegarder pour tous les utilisateurs',
+            apply: 'Appliquer cette configuration',
+            cancel: 'Annuler'
+          },
           profiles: {
             budget: 'Budget',
             balanced: 'Équilibré',
@@ -72,6 +78,7 @@ export const homeTranslations = {
       processingTasks: {
         title: 'Tâches de Traitement Intelligent',
         tasks: {
+          none: 'Aucun traitement',
           summarize: 'Résumer',
           resume: 'Résumer',
           rewrite: 'Réécriture',
@@ -97,6 +104,7 @@ export const homeTranslations = {
           write: 'Écrire'
         },
         formats: {
+          none: 'Aucun format',
           article: 'Article',
           post: 'Post',
           email: 'Email',
@@ -237,8 +245,14 @@ export const homeTranslations = {
           table: 'Table',
           website: 'Website',
           profile: 'Profile',
-          profileTooltip: 'Select AI configuration profile',
+          profileTooltip: 'Determine the quality of analysis for the content you provide',
           selectAI: 'Select AI for',
+          configModal: {
+            title: 'Multimodal AI Configuration',
+            saveForAll: 'Save for all users',
+            apply: 'Apply this configuration',
+            cancel: 'Cancel'
+          },
           profiles: {
             budget: 'Budget',
             balanced: 'Balanced',
@@ -267,6 +281,7 @@ export const homeTranslations = {
       processingTasks: {
         title: 'Intelligent Processing Tasks',
         tasks: {
+          none: 'No processing',
           summarize: 'Summarize',
           resume: 'Summarize',
           rewrite: 'Rewrite',
@@ -292,6 +307,7 @@ export const homeTranslations = {
           write: 'Write'
         },
         formats: {
+          none: 'No format',
           article: 'Article',
           post: 'Post',
           email: 'Email',
@@ -432,8 +448,14 @@ export const homeTranslations = {
           table: 'Tabla',
           website: 'Sitio web',
           profile: 'Perfil',
-          profileTooltip: 'Seleccionar perfil de configuración IA',
+          profileTooltip: 'Determine la calidad de análisis del contenido que proporciona',
           selectAI: 'Seleccionar IA para',
+          configModal: {
+            title: 'Configuración de IA multimodal',
+            saveForAll: 'Guardar para todos los usuarios',
+            apply: 'Aplicar esta configuración',
+            cancel: 'Cancelar'
+          },
           profiles: {
             budget: 'Presupuesto',
             balanced: 'Equilibrado',
@@ -462,6 +484,7 @@ export const homeTranslations = {
       processingTasks: {
         title: 'Tareas de Procesamiento Inteligente',
         tasks: {
+          none: 'Sin procesamiento',
           summarize: 'Resumir',
           resume: 'Resumir',
           rewrite: 'Reescritura',
@@ -487,6 +510,7 @@ export const homeTranslations = {
           write: 'Escribir'
         },
         formats: {
+          none: 'Sin formato',
           article: 'Artículo',
           post: 'Publicación',
           email: 'Correo',
@@ -627,8 +651,14 @@ export const homeTranslations = {
           table: 'Tabelle',
           website: 'Webseite',
           profile: 'Profil',
-          profileTooltip: 'KI-Konfigurationsprofil auswählen',
+          profileTooltip: 'Bestimmen Sie die Analysequalität der von Ihnen bereitgestellten Inhalte',
           selectAI: 'KI auswählen für',
+          configModal: {
+            title: 'Multimodale KI-Konfiguration',
+            saveForAll: 'Für alle Benutzer speichern',
+            apply: 'Diese Konfiguration anwenden',
+            cancel: 'Abbrechen'
+          },
           profiles: {
             budget: 'Budget',
             balanced: 'Ausgewogen',
@@ -657,6 +687,7 @@ export const homeTranslations = {
       processingTasks: {
         title: 'Intelligente Verarbeitungsaufgaben',
         tasks: {
+          none: 'Keine Verarbeitung',
           summarize: 'Zusammenfassen',
           resume: 'Zusammenfassen',
           rewrite: 'Umschreibung',
@@ -682,6 +713,7 @@ export const homeTranslations = {
           write: 'Schreiben'
         },
         formats: {
+          none: 'Kein Format',
           article: 'Artikel',
           post: 'Beitrag',
           email: 'E-Mail',

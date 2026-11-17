@@ -3,7 +3,7 @@ import { body, param } from 'express-validator';
 import { authenticateToken } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 import Publication from '../models/Publication.js';
-import SocialAccount from '../models/SocialAccount.js';
+import SocialAccount from '../models/SocialAccount.sequelize.js';
 import User from '../models/User.js';
 import { logger } from '../utils/logger.js';
 

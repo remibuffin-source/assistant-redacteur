@@ -20,7 +20,7 @@ const usageSchema = new mongoose.Schema({
   service: {
     type: String,
     required: true,
-    enum: ['anthropic', 'openai', 'openai-mini', 'gemini', 'gemini-pro', 'deepseek', 'grok', 'grok-2', 'kimi', 'whisper', 'gpt-vision'],
+    enum: ['anthropic', 'openai', 'openai-mini', 'gemini-3-pro', 'gemini-2.5-flash', 'deepseek', 'grok', 'grok-2', 'grok-4.1-fast-reasoning', 'kimi', 'qwen3', 'whisper', 'gpt-vision'],
     index: true
   },
   model: {

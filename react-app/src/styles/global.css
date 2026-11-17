@@ -145,6 +145,7 @@ body {
   max-width: 1600px;
   margin: 0 auto;
   height: 100%;
+  position: relative; /* Pour positionner le dropdown mobile */
 }
 
 .menu-left {
@@ -180,6 +181,193 @@ body {
   gap: 10px;
   flex-wrap: nowrap;
   transform: translateY(-2px); /* -10px + 8px = -2px */
+}
+
+/* ========================================
+   MENU HAMBURGER MOBILE
+   ======================================== */
+
+/* Bouton hamburger - caché par défaut sur desktop */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 36px;
+  height: 32px;
+  background: rgba(255, 107, 44, 0.2);
+  border: 2px solid #ff6b2c;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  display: block;
+  width: 100%;
+  height: 4px;
+  background: #ff6b2c;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-line.open:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-line.open:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.open:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Menu mobile déroulant - dropdown étroit à droite */
+.mobile-menu-dropdown {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  width: 200px;
+  max-width: 70vw;
+  background: #1a3a4a;
+  border: 1px solid rgba(255, 107, 44, 0.4);
+  border-radius: 12px;
+  padding: 8px 0;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.mobile-menu-item:hover,
+.mobile-menu-item:active {
+  background: rgba(255, 107, 44, 0.15);
+}
+
+.mobile-menu-item i {
+  width: 20px;
+  text-align: center;
+  color: #ff6b2c;
+}
+
+.mobile-menu-item.logout {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 8px;
+  padding-top: 16px;
+  color: #ff6b6b;
+}
+
+.mobile-menu-item.logout i {
+  color: #ff6b6b;
+}
+
+.mobile-menu-item.login {
+  background: linear-gradient(135deg, #ff6b2c 0%, #ff8f5c 100%);
+  margin: 10px 15px;
+  border-radius: 8px;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.mobile-menu-item.login i {
+  color: #fff;
+}
+
+.mobile-menu-footer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 10px;
+}
+
+.mobile-menu-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-icon-btn:hover {
+  background: rgba(255, 107, 44, 0.2);
+  border-color: #ff6b2c;
+}
+
+.mobile-menu-icon-btn span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Dropdown mobile pour thème et langue */
+.mobile-dropdown-container {
+  position: relative;
+}
+
+.mobile-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  background: rgba(30, 30, 30, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 8px;
+  min-width: 150px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.mobile-dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+
+.mobile-dropdown-menu button:hover {
+  background: rgba(255, 107, 44, 0.2);
+}
+
+.mobile-dropdown-menu button .flag {
+  font-size: 18px;
 }
 
 .menu-btn {
@@ -572,11 +760,8 @@ body {
 
 /* Nouvelle disposition pour ProjectInfo */
 .project-info-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-top: 20px;
-  align-items: start; /* Aligne les éléments vers le haut */
+  /* Pas de grid, la disposition flex est gérée inline dans le composant */
+  margin-top: 0;
 }
 
 .project-fields {
@@ -780,13 +965,13 @@ body {
   white-space: nowrap !important;
 }
 
-/* Force tous les éléments IA sur une seule ligne */
+/* Force tous les éléments IA à être centrés dans leur cellule grid */
 .ai-selection-grid .ai-btn-compact {
-  display: inline-flex !important;
+  display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  min-width: 80px !important;
-  max-width: 120px !important;
+  min-width: 0 !important;
+  width: 100% !important;
 }
 
 /* Supprime complètement les scrollbars dans la sélection IA */
@@ -1154,7 +1339,7 @@ body {
 /* Tâches de traitement - pleine largeur */
 .task-grid-original {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(9, 1fr);
   gap: 12px;
   margin-bottom: 30px;
   margin-top: 15px;
@@ -1279,6 +1464,17 @@ body {
   width: 100%;
 }
 
+/* Mobile : forcer flex pour éviter le grid 3 colonnes */
+@media screen and (max-width: 992px) {
+  .advanced-options-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+}
+
+/* Mobile : Le JSX gère l'affichage conditionnel, pas de règles CSS nécessaires */
+
 .option-group-original {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -1311,7 +1507,10 @@ body {
 .radio-group-original input[type="radio"] {
   width: 20px;
   height: 20px;
+  min-width: 20px;
+  min-height: 20px;
   margin: 0;
+  flex-shrink: 0;
 }
 
 .slider-container-original {
@@ -1359,6 +1558,7 @@ body {
   margin-bottom: 30px;
   backdrop-filter: blur(10px);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .section-title {
@@ -1690,7 +1890,22 @@ body {
 /* Responsive */
 @media (max-width: 768px) {
   .main-container {
-    padding: 0 20px;
+    padding: 0 15px;
+    margin-top: 20px !important;
+  }
+
+  .menu-trigger-area {
+    display: block !important;
+    height: 20px;
+    z-index: 1001;
+  }
+
+  .section {
+    padding: 15px;
+  }
+
+  .upload-area-large textarea {
+    min-height: 120px !important;
   }
   
   .top-sections-horizontal {
@@ -1703,12 +1918,36 @@ body {
     gap: 10px;
   }
   
+  /* Type de contenu (texte, image, vidéo) sur même ligne */
   .media-type-horizontal {
-    grid-template-columns: repeat(3, 1fr);
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
   }
   
+  .media-type-horizontal .media-type-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: 100px !important;
+    padding: 8px 4px !important;
+  }
+  
+  /* 4 boutons upload sur même ligne */
   .upload-buttons-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+  
+  .upload-buttons-grid .upload-btn-large {
+    flex: 0 0 auto !important;
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+    border-radius: 50% !important;
   }
   
   .task-grid-original {
@@ -1719,53 +1958,232 @@ body {
     grid-template-columns: repeat(3, 1fr);
   }
   
-  .advanced-options-grid {
-    grid-template-columns: 1fr;
+  /* Personnalisation avancée : géré par JSX conditionnel */
+
+  /* Menu hamburger pour mobile/tablette — AMOVIBLE (tap en haut pour afficher) */
+  .menu-container {
+    height: auto;
+    min-height: 60px;
+    background: #102939;
+    backdrop-filter: none;
+    padding-bottom: 0;
+  }
+
+  .menu-container.mobile-open {
+    min-height: auto;
   }
 
   .menu-header {
-    padding: 10px 20px;
-    flex-direction: column;
+    padding: 10px 15px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .menu-left {
+    flex: 1;
+    justify-content: flex-start;
+    margin-left: 0;
     gap: 10px;
   }
 
   .menu-left img {
-    height: 35px;
+    height: 32px;
   }
 
   .main-title {
-    font-size: 18px;
+    font-size: 14px;
+    margin-right: 0;
   }
 
-  .menu-buttons {
-    flex-wrap: wrap;
-    gap: 5px;
+  /* Cacher les boutons desktop sur mobile */
+  .menu-buttons-desktop {
+    display: none !important;
   }
 
+  /* Afficher le hamburger sur mobile */
+  .hamburger-btn {
+    display: flex !important;
+  }
+
+  /* Menu mobile déroulant - géré par React, ne pas forcer l'affichage */
+  .mobile-menu-dropdown {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Sélection IA : 4 icônes par ligne sur mobile */
   .ai-selection-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: unset !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    padding: 4px !important;
+  }
+
+  .ai-selection-grid .ai-btn-compact {
+    flex: none !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 8px 2px 10px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .ai-selection-grid .ai-icon {
+    width: 50px !important;
+    height: 50px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .ai-selection-grid .ai-icon-img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .ai-selection-grid .ai-label {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+  }
+  
+  /* Boutons profil (rapide, équilibré, précis) en carrés horizontaux - tablette */
+  .profile-btn {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 80px !important;
+    max-width: 100px !important;
+    padding: 10px 8px !important;
+    gap: 6px !important;
+  }
+  
+  .profile-btn > div:first-child {
+    font-size: 20px !important;
+  }
+  
+  .profile-btn > div:nth-child(2) {
+    font-size: 11px !important;
+    text-align: center !important;
   }
 }
 
 @media (max-width: 480px) {
+  .main-container {
+    padding: 0 8px !important;
+    margin-top: 15px !important;
+  }
+
+  .section {
+    padding: 12px;
+  }
+
+  .upload-area-large textarea {
+    min-height: 100px !important;
+  }
+
+  .generate-btn {
+    padding: 15px 20px !important;
+    font-size: 18px !important;
+    min-width: 0 !important;
+    width: 95% !important;
+    max-width: 280px !important;
+  }
+
+  /* Sélection IA : 4 icônes par ligne sur très petit écran */
   .ai-selection-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+    padding: 2px !important;
+  }
+
+  .ai-selection-grid .ai-btn-compact {
+    padding: 6px 2px 8px !important;
+  }
+
+  .ai-selection-grid .ai-icon {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .ai-selection-grid .ai-icon-img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .ai-selection-grid .ai-label {
+    font-size: 9px !important;
   }
   
+  /* Type de contenu sur même ligne */
   .media-type-horizontal {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  
+  .media-type-horizontal .media-type-btn {
+    flex: 1 1 0 !important;
+    padding: 6px 3px !important;
+    font-size: 10px !important;
   }
   
   .task-grid-original {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
   
   .format-grid-zone {
     grid-template-columns: repeat(2, 1fr);
   }
   
+  /* 4 boutons upload sur même ligne */
   .upload-buttons-grid {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  
+  .upload-buttons-grid .upload-btn-large {
+    flex: 0 0 auto !important;
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    border-radius: 50% !important;
+    padding: 8px 4px !important;
+  }
+  
+  /* Boutons profil (rapide, équilibré, précis) en carrés horizontaux */
+  .profile-btn {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 70px !important;
+    max-width: 90px !important;
+    padding: 8px 6px !important;
+    gap: 4px !important;
+  }
+  
+  .profile-btn > div:first-child {
+    font-size: 18px !important;
+  }
+  
+  .profile-btn > div:nth-child(2) {
+    font-size: 10px !important;
+    text-align: center !important;
+  }
+  
+  /* Cacher l'engrenage admin sur mobile */
+  .profile-btn > div:last-child[style*="borderRadius: 50%"] {
+    display: none !important;
   }
 }
 
@@ -2115,19 +2533,19 @@ body {
   background: linear-gradient(135deg, #ff6b2c, #e55a2b);
   border: none;
   color: #ffffff;
-  padding: 18px 35px;
-  border-radius: 10px;
+  padding: 29px 59px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 18px;
+  font-size: 26px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 18px;
   margin: 30px auto;
-  min-width: 250px;
-  box-shadow: 0 6px 20px rgba(255, 107, 44, 0.4);
+  min-width: 364px;
+  box-shadow: 0 8px 26px rgba(255, 107, 44, 0.4);
   position: relative;
   overflow: hidden;
 }
@@ -2178,9 +2596,11 @@ body {
 /* Responsive pour la section de génération */
 @media (max-width: 768px) {
   .generate-btn {
-    padding: 15px 25px;
-    font-size: 16px;
-    min-width: 200px;
+    padding: 18px 30px;
+    font-size: 20px;
+    min-width: 0 !important;
+    width: 90%;
+    max-width: 312px;
   }
   
   .generate-section {
@@ -2459,6 +2879,118 @@ select:focus {
 .delete-btn:hover {
   background: #dc2626;
   transform: scale(1.05);
+}
+
+/* Styles pour les cartes d'images générées */
+.image-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  max-height: 480px;
+  position: relative;
+}
+
+.image-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+.image-card .generated-image {
+  width: 100%;
+  max-width: 480px;
+  max-height: 440px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.image-card .generated-image:hover {
+  opacity: 0.95;
+}
+
+/* Header avec actions pour les images (comme pour le texte) */
+.image-card .vignette-header {
+  padding: 10px 15px;
+  background: #ff6b35;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
+}
+
+.image-card .vignette-header .format-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.image-card .vignette-header .format-info i {
+  font-size: 20px;
+  color: white;
+}
+
+.image-card .vignette-header .format-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.image-card .vignette-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Modal pour afficher l'image en plein écran */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  cursor: pointer;
+}
+
+.image-modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.image-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10001;
+}
+
+.image-modal-close:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
 }
 
 .vignette-content {
@@ -2776,4 +3308,240 @@ select:focus {
 
 .config-actions .delete-btn:hover {
   background: #c82333;
+}
+
+/* ========================================
+   RESPONSIVE - Mobile et Tablette
+   Réduction du padding pour les petits écrans
+   ======================================== */
+
+/* Tablettes (768px et moins) */
+@media screen and (max-width: 768px) {
+  .section {
+    padding: 18px !important;
+  }
+  
+  .section-content {
+    padding: 10px !important;
+  }
+
+  /* Informations du Projet : Type contenu sous Description */
+  .project-info-layout > div {
+    flex-direction: column !important;
+  }
+  
+  .project-info-layout > div > div:last-child {
+    margin-top: 15px !important;
+    width: 100% !important;
+  }
+  
+  .project-fields-horizontal {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .modal-content {
+    padding: 15px !important;
+    margin: 10px !important;
+    max-width: calc(100% - 20px) !important;
+  }
+  
+  .menu-bar {
+    padding: 8px 12px !important;
+  }
+  
+  .container, .main-container, .page-container {
+    padding: 10px !important;
+  }
+  
+  .card, .panel {
+    padding: 12px !important;
+  }
+  
+  .form-group {
+    margin-bottom: 10px !important;
+  }
+  
+  .btn, button {
+    padding: 8px 12px !important;
+  }
+  
+  .upload-area, .upload-zone {
+    padding: 15px !important;
+  }
+  
+  .results-section {
+    padding: 10px !important;
+  }
+  
+  .option-group {
+    padding: 8px !important;
+  }
+  
+  .tab-content {
+    padding: 10px !important;
+  }
+}
+
+/* Smartphones (480px et moins) */
+@media screen and (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  .section {
+    padding: 15px !important;
+    margin: 5px 0 !important;
+  }
+  
+  .section-content {
+    padding: 6px !important;
+  }
+  
+  .section-title, .section-title-compact {
+    font-size: 0.9rem !important;
+    padding: 6px 0 !important;
+  }
+  
+  .modal-content {
+    padding: 10px !important;
+    margin: 5px !important;
+    border-radius: 8px !important;
+  }
+  
+  .menu-bar {
+    padding: 5px 8px !important;
+  }
+  
+  .menu-btn {
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+  
+  .container, .main-container, .page-container {
+    padding: 5px !important;
+  }
+  
+  .card, .panel {
+    padding: 8px !important;
+    border-radius: 6px !important;
+  }
+  
+  .form-group {
+    margin-bottom: 8px !important;
+  }
+  
+  .form-group label {
+    font-size: 0.8rem !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 8px !important;
+    font-size: 13px !important;
+  }
+  
+  .btn, button {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  
+  .upload-area, .upload-zone {
+    padding: 10px !important;
+  }
+  
+  .upload-buttons-grid {
+    gap: 6px !important;
+  }
+  
+  .upload-btn-large {
+    padding: 8px !important;
+    min-width: 40px !important;
+  }
+  
+  .results-section {
+    padding: 6px !important;
+  }
+  
+  .result-card {
+    padding: 8px !important;
+  }
+  
+  .option-group {
+    padding: 6px !important;
+  }
+  
+  .option-controls {
+    gap: 4px !important;
+  }
+  
+  .option-btn {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+  
+  .tab-content {
+    padding: 6px !important;
+  }
+  
+  .tabs-header {
+    gap: 4px !important;
+  }
+  
+  .tab-btn {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  
+  /* Réduire les marges des titres */
+  h1, h2, h3 {
+    margin-bottom: 8px !important;
+  }
+  
+  /* Ajuster les gaps des grilles */
+  .grid, .flex-grid {
+    gap: 8px !important;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - Zone de Collecte et IA
+   Corrections pour tablettes et mobiles
+   ======================================== */
+
+/* Tablettes (768px et moins) */
+@media screen and (max-width: 768px) {
+  /* Zone de collecte - réorganisation du header */
+  .section > div[style*="display: flex"][style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  
+  /* Grille IA : gérée par le media query principal plus haut */
+  
+  /* Personnalisation avancée : géré par JSX conditionnel */
+}
+
+/* Smartphones (480px et moins) */
+@media screen and (max-width: 480px) {
+  /* Grille IA : gérée par le media query principal plus haut */
+  
+  /* Personnalisation avancée : géré par JSX conditionnel */
+  
+  /* Zone de collecte - boutons horizontaux (pas empilés) */
+  .upload-buttons-grid {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+  
+  .upload-buttons-grid > button,
+  .upload-buttons-grid > div {
+    width: auto !important;
+    flex: 0 0 auto !important;
+  }
 }

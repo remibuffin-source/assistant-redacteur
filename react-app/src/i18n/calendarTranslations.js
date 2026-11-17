@@ -71,8 +71,8 @@ export const calendarTranslations = {
         statusPublished: 'Publié',
         platformsLabel: 'Plateformes de diffusion',
         cancelButton: 'Annuler',
-        scheduleButton: 'Planifier',
-        editButton: 'Modifier'
+        scheduleButton: 'Publier',
+        editButton: 'Publier'
       }
     },
     schedule: {

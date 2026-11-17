@@ -38,7 +38,11 @@ export const accountTranslations = {
       confirmPassword: 'Confirmer le mot de passe',
       changePassword: 'Modifier le mot de passe',
       logoutAllDevices: 'Déconnecter tous les appareils',
-      accountSecurity: 'Sécurité du compte'
+      accountSecurity: 'Sécurité du compte',
+      lastLogin: 'Dernière connexion',
+      ipAddress: 'Adresse IP',
+      browser: 'Navigateur',
+      today: 'Aujourd\'hui à'
     },
     accounting: {
       rechargeSystem: 'Système de Recharge',
@@ -97,7 +101,11 @@ export const accountTranslations = {
       confirmPassword: 'Confirm Password',
       changePassword: 'Change Password',
       logoutAllDevices: 'Logout all devices',
-      accountSecurity: 'Account Security'
+      accountSecurity: 'Account Security',
+      lastLogin: 'Last login',
+      ipAddress: 'IP Address',
+      browser: 'Browser',
+      today: 'Today at'
     },
     accounting: {
       rechargeSystem: 'Recharge System',
@@ -151,12 +159,16 @@ export const accountTranslations = {
     },
     security: {
       title: 'Seguridad',
-      currentPassword: 'Contraseña Actual',
-      newPassword: 'Nueva Contraseña',
-      confirmPassword: 'Confirmar Contraseña',
-      changePassword: 'Cambiar Contraseña',
+      currentPassword: 'Contraseña actual',
+      newPassword: 'Nueva contraseña',
+      confirmPassword: 'Confirmar contraseña',
+      changePassword: 'Cambiar contraseña',
       logoutAllDevices: 'Cerrar sesión en todos los dispositivos',
-      accountSecurity: 'Seguridad de la cuenta'
+      accountSecurity: 'Seguridad de la cuenta',
+      lastLogin: 'Última conexión',
+      ipAddress: 'Dirección IP',
+      browser: 'Navegador',
+      today: 'Hoy a las'
     },
     accounting: {
       rechargeSystem: 'Sistema de Recarga',
@@ -211,10 +223,14 @@ export const accountTranslations = {
       title: 'Sicherheit',
       currentPassword: 'Aktuelles Passwort',
       newPassword: 'Neues Passwort',
-      confirmPassword: 'Passwort Bestätigen',
-      changePassword: 'Passwort Ändern',
+      confirmPassword: 'Passwort bestätigen',
+      changePassword: 'Passwort ändern',
       logoutAllDevices: 'Alle Geräte abmelden',
-      accountSecurity: 'Kontosicherheit'
+      accountSecurity: 'Kontosicherheit',
+      lastLogin: 'Letzte Anmeldung',
+      ipAddress: 'IP-Adresse',
+      browser: 'Browser',
+      today: 'Heute um'
     },
     accounting: {
       rechargeSystem: 'Aufladesystem',
