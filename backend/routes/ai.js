@@ -92,8 +92,8 @@ router.post('/generate',
       });
     } else if (service === 'grok') {
       // Grok passe par OpenRouter
-      // Grok 4.1 Fast Reasoning
-      const openRouterModel = 'x-ai/grok-4.1-fast';
+      // Grok 4.3 (remplace grok-4.1-fast, retiré du catalogue OpenRouter)
+      const openRouterModel = 'x-ai/grok-4.3';
       response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -171,9 +171,9 @@ router.post('/generate',
       // Services via OpenRouter
       const openRouterModels = {
         openrouter: model, // Utiliser le modèle fourni directement
-        qwen3: 'qwen/qwen3-30b-a3b-thinking-2507', // Qwen3 30B Thinking - 3x moins cher, 4x plus rapide
+        qwen3: 'qwen/qwen3-30b-a3b-instruct-2507', // Qwen3 30B A3B Instruct (variant thinking daté retiré)
         kimi: 'moonshotai/kimi-k2-thinking',
-        mistral: 'mistralai/mistral-large-2411',
+        mistral: 'mistralai/mistral-large-2512',
         'openrouter-free': model // Utiliser le modèle configuré dans freeMode
       };
       const openRouterModel = openRouterModels[service] || model;

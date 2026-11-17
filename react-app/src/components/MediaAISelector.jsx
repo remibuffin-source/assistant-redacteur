@@ -8,17 +8,51 @@ const MediaAISelector = ({ onAIConfigChange }) => {
   const userLanguage = autoSaveData.language || 'fr';
   const t = (path) => getHomeText(userLanguage, path);
   
-  const [hoveredMedia, setHoveredMedia] = useState(null);
-  const dropdownRefs = useRef({});
-  const hoverTimerRef = useRef(null);
   // Configuration par défaut des IA par type de média
-  const [aiConfig, setAiConfig] = useState({
+  const defaultConfig = {
     text: 'gpt-4o-mini',
     audio: 'whisper-large-v3',
-    image: 'gpt-4o-vision',
+    image: 'gemini-2.5-flash',
     spreadsheet: 'gpt-4o',
     web: 'claude-4.5-sonnet'
-  });
+  };
+  
+  const [aiConfig, setAiConfig] = useState(defaultConfig);
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
+
+  // Charger la configuration depuis l'API au démarrage
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('⚠️ Pas de token, utilisation config par défaut');
+          setIsConfigLoaded(true);
+          return;
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/media-ai-config`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.config) {
+            setAiConfig(data.config);
+            console.log('✅ Configuration IA multimodale chargée depuis le serveur:', data.config);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Erreur chargement config IA:', error);
+      } finally {
+        setIsConfigLoaded(true);
+      }
+    };
+
+    loadConfig();
+  }, []);
 
   // Fonction pour traduire les infos des IA
   const translateAIInfo = (key) => {
@@ -92,13 +126,23 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       quality: 'Excellente',
       icon: '🔊'
     },
-    'gemini-pro': {
-      name: 'Gemini Pro',
-      provider: 'Google',
-      cost: '$0.50/1M tokens',
+    'gemini-3-pro': {
+      name: 'Gemini 3 Pro',
+      provider: 'Google via OpenRouter',
+      cost: '$2.50/1M tokens',
+      speed: 'Rapide',
+      quality: 'Exceptionnelle',
+      icon: '💎',
+      model: 'google/gemini-3.1-pro-preview'
+    },
+    'gemini-2.5-flash': {
+      name: 'Gemini 2.5 Flash (Nano Banana)',
+      provider: 'Google via OpenRouter',
+      cost: '$0.15/1M tokens',
       speed: 'Très rapide',
-      quality: 'Très bonne',
-      icon: '✨'
+      quality: 'Excellente - Génération d\'images',
+      icon: '🍌',
+      model: 'google/gemini-2.5-flash-image'
     },
     'deepseek-v3': {
       name: 'DeepSeek V3',
@@ -131,7 +175,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     text: {
       label: t('sections.uploadArea.aiSelector.text'),
       icon: '📝',
-      recommendedAIs: ['gpt-4o-mini', 'gpt-4o', 'claude-4.5-sonnet', 'claude-3-opus', 'gemini-pro', 'deepseek-v3', 'grok-4', 'qwen3'],
+      recommendedAIs: ['gpt-4o-mini', 'gpt-4o', 'claude-4.5-sonnet', 'claude-3-opus', 'gemini-3-pro', 'deepseek-v3', 'grok-4', 'qwen3'],
       defaultAI: 'gpt-4o-mini'
     },
     audio: {
@@ -143,29 +187,30 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     image: {
       label: t('sections.uploadArea.aiSelector.image'),
       icon: '🖼️',
-      recommendedAIs: ['gpt-4o-vision', 'claude-4.5-sonnet', 'gemini-pro', 'grok-4', 'qwen3'],
-      defaultAI: 'gpt-4o-vision'
+      recommendedAIs: ['gemini-2.5-flash', 'gpt-4o-vision', 'claude-4.5-sonnet', 'gemini-3-pro', 'grok-4', 'qwen3'],
+      defaultAI: 'gemini-2.5-flash'
     },
     spreadsheet: {
       label: t('sections.uploadArea.aiSelector.table'),
       icon: '📊',
-      recommendedAIs: ['gpt-4o', 'claude-4.5-sonnet', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
+      recommendedAIs: ['gpt-4o', 'claude-4.5-sonnet', 'gemini-3-pro', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
       defaultAI: 'gpt-4o'
     },
     web: {
       label: t('sections.uploadArea.aiSelector.website'),
       icon: '🌐',
-      recommendedAIs: ['claude-4.5-sonnet', 'gpt-4o', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
+      recommendedAIs: ['claude-4.5-sonnet', 'gpt-4o', 'gemini-3-pro', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
       defaultAI: 'claude-4.5-sonnet'
     }
   };
 
   // Notifier le parent à chaque changement
   useEffect(() => {
-    if (onAIConfigChange) {
+    // Ne notifier que si la config est chargée (éviter de notifier avec la config par défaut au démarrage)
+    if (isConfigLoaded && onAIConfigChange) {
       onAIConfigChange(aiConfig);
     }
-  }, [aiConfig, onAIConfigChange]);
+  }, [aiConfig, onAIConfigChange, isConfigLoaded]);
 
   const handleAIChange = (mediaType, aiModel) => {
     setAiConfig(prev => ({
@@ -186,7 +231,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       config: {
         text: 'kimi',
         audio: 'qwen3',
-        image: 'qwen3',
+        image: 'gemini-2.5-flash',
         spreadsheet: 'qwen3',
         web: 'qwen3'
       }
@@ -198,7 +243,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       config: {
         text: 'deepseek-chat',
         audio: 'qwen3',
-        image: 'qwen3',
+        image: 'gemini-2.5-flash',
         spreadsheet: 'claude-4.5-sonnet',
         web: 'claude-4.5-sonnet'
       }
@@ -210,9 +255,9 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       config: {
         text: 'claude-4.5-sonnet',
         audio: 'claude-4.5-sonnet',
-        image: 'gemini-2.5-pro',
-        spreadsheet: 'gemini-2.5-pro',
-        web: 'gemini-2.5-pro'
+        image: 'gemini-3-pro',
+        spreadsheet: 'gemini-3-pro',
+        web: 'gemini-3-pro'
       }
     }
   };
@@ -238,9 +283,10 @@ const MediaAISelector = ({ onAIConfigChange }) => {
 
   const getProfileIndex = (config) => profileOrder.findIndex(k => JSON.stringify(profiles[k].config) === JSON.stringify(config));
   const [profileIndex, setProfileIndex] = useState(getProfileIndex(aiConfig) >= 0 ? getProfileIndex(aiConfig) : 1);
-  const [dropdownPos, setDropdownPos] = useState({ openFor: null, top: 0, left: 0, width: 0 });
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showPdfPopup, setShowPdfPopup] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [configProfileKey, setConfigProfileKey] = useState(null);
+  const [tempProfileConfig, setTempProfileConfig] = useState(null);
 
   useEffect(() => {
     // Garder l'index aligné si config change via sélection individuelle
@@ -276,156 +322,6 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       flexWrap: 'wrap',
       flex: 1
     }}>
-      {/* Ligne des médias (gauche) - Visible uniquement pour les admins */}
-      {isAdmin && (
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        justifyContent: 'flex-end'
-      }}>
-        {Object.entries(mediaTypes).map(([type, config]) => {
-          const selectedAI = aiConfig[type];
-          const aiInfo = getAIInfo(selectedAI);
-          const isHovered = hoveredMedia === type;
-
-          return (
-            <div
-              key={type}
-              style={{
-                position: 'relative',
-                textAlign: 'center'
-              }}
-              onMouseEnter={(e) => {
-                if (hoverTimerRef.current) {
-                  clearTimeout(hoverTimerRef.current);
-                  hoverTimerRef.current = null;
-                }
-                setHoveredMedia(type);
-                // Pas besoin de calculer la position, on utilise position: absolute
-                setDropdownPos({ openFor: type, top: 0, left: 0, width: 0 });
-              }}
-              onMouseLeave={() => {
-                if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-                hoverTimerRef.current = setTimeout(() => {
-                  setHoveredMedia(null);
-                  hoverTimerRef.current = null;
-                }, 1000);
-              }}
-            >
-              {/* Titre du média (2x plus gros, icône orange + label sur une ligne) */}
-              <div 
-                style={{
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  marginBottom: '4px',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-                title={`${t('sections.uploadArea.aiSelector.selectAI')} ${config.label}`}
-              >
-                <i className={`${getMediaIconClass(type)}`} style={{ color: '#ff6b35', fontSize: '22px', lineHeight: 1 }}></i>
-                <span style={{ fontSize: '14px' }}>{config.label}</span>
-              </div>
-
-              {/* Nom de l'IA sélectionnée (sous-titre) */}
-              <div style={{
-                fontSize: '11px',
-                color: 'rgba(255, 255, 255, 0.5)',
-                marginTop: '4px'
-              }}>
-                {aiInfo.name}
-              </div>
-
-              {/* Menu déroulant au hover */}
-              {isHovered && dropdownPos.openFor === type && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  marginTop: '5px',
-                  background: 'var(--bg-primary)',
-                  borderRadius: '8px',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
-                  border: '1px solid var(--border-color)',
-                  padding: '4px',
-                  minWidth: '240px',
-                  zIndex: 999999,
-                  animation: 'fadeIn 0.2s ease'
-                }}
-                onMouseEnter={() => {
-                  if (hoverTimerRef.current) {
-                    clearTimeout(hoverTimerRef.current);
-                    hoverTimerRef.current = null;
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-                  hoverTimerRef.current = setTimeout(() => {
-                    setHoveredMedia(null);
-                    setDropdownPos({ openFor: null, top: 0, left: 0 });
-                    hoverTimerRef.current = null;
-                  }, 1000);
-                }}
-                >
-                  {config.recommendedAIs.map(aiModel => {
-                    const ai = availableAIs[aiModel];
-                    const isSelected = selectedAI === aiModel;
-
-                    return (
-                      <div
-                        key={aiModel}
-                        onClick={() => handleAIChange(type, aiModel)}
-                        style={{
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          borderRadius: '6px',
-                          background: isSelected ? 'rgba(255, 107, 53, 0.2)' : 'transparent',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          color: 'var(--text-primary)',
-                          fontSize: '13px'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = 'rgba(255, 107, 44, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = 'transparent';
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                          <span style={{ fontSize: '16px' }}>{ai.icon}</span>
-                          <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontWeight: '600' }}>{ai.name}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>
-                              {ai.cost} • {translateAIInfo(ai.quality)}
-                            </div>
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <span style={{ color: '#ff6b35', fontSize: '16px' }}>✓</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      )}
-
       {/* Sélection de profils - 3 boutons côte à côte */}
       <div 
         style={{
@@ -434,7 +330,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
           alignItems: 'center',
           flexWrap: 'wrap'
         }}
-        title="Déterminez la qualité d'analyse des contenus que vous fournissez."
+        title={t('sections.uploadArea.aiSelector.profileTooltip')}
       >
         {profileOrder.map((key, idx) => {
           const profile = profiles[key];
@@ -443,22 +339,23 @@ const MediaAISelector = ({ onAIConfigChange }) => {
           return (
             <div
               key={key}
+              className={`profile-btn ${isActive ? 'active' : ''}`}
               onClick={() => handleApplyProfileIndex(idx)}
               title={profile.description}
               style={{
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
+                justifyContent: 'flex-start',
+                gap: '12px',
                 cursor: 'pointer',
-                padding: '12px 20px',
+                padding: '10px 20px',
                 borderRadius: '10px',
                 border: isActive ? '2px solid #ff6b35' : '2px solid rgba(255, 255, 255, 0.2)',
                 background: isActive ? 'rgba(255, 107, 53, 0.2)' : 'rgba(255, 255, 255, 0.05)',
                 transition: 'all 0.3s ease',
-                minWidth: '160px',
-                maxWidth: '600px',
+                minWidth: '200px',
+                maxWidth: '300px',
                 boxShadow: isActive ? '0 4px 12px rgba(255, 107, 53, 0.3)' : '0 2px 6px rgba(0, 0, 0, 0.2)',
                 transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                 position: 'relative'
@@ -478,27 +375,78 @@ const MediaAISelector = ({ onAIConfigChange }) => {
                 }
               }}
             >
+              {/* Icône */}
               <div style={{
-                fontSize: '24.78px',
+                fontSize: '22px',
                 lineHeight: 1,
                 flexShrink: 0
               }}>
                 {profile.icon}
               </div>
+              
+              {/* Titre */}
               <div style={{
                 fontSize: '14px',
                 fontWeight: '700',
-                color: isActive ? '#ff6b35' : 'var(--text-primary)'
+                color: isActive ? '#ff6b35' : 'var(--text-primary)',
+                flex: 1
               }}>
                 {profile.name}
               </div>
+              
+              {/* Engrenage (visible uniquement pour admin) */}
+              {isAdmin && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfigProfileKey(key);
+                    // Utiliser la config actuelle (chargée depuis la DB) au lieu du profil prédéfini
+                    setTempProfileConfig({ ...aiConfig });
+                    setShowConfigModal(true);
+                  }}
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 107, 53, 0.2)',
+                    border: '1px solid #ff6b35',
+                    color: '#ff6b35',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    flexShrink: 0,
+                    zIndex: 10
+                  }}
+                  title="Configurer ce profil"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#ff6b35';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 107, 53, 0.2)';
+                    e.currentTarget.style.color = '#ff6b35';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                  </svg>
+                </div>
+              )}
+              
+              {/* Checkmark (visible uniquement si actif) */}
               {isActive && (
                 <div style={{
                   position: 'absolute',
-                  top: '8px',
-                  right: '8px',
+                  top: '6px',
+                  right: '6px',
                   color: '#ff6b35',
-                  fontSize: '16px'
+                  fontSize: '14px',
+                  fontWeight: 'bold'
                 }}>
                   ✓
                 </div>
@@ -508,11 +456,11 @@ const MediaAISelector = ({ onAIConfigChange }) => {
         })}
       </div>
 
-      {/* Bouton d'aide avec popup PDF */}
+      {/* Bouton d'aide avec popup PDF — masqué */}
       <div
         onClick={() => setShowPdfPopup(true)}
         style={{
-          display: 'flex',
+          display: 'none',
           alignItems: 'center',
           justifyContent: 'center',
           width: '40px',
@@ -542,6 +490,297 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       >
         ?
       </div>
+
+      {/* Modal de configuration des profils */}
+      {showConfigModal && configProfileKey && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            zIndex: 99999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onClick={() => setShowConfigModal(false)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-primary)',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              border: '2px solid #ff6b35'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* En-tête */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px',
+              paddingBottom: '16px',
+              borderBottom: '2px solid rgba(255, 107, 53, 0.3)'
+            }}>
+              <h2 style={{
+                margin: 0,
+                fontSize: '24px',
+                fontWeight: '700',
+                color: '#ff6b35',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <span style={{ fontSize: '28px' }}>{profiles[configProfileKey].icon}</span>
+                Configuration : {profiles[configProfileKey].name}
+              </h2>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: '#ff6b35',
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#e55a25';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#ff6b35';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Description */}
+            <p style={{
+              color: 'var(--text-secondary)',
+              marginBottom: '32px',
+              fontSize: '14px'
+            }}>
+              {profiles[configProfileKey].description}
+            </p>
+
+            {/* Configuration par type de média */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {Object.entries(mediaTypes).map(([type, config]) => {
+                const currentAI = tempProfileConfig?.[type] || profiles[configProfileKey].config[type];
+                const aiInfo = getAIInfo(currentAI);
+
+                return (
+                  <div key={type} style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    border: '1px solid rgba(255, 107, 53, 0.2)'
+                  }}>
+                    {/* Titre du type de média */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '16px'
+                    }}>
+                      <i className={`${getMediaIconClass(type)}`} style={{ color: '#ff6b35', fontSize: '20px' }}></i>
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: 'var(--text-primary)'
+                      }}>
+                        {config.label}
+                      </h3>
+                    </div>
+
+                    {/* Sélection de l'IA */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                      gap: '12px'
+                    }}>
+                      {config.recommendedAIs.map(aiModel => {
+                        const ai = availableAIs[aiModel];
+                        const isSelected = currentAI === aiModel;
+
+                        return (
+                          <div
+                            key={aiModel}
+                            onClick={() => {
+                              // Mettre à jour la configuration temporaire
+                              setTempProfileConfig(prev => ({
+                                ...prev,
+                                [type]: aiModel
+                              }));
+                            }}
+                            style={{
+                              padding: '12px',
+                              borderRadius: '8px',
+                              border: isSelected ? '2px solid #ff6b35' : '2px solid rgba(255, 255, 255, 0.1)',
+                              background: isSelected ? 'rgba(255, 107, 53, 0.2)' : 'rgba(255, 255, 255, 0.03)',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              position: 'relative'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = 'rgba(255, 107, 53, 0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 107, 53, 0.5)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                              }
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '20px' }}>{ai.icon}</span>
+                              <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)' }}>
+                                {ai.name}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                              {ai.cost}
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                              {translateAIInfo(ai.speed)} • {translateAIInfo(ai.quality)}
+                            </div>
+                            {isSelected && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '8px',
+                                right: '8px',
+                                color: '#ff6b35',
+                                fontSize: '16px'
+                              }}>
+                                ✓
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Boutons d'action */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              marginTop: '32px',
+              paddingTop: '24px',
+              borderTop: '2px solid rgba(255, 107, 53, 0.3)'
+            }}>
+              <button
+                onClick={async () => {
+                  // Appliquer la configuration temporaire
+                  if (tempProfileConfig) {
+                    setAiConfig(tempProfileConfig);
+                    onAIConfigChange?.(tempProfileConfig);
+                    
+                    // Si admin, sauvegarder sur le serveur
+                    if (isAdmin) {
+                      try {
+                        const token = localStorage.getItem('token');
+                        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/media-ai-config`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                          },
+                          body: JSON.stringify({ config: tempProfileConfig })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          console.log('✅ Configuration sauvegardée sur le serveur:', data);
+                          alert('✅ Configuration sauvegardée avec succès pour tous les utilisateurs !');
+                        } else {
+                          const error = await response.json();
+                          console.error('❌ Erreur sauvegarde:', error);
+                          alert(`❌ Erreur: ${error.error || 'Impossible de sauvegarder'}`);
+                        }
+                      } catch (error) {
+                        console.error('❌ Erreur réseau:', error);
+                        alert('❌ Erreur de connexion au serveur');
+                      }
+                    }
+                  }
+                  setShowConfigModal(false);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '14px 24px',
+                  borderRadius: '8px',
+                  background: '#ff6b35',
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#e55a25';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#ff6b35';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                ✓ {isAdmin ? t('sections.uploadArea.aiSelector.configModal.saveForAll') : t('sections.uploadArea.aiSelector.configModal.apply')}
+              </button>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                style={{
+                  padding: '14px 24px',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  color: 'var(--text-primary)',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }}
+              >
+                {t('sections.uploadArea.aiSelector.configModal.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Popup PDF */}
       {showPdfPopup && createPortal(
@@ -623,116 +862,6 @@ const MediaAISelector = ({ onAIConfigChange }) => {
           </div>
         </div>,
         document.body
-      )}
-
-      {/* Menu déroulant Profil (ancien - caché) */}
-      {isAdmin && (
-      <div style={{ position: 'relative' }}>
-        <div 
-          onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-          title={t('sections.uploadArea.aiSelector.profileTooltip')}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            cursor: 'pointer',
-            padding: '10px 14px',
-            borderRadius: '8px',
-            border: '2px solid #4a90e2',
-            background: 'rgba(74, 144, 226, 0.15)',
-            transition: 'all 0.2s ease',
-            minWidth: '104px',
-            boxShadow: '0 2px 8px rgba(74, 144, 226, 0.2)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(74, 144, 226, 0.25)';
-            e.currentTarget.style.borderColor = '#357abd';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(74, 144, 226, 0.3)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(74, 144, 226, 0.15)';
-            e.currentTarget.style.borderColor = '#4a90e2';
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 2px 8px rgba(74, 144, 226, 0.2)';
-          }}
-        >
-          <div style={{
-            fontSize: '14px',
-            fontWeight: '700',
-            color: 'var(--text-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
-          }}>
-            <i className="fas fa-sliders-h" style={{ fontSize: '13px' }}></i>
-            {t('sections.uploadArea.aiSelector.profile')}
-          </div>
-          <div style={{
-            fontSize: '14px',
-            color: 'var(--text-primary)',
-            fontWeight: '600',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
-          }}>
-            {profiles[profileOrder[profileIndex]].name}
-          </div>
-        </div>
-
-        {showProfileDropdown && (
-          <div 
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: '0',
-              marginTop: '4px',
-              background: 'var(--bg-primary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
-              minWidth: '160px',
-              zIndex: 999999,
-              overflow: 'hidden'
-            }}
-            onMouseLeave={() => setShowProfileDropdown(false)}
-          >
-            {profileOrder.map((key, idx) => {
-              const active = idx === profileIndex;
-              return (
-                <div
-                  key={key}
-                  onClick={() => {
-                    handleApplyProfileIndex(idx);
-                    setShowProfileDropdown(false);
-                  }}
-                  style={{
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                    background: active ? 'rgba(255, 107, 44, 0.2)' : 'transparent',
-                    color: active ? '#ff6b35' : 'var(--text-primary)',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '10px',
-                    fontWeight: active ? '600' : '400'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.background = 'rgba(255, 107, 44, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  <span>{profiles[key].name}</span>
-                  {active && <i className="fas fa-check" style={{ color: '#ff6b35', fontSize: '12px' }}></i>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
       )}
 
       <style>{`

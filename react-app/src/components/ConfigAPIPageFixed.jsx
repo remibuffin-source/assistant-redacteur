@@ -140,7 +140,7 @@ const ConfigAPIPageFixed = () => {
     { id: 'anthropic', name: 'Claude Sonnet 5.5', description: 'Claude Sonnet 5.5 - Rapide et performant', iconPath: '/icons/claude.ico', docs: 'https://docs.anthropic.com/claude/reference/getting-started-with-the-api' },
     { id: 'deepl', name: 'DeepL API', description: 'DeepL - Traduction professionnelle', iconPath: '/icons/Deepl.ico', docs: 'https://www.deepl.com/docs-api' },
     { id: 'deepseek', name: 'DeepSeek Chat', description: 'DeepSeek Chat - IA conversationnelle', iconPath: '/icons/deepseek.ico', docs: 'https://platform.deepseek.com/api-docs/' },
-    { id: 'gemini-3-pro', name: 'Gemini 3 Pro', description: 'Gemini 3 Pro - Flagship multimodal (OpenRouter)', iconPath: '/icons/gemini-new.ico', docs: 'https://openrouter.ai/google/gemini-3-pro-preview/api' },
+    { id: 'gemini-3-pro', name: 'Gemini 3.1 Pro', description: 'Gemini 3.1 Pro - Flagship multimodal (OpenRouter)', iconPath: '/icons/gemini-new.ico', docs: 'https://openrouter.ai/google/gemini-3.1-pro-preview/api' },
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Nano Banana)', description: 'Gemini 2.5 Flash - Génération d\'images (OpenRouter)', iconPath: '/icons/nano-banana.svg', docs: 'https://openrouter.ai/google/gemini-2.5-flash-image/api' },
     { id: 'grok', name: 'Grok', description: 'Grok - xAI', iconPath: '/icons/grok.ico', docs: 'https://docs.x.ai/api' },
     { id: 'kimi', name: 'Kimi (OpenRouter)', description: 'Kimi - LLM via OpenRouter', iconPath: '/icons/kimi2.ico', docs: 'https://openrouter.ai/docs' },

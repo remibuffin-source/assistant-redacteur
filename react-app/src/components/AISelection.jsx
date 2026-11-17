@@ -9,11 +9,11 @@ const AI_PRICE_HINTS = {
   // Texte
   claude: 'Claude Sonnet 5.5 : ≈ 2 $/M tokens entrée · 10 $/M tokens sortie.',
   gpt4: 'GPT-5.6 Terra : ≈ 2 $/M tokens entrée · 12 $/M tokens sortie.',
-  gemini: 'Gemini 3 Pro : modèle non listé actuellement sur OpenRouter. Tarif indicatif ≈ 2 $/M entrée · 12 $/M sortie.',
+  gemini: 'Gemini 3.1 Pro : ≈ 2 $/M entrée · 12 $/M sortie.',
   deepseek: 'DeepSeek Chat : ≈ 0,15–0,30 $/M entrée · 0,60–1,20 $/M sortie (heures creuses / pleines).',
-  grok: 'Grok 4.1 Fast : modèle non listé actuellement. Tarif indicatif ≈ 1,25–2 $/M entrée · 2,50–6 $/M sortie selon version.',
+  grok: 'Grok 4.3 : ≈ 1,25 $/M entrée · 2,50 $/M sortie.',
   kimi: 'Kimi K2 Thinking : ≈ 0,60 $/M entrée · 2,50 $/M sortie.',
-  qwen3: 'Qwen3 30B A3B : ≈ 0,10–0,12 $/M entrée · 0,30–0,50 $/M sortie.',
+  qwen3: 'Qwen3 30B A3B Instruct : ≈ 0,10 $/M entrée · 0,30 $/M sortie.',
   deepl: 'DeepL API : ≈ 20 € / million de caractères (selon offre).',
   elevenlabs: 'ElevenLabs : ≈ 0,30 $ / 1 000 caractères (indicatif).',
 
@@ -139,7 +139,7 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
     },
     {
       id: 'gemini',
-      name: 'Gemini 3 Pro',
+      name: 'Gemini 3.1 Pro',
       icon: 'gemini-new',
       description: 'IA générative Google multimodale',
       category: 'text'

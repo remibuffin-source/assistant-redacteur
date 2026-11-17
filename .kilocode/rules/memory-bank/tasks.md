@@ -20,4 +20,6 @@
 - [ ] Vérifier la vérification d'organisation OpenAI pour GPT Image
 - [x] Rôles (sujet/décor/style) et force des références traduits en prompt
 - [x] Tarifs affichés uniquement en infobulles (tous les modèles)
-- [ ] Vérifier/mettre à jour les IDs OpenRouter absents : gemini-3-pro-preview, grok-4.1-fast, qwen3-30b-a3b-thinking-2507, mistral-large-2411
+- [x] IDs OpenRouter absents mis à jour (Gemini 3.1 Pro, Grok 4.3, Qwen3 Instruct, Mistral Large 2512)
+- [x] Bug corrigé : Gemini texte ne pointe plus vers un modèle image
+- [x] Processus de veille des modèles ajouté dans AGENTS.md

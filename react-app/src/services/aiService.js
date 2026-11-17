@@ -202,18 +202,17 @@ export class AIService {
     }
     
     // Google Gemini (via OpenRouter)
-    if (type.includes('gemini-3-pro')) {
-      return { service: 'openrouter', model: 'google/gemini-3-pro-preview' };
+    // Texte : Gemini 3.1 Pro (remplace gemini-3-pro-preview, retiré du catalogue)
+    if (type.includes('gemini-3.1-pro') || type.includes('gemini-3-pro') || type.includes('gemini-pro')) {
+      return { service: 'openrouter', model: 'google/gemini-3.1-pro-preview' };
     }
+    // Image : Nano Banana (Gemini 2.5 Flash Image)
     if (type.includes('gemini-2.5-flash') || type.includes('nano-banana')) {
       return { service: 'openrouter', model: 'google/gemini-2.5-flash-image' };
     }
-    // Anciens modèles Gemini (fallback)
-    if (type.includes('gemini-pro')) {
-      return { service: 'openrouter', model: 'google/gemini-3-pro-preview' };
-    }
+    // Fallback texte : ne jamais renvoyer un modèle image pour du texte
     if (type.includes('gemini')) {
-      return { service: 'openrouter', model: 'google/gemini-2.5-flash-image' };
+      return { service: 'openrouter', model: 'google/gemini-3.1-pro-preview' };
     }
     
     // DeepSeek
@@ -227,24 +226,24 @@ export class AIService {
       return { service: 'deepseek', model: 'deepseek-chat' };
     }
     
-    // Grok (via OpenRouter)
+    // Grok (via OpenRouter) — Grok 4.3, modèle actuel le plus accessible
     if (type.includes('grok')) {
-      return { service: 'grok', model: 'grok-4.1-fast-reasoning' };
+      return { service: 'grok', model: 'grok-4.3' };
     }
     
     // Kimi (via OpenRouter)
     if (type.includes('kimi')) {
-      return { service: 'kimi', model: 'moonshot-v1' };
+      return { service: 'kimi', model: 'moonshotai/kimi-k2-thinking' };
     }
     
-    // Qwen3 (via OpenRouter)
+    // Qwen3 (via OpenRouter) — 30B A3B Instruct (le variant thinking daté a été retiré)
     if (type.includes('qwen')) {
-      return { service: 'qwen3', model: 'qwen-turbo' };
+      return { service: 'qwen3', model: 'qwen3-30b-a3b-instruct-2507' };
     }
     
-    // Mistral
+    // Mistral — Large 2512 (remplace mistral-large-2411)
     if (type.includes('mistral')) {
-      return { service: 'mistral', model: 'mistral-large' };
+      return { service: 'mistral', model: 'mistral-large-2512' };
     }
 
     // Fal.ai (SeedDream 5.0 Lite)

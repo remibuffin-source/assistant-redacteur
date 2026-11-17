@@ -56,6 +56,20 @@ Comportement validé :
   `auth`, `rate_limit`).
 - Ne pas revenir à un simple statusText (« Forbidden »).
 
+## Veille des modèles (à faire périodiquement)
+1. Vérifier les IDs OpenRouter : `curl -s https://openrouter.ai/api/v1/models` puis rechercher
+   les modèles utilisés (`google/gemini-*`, `x-ai/grok-*`, `qwen/qwen3-*`, `moonshotai/*`, `mistralai/*`).
+2. Vérifier les IDs directs : docs Anthropic, OpenAI, Google, DeepSeek, fal.ai, Kie.ai.
+3. En cas de retrait, mettre à jour **partout** :
+   - `react-app/src/services/aiService.js` (`getServiceAndModel`)
+   - `backend/routes/ai.js` (mappings OpenRouter)
+   - `backend/middleware/freeMode.js`
+   - `react-app/src/components/AISelection.jsx` (libellés + infobulles de prix)
+   - `react-app/src/components/ConfigAPIPageFixed.jsx` (libellés + docs)
+   - `react-app/src/components/MediaAISelector.jsx`
+4. Rebuild + `node --check` + test d'une génération par service.
+5. Ne jamais mapper un service texte vers un modèle image (vérifier `getServiceAndModel`).
+
 ## Sauvegardes
 - Avant modification d'un fichier sensible : copie dans `.backup/<description>-<timestamp>/`.
 - Fichiers sensibles : > 500 lignes, auth/paiement, facturier, composants de dictée,
