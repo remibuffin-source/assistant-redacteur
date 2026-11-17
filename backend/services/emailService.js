@@ -22,27 +22,28 @@ class EmailService {
    * Charger la configuration SMTP depuis le fichier JSON sécurisé
    */
   loadSmtpConfig() {
+    // 1. Variables d'environnement prioritaires (source unique de secrets)
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      this.smtpConfig = {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      };
+      logger.info('✅ SMTP configuration loaded from environment variables');
+      return true;
+    }
+
+    // 2. Fallback : fichier config/smtp.json (legacy, non versionné)
     try {
-      // Essayer de charger depuis le fichier config/smtp.json
       const configPath = join(__dirname, '../config/smtp.json');
       const configData = readFileSync(configPath, 'utf8');
       this.smtpConfig = JSON.parse(configData);
-      logger.info('✅ SMTP configuration loaded from config file');
+      logger.info('✅ SMTP configuration loaded from config file (legacy fallback)');
       return true;
     } catch (error) {
-      // Fallback sur les variables d'environnement
-      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-        this.smtpConfig = {
-          host: process.env.SMTP_HOST || 'smtp.gmail.com',
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        };
-        logger.info('✅ SMTP configuration loaded from environment variables');
-        return true;
-      }
-      
-      logger.error('❌ No SMTP configuration found (neither config file nor env vars)');
+      logger.error('❌ No SMTP configuration found (neither env vars nor config file)');
       return false;
     }
   }
@@ -64,7 +65,7 @@ class EmailService {
       this.transporter = nodemailer.createTransport({
         host: this.smtpConfig.host,
         port: parseInt(this.smtpConfig.port),
-        secure: false, // true pour 465, false pour autres ports
+        secure: this.smtpConfig.secure === true || parseInt(this.smtpConfig.port) === 465,
         auth: {
           user: this.smtpConfig.user,
           pass: this.smtpConfig.pass
