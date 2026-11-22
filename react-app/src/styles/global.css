@@ -1104,6 +1104,18 @@ body {
   line-height: 1.2;
 }
 
+.ai-icon-fallback.glm {
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
 .ai-icon-fallback.kimi2 {
   background: linear-gradient(135deg, #ec4899, #db2777);
   display: flex;

@@ -90,7 +90,7 @@ class ApiKey extends Model {
     // Si le service est 'openrouter' et qu'on ne trouve pas de clé,
     // essayer de récupérer une clé d'un service qui utilise OpenRouter
     if (!key && service === 'openrouter') {
-      const openRouterServices = ['gemini-3-pro', 'gemini-2.5-flash', 'kimi', 'grok', 'qwen3'];
+      const openRouterServices = ['gemini-3-pro', 'gemini-2.5-flash', 'kimi', 'grok', 'qwen3', 'glm'];
       for (const altService of openRouterServices) {
         key = await this.findOne({ 
           where: { userId, service: altService, isActive: true }
@@ -151,7 +151,7 @@ ApiKey.init({
     type: DataTypes.ENUM(
       'openai', 'openai-mini', 'anthropic', 'anthropic-haiku',
       'gemini-3-pro', 'gemini-2.5-flash', 'deepseek', 'deepseek-v3',
-      'grok', 'grok-2', 'grok-4.1-fast-reasoning', 'kimi', 'qwen3', 'mistral', 'whisper',
+      'grok', 'grok-2', 'grok-4.1-fast-reasoning', 'kimi', 'qwen3', 'mistral', 'glm', 'whisper',
       'gpt-vision', 'elevenlabs', 'deepl',
       'twitter', 'facebook', 'linkedin', 'instagram', 'tiktok',
       'blog', 'website',

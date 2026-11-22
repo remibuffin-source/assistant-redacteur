@@ -19,6 +19,7 @@ const SERVICE_LABELS = {
   kimi: 'Kimi',
   qwen3: 'Qwen',
   mistral: 'Mistral',
+  glm: 'GLM (Z.AI)',
   openrouter: 'OpenRouter'
 };
 
@@ -52,7 +53,7 @@ router.post('/generate',
     let apiKey;
     
     // Services qui utilisent la clé système OpenRouter
-    const openRouterServices = ['qwen3', 'kimi', 'mistral', 'openrouter-free'];
+    const openRouterServices = ['qwen3', 'kimi', 'mistral', 'glm', 'openrouter-free'];
     
     if (req.freeMode || openRouterServices.includes(service)) {
       // Mode gratuit ou services OpenRouter : utiliser la clé système
@@ -167,13 +168,14 @@ router.post('/generate',
           temperature
         })
       });
-    } else if (service === 'openrouter' || service === 'qwen3' || service === 'kimi' || service === 'mistral' || service === 'openrouter-free') {
+    } else if (service === 'openrouter' || service === 'qwen3' || service === 'kimi' || service === 'mistral' || service === 'glm' || service === 'openrouter-free') {
       // Services via OpenRouter
       const openRouterModels = {
         openrouter: model, // Utiliser le modèle fourni directement
         qwen3: 'qwen/qwen3-30b-a3b-instruct-2507', // Qwen3 30B A3B Instruct (variant thinking daté retiré)
         kimi: 'moonshotai/kimi-k2-thinking',
         mistral: 'mistralai/mistral-large-2512',
+        glm: 'z-ai/glm-5.3', // GLM 5.3 (Z.AI) — contexte 1M, très économique
         'openrouter-free': model // Utiliser le modèle configuré dans freeMode
       };
       const openRouterModel = openRouterModels[service] || model;

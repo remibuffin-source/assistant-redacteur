@@ -246,6 +246,11 @@ export class AIService {
       return { service: 'mistral', model: 'mistral-large-2512' };
     }
 
+    // GLM 5.3 (Z.AI via OpenRouter) — contexte 1M, très économique
+    if (type.includes('glm')) {
+      return { service: 'glm', model: 'z-ai/glm-5.3' };
+    }
+
     // Fal.ai (SeedDream 5.0 Lite)
     if (type.includes('seedream-text-to-image') || type.includes('fal-tti')) {
       return { service: 'fal-tti', model: 'seedream-v5-lite' };

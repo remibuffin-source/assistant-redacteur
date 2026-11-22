@@ -26,4 +26,5 @@
 - [x] Migration SMTP vers variables d'environnement (cPanel O2Switch, fallback smtp.json)
 - [x] Audit sécurité : vérification du fallback SPA, aucune fuite réelle
 - [x] Nettoyage ssl-temp obsolète et clone temporaire
+- [x] Ajout du modèle GLM 5.3 (z-ai/glm-5.3 via OpenRouter, clé système) — 2026-11-22
 - [ ] Hygiène locale : masquer/révoquer les clés dans API-KEYS-ROUTING.md et Gmail Noreply.md

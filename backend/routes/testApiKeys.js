@@ -86,6 +86,11 @@ router.post('/test-api-key', authenticateToken, async (req, res) => {
         testResult = await testOpenRouter(apiKey);
         break;
       
+      case 'glm':
+        // GLM (Z.AI) passe par OpenRouter
+        testResult = await testOpenRouter(apiKey);
+        break;
+      
       case 'fal-tti':
       case 'fal-edit':
         // Fal.ai (SeedDream 5.0 Lite / Edit)
@@ -633,6 +638,12 @@ function validateKeyFormat(service, apiKey) {
     
     case 'kimi':
       // Kimi via OpenRouter - clés OpenRouter commencent par "sk-or-"
+      isValid = apiKey.startsWith('sk-or-') && apiKey.length > 40;
+      expectedFormat = 'Clé OpenRouter (format: sk-or-...)';
+      break;
+    
+    case 'glm':
+      // GLM (Z.AI) via OpenRouter - clés OpenRouter commencent par "sk-or-"
       isValid = apiKey.startsWith('sk-or-') && apiKey.length > 40;
       expectedFormat = 'Clé OpenRouter (format: sk-or-...)';
       break;

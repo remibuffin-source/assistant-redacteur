@@ -218,6 +218,9 @@ export async function validateApiKey(service, apiKey) {
       case 'kimi':
         return await testOpenRouter(apiKey);
 
+      case 'glm':
+        return await testOpenRouter(apiKey);
+
       case 'deepl':
         return await testDeepL(apiKey);
 

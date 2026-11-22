@@ -29,6 +29,9 @@ class PricingConfig extends Model {
           deepseek: {
             'deepseek-chat': { input: 0.00014, output: 0.00028 },
             'deepseek-reasoner': { input: 0.00055, output: 0.0022 }
+          },
+          glm: {
+            'z-ai/glm-5.3': { input: 0.00007, output: 0.0014 }
           }
         },
         rechargeOffers: [

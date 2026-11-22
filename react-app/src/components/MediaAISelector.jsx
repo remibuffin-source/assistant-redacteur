@@ -167,6 +167,15 @@ const MediaAISelector = ({ onAIConfigChange }) => {
       speed: 'Très rapide',
       quality: 'Excellente',
       icon: '🌟'
+    },
+    'glm': {
+      name: 'GLM 5.3',
+      provider: 'Z.AI via OpenRouter',
+      cost: '$0.07/1M tokens',
+      speed: 'Très rapide',
+      quality: 'Excellente',
+      icon: '🔷',
+      model: 'z-ai/glm-5.3'
     }
   };
 
@@ -175,7 +184,7 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     text: {
       label: t('sections.uploadArea.aiSelector.text'),
       icon: '📝',
-      recommendedAIs: ['gpt-4o-mini', 'gpt-4o', 'claude-4.5-sonnet', 'claude-3-opus', 'gemini-3-pro', 'deepseek-v3', 'grok-4', 'qwen3'],
+      recommendedAIs: ['gpt-4o-mini', 'gpt-4o', 'claude-4.5-sonnet', 'claude-3-opus', 'gemini-3-pro', 'deepseek-v3', 'grok-4', 'qwen3', 'glm'],
       defaultAI: 'gpt-4o-mini'
     },
     audio: {
@@ -193,13 +202,13 @@ const MediaAISelector = ({ onAIConfigChange }) => {
     spreadsheet: {
       label: t('sections.uploadArea.aiSelector.table'),
       icon: '📊',
-      recommendedAIs: ['gpt-4o', 'claude-4.5-sonnet', 'gemini-3-pro', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
+      recommendedAIs: ['gpt-4o', 'claude-4.5-sonnet', 'gemini-3-pro', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3', 'glm'],
       defaultAI: 'gpt-4o'
     },
     web: {
       label: t('sections.uploadArea.aiSelector.website'),
       icon: '🌐',
-      recommendedAIs: ['claude-4.5-sonnet', 'gpt-4o', 'gemini-3-pro', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3'],
+      recommendedAIs: ['claude-4.5-sonnet', 'gpt-4o', 'gemini-3-pro', 'gpt-4o-mini', 'deepseek-v3', 'grok-4', 'qwen3', 'glm'],
       defaultAI: 'claude-4.5-sonnet'
     }
   };

@@ -14,6 +14,7 @@ const AI_PRICE_HINTS = {
   grok: 'Grok 4.3 : ≈ 1,25 $/M entrée · 2,50 $/M sortie.',
   kimi: 'Kimi K2 Thinking : ≈ 0,60 $/M entrée · 2,50 $/M sortie.',
   qwen3: 'Qwen3 30B A3B Instruct : ≈ 0,10 $/M entrée · 0,30 $/M sortie.',
+  glm: 'GLM 5.3 (Z.AI via OpenRouter) : ≈ 0,07 $/M entrée · 1,40 $/M sortie.',
   deepl: 'DeepL API : ≈ 20 € / million de caractères (selon offre).',
   elevenlabs: 'ElevenLabs : ≈ 0,30 $ / 1 000 caractères (indicatif).',
 
@@ -192,6 +193,13 @@ const AISelection = ({ selectedAI, onAISelect, contentTypes = { text: true, imag
       name: 'Qwen3',
       icon: 'qwen3',
       description: 'IA multimodale avancée',
+      category: 'text'
+    },
+    {
+      id: 'glm',
+      name: 'GLM 5.3',
+      icon: 'glm',
+      description: 'Z.AI - Grand modèle rapide et économique',
       category: 'text'
     },
     {

@@ -6,7 +6,7 @@ Plateforme web de génération et de publication de contenu assistée par IA (As
 ## État au 2026-11-09
 - **Facturier** : factures SCB modifiables sous le même numéro, échéance à 30 jours par défaut, numérotation serveur anti-doublon.
 - **Devis** : module `/devis`, conversion en facture (`DEV-…` → `SCB-…`), mêmes identité et style que le facturier.
-- **Modèles IA à jour** : Claude Sonnet 5.5 / Haiku 5.5, GPT-5.6 Terra / Luna, Seedream 5.0 Lite (TTI + Edit), GPT Image 2.6 (Flare + Sunburst).
+- **Modèles IA à jour** : Claude Sonnet 5.5 / Haiku 5.5, GPT-5.6 Terra / Luna, Seedream 5.0 Lite (TTI + Edit), GPT Image 2.6 (Flare + Sunburst), GLM 5.3 (Z.AI via OpenRouter, service `glm`).
 - **Images de référence** : rôles (sujet/décor/style) et force traduits en consignes de prompt.
 - **Tarifs** : affichés uniquement en infobulle sur les cartes IA (texte, image, vidéo).
 - **Erreurs fournisseurs** : messages explicites en français (crédits, modèle obsolète, clé, quota) + pop-up ciblé.

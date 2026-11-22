@@ -37,7 +37,8 @@ Comportement validé :
 
 ### 4. Modèles IA — `react-app/src/services/aiService.js`, `backend/routes/imageGeneration.js`
 - IDs actuels : `claude-sonnet-5-5`, `claude-haiku-5-5`, `gpt-5.6-terra`, `gpt-5.6-luna`,
-  `seedream/v5/lite/text-to-image`, `seedream/v5/lite/edit`.
+  `seedream/v5/lite/text-to-image`, `seedream/v5/lite/edit`,
+  `z-ai/glm-5.3` (OpenRouter, service `glm`).
 - Le payload v5 edit n'accepte **pas** `strength`, `guidance_scale`, `negative_prompt`.
 - `image_urls` est un tableau (max 10 utilisées).
 
